@@ -216,62 +216,88 @@ class StoreDescriptionViewWidget extends StatelessWidget {
        ]),
      ):
      Row(children: [
-       const Expanded(child: SizedBox()),
-       InkWell(
-         onTap: () => Get.toNamed(RouteHelper.getStoreReviewRoute(store!.id, store!.name, store!, slug: store!.slug ?? store!.name!)),
-         child: Column(children: [
-           Row(children: [
-             Icon(Icons.star, color: Colors.orange, size: 20),
-             const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+       Expanded(
+         child: InkWell(
+           onTap: () => Get.toNamed(RouteHelper.getStoreReviewRoute(store!.id, store!.name, store!, slug: store!.slug ?? store!.name!)),
+           child: Column(children: [
+             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+               Icon(Icons.star, color: Colors.orange, size: 20),
+               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+               Text(
+                 store!.avgRating!.toStringAsFixed(1),
+                 style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+               ),
+             ]),
+             const SizedBox(height: Dimensions.paddingSizeExtraSmall),
              Text(
-               store!.avgRating!.toStringAsFixed(1),
-               style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+               '${store!.ratingCount} + ${'ratings'.tr}',
+               style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+               textAlign: TextAlign.center,
+               maxLines: 1,
+               overflow: TextOverflow.ellipsis,
              ),
            ]),
-           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-           Text(
-             '${store!.ratingCount} + ${'ratings'.tr}',
-             style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
-           ),
-         ]),
+         ),
        ),
-       const Expanded(child: SizedBox()),
 
+       Expanded(
+         child: InkWell(
+           onTap: () => Get.toNamed(RouteHelper.getMapRoute(
+             AddressModel(id: store!.id, address: store!.address, latitude: store!.latitude,
+               longitude: store!.longitude, contactPersonNumber: '', contactPersonName: '', addressType: '',
+             ), 'store', Get.find<SplashController>().getModuleConfig(Get.find<SplashController>().module!.moduleType!).newVariation!,
+             storeName: store!.name, slug: store!.slug??store!.name!,
+           )),
+           child: Column(children: [
+             Icon(Icons.location_on, color: Theme.of(context).primaryColor, size: 20),
+             const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+             Text(
+               'location'.tr,
+               style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+               textAlign: TextAlign.center,
+               maxLines: 1,
+               overflow: TextOverflow.ellipsis,
+             ),
+           ]),
+         ),
+       ),
 
-       InkWell(
-         onTap: () => Get.toNamed(RouteHelper.getMapRoute(
-           AddressModel(id: store!.id, address: store!.address, latitude: store!.latitude,
-             longitude: store!.longitude, contactPersonNumber: '', contactPersonName: '', addressType: '',
-           ), 'store', Get.find<SplashController>().getModuleConfig(Get.find<SplashController>().module!.moduleType!).newVariation!,
-           storeName: store!.name, slug: store!.slug??store!.name!,
-         )),
+       Expanded(
          child: Column(children: [
-           Icon(Icons.location_on, color: Theme.of(context).primaryColor, size: 20),
-           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-           Text('location'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
-         ]),
-       ),
-       const Expanded(child: SizedBox()),
-
-       Column(children: [
-         Row(children: [
-           Icon(Icons.timer, color: Theme.of(context).primaryColor, size: 20),
-           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+             Icon(Icons.timer, color: Theme.of(context).primaryColor, size: 20),
+             const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+             Flexible(child: Text(
+               store!.deliveryTime!,
+               style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+               maxLines: 1,
+               overflow: TextOverflow.ellipsis,
+             )),
+           ]),
+           const SizedBox(height: Dimensions.paddingSizeExtraSmall),
            Text(
-             store!.deliveryTime!,
-             style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+             'delivery_time'.tr,
+             style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+             textAlign: TextAlign.center,
+             maxLines: 1,
+             overflow: TextOverflow.ellipsis,
            ),
          ]),
-         const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-         Text('delivery_time'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
-       ]),
-       (store!.delivery! && store!.freeDelivery!) ? const Expanded(child: SizedBox()) : const SizedBox(),
-       (store!.delivery! && store!.freeDelivery!) ? Column(children: [
-         Icon(Icons.money_off, color: Theme.of(context).primaryColor, size: 20),
-         const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-         Text('free_delivery'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
-       ]) : const SizedBox(),
-       const Expanded(child: SizedBox()),
+       ),
+
+       (store!.delivery! && store!.freeDelivery!) ? Expanded(
+         child: Column(children: [
+           Icon(Icons.money_off, color: Theme.of(context).primaryColor, size: 20),
+           const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+           Text(
+             'free_delivery'.tr,
+             style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor),
+             textAlign: TextAlign.center,
+             maxLines: 1,
+             overflow: TextOverflow.ellipsis,
+           ),
+         ]),
+       ) : const SizedBox(),
      ]),
 
 

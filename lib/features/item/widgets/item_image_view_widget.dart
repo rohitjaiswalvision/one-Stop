@@ -86,7 +86,7 @@ class ItemImageViewWidget extends StatelessWidget {
                     },
 
                     // onFullscreenTap: _isYoutubeUrl(mediaUrl) ? null : () => Get.dialog(ItemMediaDialog(item: item!, isCampaign: isCampaign)),
-                  ) : CustomImage(image: mediaUrl, height: 200, width: MediaQuery.of(context).size.width),
+                  ) : CustomImage(image: mediaUrl, height: 200, width: MediaQuery.of(context).size.width, fit: BoxFit.contain),
                 );
               },
               onPageChanged: (index) {
@@ -94,7 +94,7 @@ class ItemImageViewWidget extends StatelessWidget {
               },
             ) : ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: CustomImage(image: '', height: 200, width: MediaQuery.of(context).size.width),
+              child: CustomImage(image: '', height: 200, width: MediaQuery.of(context).size.width, fit: BoxFit.contain),
             ),
           ),
 
@@ -288,7 +288,7 @@ class ItemMediaPreviewWidget extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            child: CustomImage(image: isVideo ? thumbnailUrl : mediaUrl, width: width, height: height, fit: BoxFit.cover),
+            child: CustomImage(image: isVideo ? thumbnailUrl : mediaUrl, width: width, height: height, fit: BoxFit.contain),
           ),
           if(isVideo) Container(
             width: width, height: height,
@@ -567,7 +567,7 @@ class _ItemMediaVideoViewState extends State<_ItemMediaVideoView> {
         if (widget.thumbnailUrl.isNotEmpty)
           ClipRRect(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            child: CustomImage(image: widget.thumbnailUrl, fit: BoxFit.contain, width: double.infinity, height: double.infinity),
+            child: CustomImage(image: widget.thumbnailUrl, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
           )
         else
           Container(

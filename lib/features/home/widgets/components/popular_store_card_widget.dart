@@ -84,9 +84,9 @@ class PopularStoreCard extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(children: [
-                                      Text(store.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoMedium),
-                                      SizedBox(width: 8),
-                                      store.verifiedSeller == 1 ? Image.asset(Images.verifiedBadge, width: 16, height: 16) : SizedBox.shrink()
+                                      Flexible(child: Text(store.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoMedium)),
+                                      const SizedBox(width: 8),
+                                      store.verifiedSeller == 1 ? Image.asset(Images.verifiedBadge, width: 16, height: 16) : const SizedBox.shrink()
                                     ]),
                                     Text(store.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoRegular.copyWith(color: Theme.of(context).disabledColor)),
 
