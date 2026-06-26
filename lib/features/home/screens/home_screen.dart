@@ -102,7 +102,7 @@ class HomeScreen extends StatefulWidget {
       Get.find<NotificationController>().getNotificationList(reload);
       if(!Get.find<SplashController>().configModel!.moduleConfig!.module!.isRide!) {
         Get.find<CouponController>().getCouponList();
-      }
+      } 
     }
     Get.find<SplashController>().getModules();
     if(Get.find<SplashController>().module == null && Get.find<SplashController>().configModel!.module == null) {

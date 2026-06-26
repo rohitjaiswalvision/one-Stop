@@ -10,6 +10,7 @@ import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:sixam_mart/features/language/widgets/language_bottom_sheet_widget.dart';
 
 class SignInScreen extends StatefulWidget {
   final bool exitFromApp;
@@ -65,7 +66,8 @@ class SignInScreenState extends State<SignInScreen> {
       },
       child: Scaffold(
         backgroundColor: ResponsiveHelper.isDesktop(context) ? Colors.transparent : Theme.of(context).cardColor,
-        appBar: (ResponsiveHelper.isDesktop(context) ? null : !widget.exitFromApp ? AppBar(leading: IconButton(
+        appBar: (ResponsiveHelper.isDesktop(context) ? null : AppBar(
+          leading: !widget.exitFromApp ? IconButton(
             onPressed: () {
               if(widget.fromNotification || widget.fromResetPassword) {
                 Navigator.pushNamed(context, RouteHelper.getInitialRoute());
@@ -76,9 +78,15 @@ class SignInScreenState extends State<SignInScreen> {
               }
             },
             icon: Icon(Icons.arrow_back_ios_rounded, color: Theme.of(context).textTheme.bodyLarge!.color),
-          ),
-          elevation: 0, backgroundColor: Theme.of(context).cardColor, actions: const [SizedBox()],
-        ) : null),
+          ) : const SizedBox(),
+          elevation: 0, backgroundColor: Theme.of(context).cardColor,
+          actions: [
+            IconButton(
+              onPressed: () => Get.bottomSheet(const LanguageBottomSheetWidget(), isScrollControlled: true),
+              icon: Icon(Icons.language, color: Theme.of(context).textTheme.bodyLarge!.color),
+            ),
+          ],
+        )),
         endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
 
         body: SafeArea(
@@ -95,12 +103,18 @@ class SignInScreenState extends State<SignInScreen> {
               child: SingleChildScrollView(
                 child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
 
-                  ResponsiveHelper.isDesktop(context) ? Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      onPressed: () => Get.back(),
-                      icon: const Icon(Icons.clear),
-                    ),
+                  ResponsiveHelper.isDesktop(context) ? Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: () => Get.bottomSheet(const LanguageBottomSheetWidget(), isScrollControlled: true),
+                        icon: const Icon(Icons.language),
+                      ),
+                      IconButton(
+                        onPressed: () => Get.back(),
+                        icon: const Icon(Icons.clear),
+                      ),
+                    ],
                   ) : const SizedBox(),
 
                   Image.asset(Images.logo, width: 125),
