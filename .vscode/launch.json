@@ -6,6 +6,12 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "User app and web (Flutter RMX3782)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
       "name": "Flutter App (Realme)",
       "request": "launch",
       "type": "dart",

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sixamtech.sixam_mart_user">
+    package="com.visionvivante.onestop">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -42,7 +42,7 @@
             android:required="false"/>
 
         <meta-data android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCaCSJ0BZItSyXqBv8vpD1N4WBffJeKhLQ"/>
+            android:value="AIzaSyD14lEm23LccLi4rwzz9K5GP-e3qVkr8jE"/>
 
         <activity
             android:name=".MainActivity"
@@ -103,7 +103,7 @@
         <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
 
         <activity
-            android:name="com.sixamtech.sixam_mart_user.sign_in_with_apple.SignInWithAppleCallback"
+            android:name="com.visionvivante.onestop.sign_in_with_apple.SignInWithAppleCallback"
             android:exported="true"
             >
             <intent-filter>

@@ -16,7 +16,7 @@ class LocationRepository implements LocationRepositoryInterface {
 
   @override
   Future<String> getAddressFromGeocode(LatLng latLng) async {
-    Response response = await apiClient.getData('${AppConstants.geocodeUri}?lat=${latLng.latitude}&lng=${latLng.longitude}', handleError: false);
+    Response response = await apiClient.getData('https://6ammart-admin.6amtech.com/api/v1/config/geocode-api?lat=${latLng.latitude}&lng=${latLng.longitude}', handleError: false);
     String address = 'Unknown Location Found';
     if(response.statusCode == 200 && response.body['status'] == 'OK') {
       address = response.body['results'][0]['formatted_address'].toString();

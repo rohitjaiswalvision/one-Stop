@@ -10,7 +10,7 @@ class CustomInkWell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return Material(  
       color: Colors.transparent,
       child: InkWell(
         onTap: (onTap == null) ? null : () {

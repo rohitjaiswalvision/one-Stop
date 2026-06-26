@@ -1081,8 +1081,8 @@ class CheckoutController extends GetxController implements GetxService {
           String? hostname = html.window.location.hostname;
           String protocol = html.window.location.protocol;
           String selectedUrl;
-          selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=$orderID&&customer_id=${Get.find<ProfileController>().userInfoModel?.id ?? (userID.isNotEmpty ? userID : AuthHelper.getGuestId())}'
-              '&payment_method=$digitalPaymentName&payment_platform=web&&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=$orderID&status=';
+          selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=$orderID&customer_id=${Get.find<ProfileController>().userInfoModel?.id ?? (userID.isNotEmpty ? userID : AuthHelper.getGuestId())}'
+              '&payment_method=$digitalPaymentName&payment_platform=web&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=$orderID&status=';
 
           html.window.open(selectedUrl,"_self");
         } else{
@@ -1133,8 +1133,8 @@ class CheckoutController extends GetxController implements GetxService {
         String? hostname = html.window.location.hostname;
         String protocol = html.window.location.protocol;
         String selectedUrl;
-        selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=${paymentData.orderID}&&customer_id=${paymentData.userId ?? AuthHelper.getGuestId()}'
-            '&payment_method=$digitalPaymentName&payment_platform=web&&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=${paymentData.orderID}&status=';
+        selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=${paymentData.orderID}&customer_id=${paymentData.userId ?? AuthHelper.getGuestId()}'
+            '&payment_method=$digitalPaymentName&payment_platform=web&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=${paymentData.orderID}&status=';
 
         html.window.open(selectedUrl,"_self");
       } else{

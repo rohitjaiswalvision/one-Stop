@@ -55,7 +55,7 @@ class _PickMapScreenState extends State<PickMapScreen> {
   @override
   void initState() {
     super.initState();
-    print('GOOGLE MAP KEY: AIzaSyCaCSJ0BZItSyXqBv8vpD1N4WBffJeKhLQ');
+    print('GOOGLE MAP KEY: AIzaSyD14lEm23LccLi4rwzz9K5GP-e3qVkr8jE');
 
     if(widget.fromAddAddress) {
       Get.find<LocationController>().setPickData();

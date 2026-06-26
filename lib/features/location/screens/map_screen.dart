@@ -39,7 +39,7 @@ class MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    print('GOOGLE MAP KEY: AIzaSyCaCSJ0BZItSyXqBv8vpD1N4WBffJeKhLQ');
+    print('GOOGLE MAP KEY: AIzaSyD14lEm23LccLi4rwzz9K5GP-e3qVkr8jE');
 
     _latLng = LatLng(double.parse(widget.address.latitude!), double.parse(widget.address.longitude!));
     // _setMarker();

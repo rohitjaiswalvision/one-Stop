@@ -17,6 +17,10 @@ class OrderService implements OrderServiceInterface {
   final OrderRepositoryInterface orderRepositoryInterface;
   OrderService({required this.orderRepositoryInterface});
 
+  // Guard against double redirect: both onLoadStart and onLoadStop call paymentRedirect
+  // for the same URL. This flag ensures navigation fires only once per session.
+  static bool _hasRedirected = false;
+
 
   @override
   Future<PaginatedOrderModel?> getRunningOrderList(int offset, bool fromDashboard) async {
@@ -145,9 +149,15 @@ class OrderService implements OrderServiceInterface {
           : url.startsWith('${AppConstants.baseUrl}/payment-fail');
       bool isCancel = forSubscription ? url.startsWith('${AppConstants.baseUrl}/subscription-cancel')
           : url.startsWith('${AppConstants.baseUrl}/payment-cancel');
+
       if (isSuccess || isFailed || isCancel) {
-        canRedirect = false;
+        // Prevent double navigation: both onLoadStart and onLoadStop fire for the same URL
+        if (_hasRedirected) return;
+        _hasRedirected = true;
         onClose();
+      } else {
+        // Reset the flag when navigating to non-terminal pages
+        _hasRedirected = false;
       }
 
       if(forOrder){
@@ -155,7 +165,6 @@ class OrderService implements OrderServiceInterface {
           Get.offNamed(RouteHelper.getOrderSuccessRoute(orderID, contactNumber, createAccount: createAccount, guestId: guestId));
         } else if (isFailed || isCancel) {
           Get.offNamed(RouteHelper.getDigitalPaymentFailedScreen(orderID, createAccount: createAccount));
-          // Get.offNamed(RouteHelper.getOrderSuccessRoute(orderID, contactNumber, createAccount: createAccount, guestId: guestId));
         }
       } else{
         if(isSuccess || isFailed || isCancel) {
@@ -172,7 +181,6 @@ class OrderService implements OrderServiceInterface {
           }
         }
       }
-
     }
   }
 

@@ -99,6 +99,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "new_logo.png"
+  image_path_ios: "ios_icon.jpg"
 
 flutter:
   uses-material-design: true

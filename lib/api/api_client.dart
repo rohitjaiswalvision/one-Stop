@@ -77,7 +77,8 @@ class ApiClient extends GetxService {
       if (kDebugMode) {
         log('====> API Call: $uri\nHeader: ${headers ?? _mainHeaders}');
       }
-      http.Response response = await http.get(Uri.parse(appBaseUrl + uri), headers: headers ?? _mainHeaders).timeout(Duration(seconds: timeoutInSeconds));
+      String url = uri.startsWith('http') ? uri : appBaseUrl + uri;
+      http.Response response = await http.get(Uri.parse(url), headers: headers ?? _mainHeaders).timeout(Duration(seconds: timeoutInSeconds));
       return handleResponse(response, uri, handleError);
     } catch (e) {
       if (kDebugMode) {

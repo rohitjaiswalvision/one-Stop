@@ -215,6 +215,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         _isDigitalPaymentActive = _checkDigitalPaymentActive(store: checkoutController.store);
         _isOfflinePaymentActive = Get.find<SplashController>().configModel!.offlinePaymentStatus! && _checkZoneOfflinePaymentOnOff(addressModel: AddressHelper.getUserAddressFromSharedPref(), checkoutController: checkoutController);
         print('====> COD : $_isCashOnDeliveryActive, Digital : $_isDigitalPaymentActive, Offline : $_isOfflinePaymentActive');
+        print('====> Active Payment Methods count: ${Get.find<SplashController>().configModel!.activePaymentMethodList?.length}');
 
         if(checkoutController.isFirstTimeCodActive && (_isCashOnDeliveryActive ?? false)){
           Future.delayed(Duration.zero, () => checkoutController.setPaymentMethod(0));

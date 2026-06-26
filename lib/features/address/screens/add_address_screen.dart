@@ -72,7 +72,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   @override
   void initState() {
     super.initState();
-    print('GOOGLE MAP KEY: AIzaSyCaCSJ0BZItSyXqBv8vpD1N4WBffJeKhLQ');
+    print('GOOGLE MAP KEY: AIzaSyD14lEm23LccLi4rwzz9K5GP-e3qVkr8jE');
     initCall();
 
     if(widget.address != null) {
