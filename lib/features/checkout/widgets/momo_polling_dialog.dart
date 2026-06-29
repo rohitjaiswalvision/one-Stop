@@ -7,6 +7,8 @@ import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:flutter/foundation.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 
 class MomoPollingDialog extends StatefulWidget {
   final String paymentId;
@@ -63,7 +65,7 @@ class _MomoPollingDialogState extends State<MomoPollingDialog> {
 
       try {
         final response = await http.get(
-          Uri.parse('https://onestop.visionvivante.in/payment/momo/check-status?payment_id=${widget.paymentId}&reference_id=${widget.paymentId}'),
+          Uri.parse('${AppConstants.baseUrl}/payment/momo/check-status?payment_id=${widget.paymentId}&reference_id=${widget.paymentId}'),
           headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
@@ -78,6 +80,25 @@ class _MomoPollingDialogState extends State<MomoPollingDialog> {
 
           if (status == 'SUCCESSFUL') {
             timer.cancel();
+            
+            if (data['redirect_url'] != null) {
+              try {
+                Uri redirectUri = Uri.parse(data['redirect_url']);
+                String? token = redirectUri.queryParameters['token'];
+                if (token != null && token.isNotEmpty) {
+                  String normalizedToken = base64.normalize(token);
+                  String decoded = utf8.decode(base64.decode(normalizedToken));
+                  if (kDebugMode) {
+                    print('Decoded MoMo Callback Token: $decoded');
+                  }
+                }
+              } catch (e) {
+                if (kDebugMode) {
+                  print('Error decoding token: $e');
+                }
+              }
+            }
+
             Get.back(); 
             Get.offNamed(RouteHelper.getOrderSuccessRoute(widget.orderId, widget.contactNumber, createAccount: widget.createAccount, guestId: widget.guestId));
           } else if (status == 'FAILED') {

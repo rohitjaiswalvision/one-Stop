@@ -60,19 +60,29 @@ class CheckoutRepository implements CheckoutRepositoryInterface {
 
   @override
   Future<Response> placeOrder(PlaceOrderBodyModel orderBody, List<MultipartBody>? orderAttachment, List<String>? savedImages) async {
-    Map<String, String> body = orderBody.toJson();
+    Map<String, dynamic> body = orderBody.toJson();
     if(savedImages != null && savedImages.isNotEmpty) {
       final List<String> cleanedSavedImages = savedImages.map((image) => image.trim()).where((image) => image.isNotEmpty).toList();
       if(cleanedSavedImages.isNotEmpty) {
-        body['saved_images'] = jsonEncode(cleanedSavedImages);
-        for(int index = 0; index < cleanedSavedImages.length; index++) {
-          body['saved_images[$index]'] = cleanedSavedImages[index];
-        }
+        body['saved_images'] = cleanedSavedImages;
       }
     }
     log("order Attachment: ${orderAttachment?.map((e) => e.file?.name).toList()}");
     log("Order Body: $body");
-    return await apiClient.postMultipartData(AppConstants.placeOrderUri, body, orderAttachment ?? [], handleError: false);
+
+    if (orderAttachment != null && orderAttachment.isNotEmpty) {
+      Map<String, String> multipartBody = {};
+      body.forEach((key, value) {
+        if (value is List || value is Map) {
+          multipartBody[key] = jsonEncode(value);
+        } else {
+          multipartBody[key] = value.toString();
+        }
+      });
+      return await apiClient.postMultipartData(AppConstants.placeOrderUri, multipartBody, orderAttachment, handleError: false);
+    } else {
+      return await apiClient.postData(AppConstants.placeOrderUri, body, handleError: false);
+    }
   }
 
   @override

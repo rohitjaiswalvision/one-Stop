@@ -45,7 +45,8 @@ class PaymentScreenState extends State<PaymentWebViewScreen> {
     super.initState();
 
     if(widget.addFundUrl == '' && widget.addFundUrl!.isEmpty && widget.subscriptionUrl == '' && widget.subscriptionUrl!.isEmpty){
-      selectedUrl = '${AppConstants.baseUrl}/payment-mobile?customer_id=${widget.orderModel.userId == 0 ? widget.guestId : widget.orderModel.userId}&order_id=${widget.orderModel.id}&payment_method=${widget.paymentMethod}';
+      final String callbackUrl = Uri.encodeComponent('${AppConstants.baseUrl}/payment-success');
+      selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=${widget.orderModel.id}&customer_id=${widget.orderModel.userId == 0 ? widget.guestId : widget.orderModel.userId}&payment_method=${widget.paymentMethod}&payment_platform=app&callback=$callbackUrl';
     } else if(widget.subscriptionUrl != '' && widget.subscriptionUrl!.isNotEmpty){
       selectedUrl = widget.subscriptionUrl!;
     } else{

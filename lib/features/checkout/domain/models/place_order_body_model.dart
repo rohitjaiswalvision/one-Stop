@@ -208,75 +208,75 @@ class PlaceOrderBodyModel {
     _bringChangeAmount = json['bring_change_amount'] != null ? double.parse(json['bring_change_amount'].toString()) : null;
   }
 
-  Map<String, String> toJson() {
-    final Map<String, String> data = <String, String>{};
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
     if (_cart != null) {
-      data['cart'] = jsonEncode(_cart!.map((v) => v.toJson()).toList());
+      data['cart'] = _cart!.map((v) => v.toJson()).toList();
     }
     if (_couponDiscountAmount != null) {
-      data['coupon_discount_amount'] = _couponDiscountAmount.toString();
+      data['coupon_discount_amount'] = _couponDiscountAmount;
     }
-    data['order_amount'] = _orderAmount.toString();
-    data['order_type'] = _orderType!;
-    data['payment_method'] = _paymentMethod!;
+    data['order_amount'] = _orderAmount;
+    data['order_type'] = _orderType;
+    data['payment_method'] = _paymentMethod;
     if (_orderNote != null && _orderNote!.isNotEmpty) {
-      data['order_note'] = _orderNote!;
+      data['order_note'] = _orderNote;
     }
     if (_couponCode != null) {
-      data['coupon_code'] = _couponCode!;
+      data['coupon_code'] = _couponCode;
     }
     if (_storeId != null) {
-      data['store_id'] = _storeId.toString();
+      data['store_id'] = _storeId;
     }
-    data['distance'] = _distance.toString();
+    data['distance'] = _distance;
     if (_scheduleAt != null) {
-      data['schedule_at'] = _scheduleAt!;
+      data['schedule_at'] = _scheduleAt;
     }
-    data['discount_amount'] = _discountAmount.toString();
-    data['tax_amount'] = _taxAmount.toString();
+    data['discount_amount'] = _discountAmount;
+    data['tax_amount'] = _taxAmount;
     data['address'] = _address ?? '';
     if (_receiverDetails != null) {
-      data['receiver_details'] = jsonEncode(_receiverDetails!.toJson());
+      data['receiver_details'] = _receiverDetails!.toJson();
     }
     data['latitude'] = _latitude ?? '';
     data['longitude'] = _longitude ?? '';
     if (_senderZoneId != null) {
-      data['sender_zone_id'] = _senderZoneId.toString();
+      data['sender_zone_id'] = _senderZoneId;
     }
     data['contact_person_name'] = _contactPersonName ?? '';
     data['contact_person_number'] = _contactPersonNumber ?? '';
     data['address_type'] = _addressType ?? '';
     if (_parcelCategoryId != null) {
-      data['parcel_category_id'] = _parcelCategoryId!;
+      data['parcel_category_id'] = _parcelCategoryId;
     }
     if (_chargePayer != null) {
-      data['charge_payer'] = _chargePayer!;
+      data['charge_payer'] = _chargePayer;
     }
-    data['road'] = _streetNumber.toString();
-    data['house'] = _house.toString();
-    data['floor'] = _floor.toString();
-    data['dm_tips'] = _dmTips.toString();
-    data['unavailable_item_note'] = _unavailableItemNote.toString();
-    data['delivery_instruction'] = _deliveryInstruction.toString();
+    data['road'] = _streetNumber;
+    data['house'] = _house;
+    data['floor'] = _floor;
+    data['dm_tips'] = _dmTips;
+    data['unavailable_item_note'] = _unavailableItemNote;
+    data['delivery_instruction'] = _deliveryInstruction;
     if (_cutlery != null) {
-      data['cutlery'] = _cutlery.toString();
+      data['cutlery'] = _cutlery;
     }
-    data['partial_payment'] = _partialPayment.toString();
-    if (_guestId != 0) {
-      data['guest_id'] = _guestId.toString();
+    data['partial_payment'] = _partialPayment;
+    if (_guestId != null && _guestId != 0) {
+      data['guest_id'] = _guestId;
     }
-    data['is_buy_now'] = _isBuyNow.toString();
+    data['is_buy_now'] = _isBuyNow;
     if (_guestEmail != null) {
-      data['contact_person_email'] = _guestEmail!;
+      data['contact_person_email'] = _guestEmail;
     }
-    data['extra_packaging_amount'] = _extraPackagingAmount.toString();
-    data['create_new_user'] = _createNewUser.toString();
+    data['extra_packaging_amount'] = _extraPackagingAmount;
+    data['create_new_user'] = _createNewUser;
     if (_password != null) {
-      data['password'] = _password!;
+      data['password'] = _password;
     }
-    data['is_prescription'] = isPrescriptionOrder == true ? 'true' : 'false';
+    data['is_prescription'] = isPrescriptionOrder == true;
     if(_bringChangeAmount != null) {
-      data['bring_change_amount'] = _bringChangeAmount.toString();
+      data['bring_change_amount'] = _bringChangeAmount;
     }
     return data;
   }

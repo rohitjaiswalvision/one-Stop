@@ -22,7 +22,6 @@ class OrderService implements OrderServiceInterface {
   // for the same URL. This flag ensures navigation fires only once per session.
   static bool _hasRedirected = false;
 
-
   @override
   Future<PaginatedOrderModel?> getRunningOrderList(int offset, bool fromDashboard) async {
     return await orderRepositoryInterface.getList(isRunningOrder: true, offset: offset, fromDashboard: fromDashboard);
@@ -114,10 +113,9 @@ class OrderService implements OrderServiceInterface {
   @override
   Future<bool> switchToCOD(String? orderID, {String? guestId}) async {
     bool isSuccess = false;
-    Response response = await orderRepositoryInterface.switchToCOD(orderID,guestId: guestId);
+    Response response = await orderRepositoryInterface.switchToCOD(orderID, guestId: guestId);
     if (response.statusCode == 200) {
       isSuccess = true;
-      // await Get.offAllNamed(RouteHelper.getInitialRoute());
       showCustomSnackBar(response.body['message'], isError: false);
     }
     return isSuccess;
@@ -129,7 +127,6 @@ class OrderService implements OrderServiceInterface {
     Response response = await orderRepositoryInterface.switchToWalletPayment(orderID);
     if (response.statusCode == 200) {
       isSuccess = true;
-      // await Get.offAllNamed(RouteHelper.getInitialRoute());
       showCustomSnackBar(response.body['message'], isError: false);
     }
     return isSuccess;
@@ -146,7 +143,7 @@ class OrderService implements OrderServiceInterface {
     if(canRedirect) {
       Uri uri = Uri.parse(url);
       String? paymentId = uri.queryParameters['payment_id'];
-      
+
       if (forOrder && paymentId != null && paymentId.isNotEmpty) {
         if (_hasRedirected) return;
         _hasRedirected = true;
@@ -178,14 +175,14 @@ class OrderService implements OrderServiceInterface {
         _hasRedirected = false;
       }
 
-      if(forOrder){
+      if(forOrder) {
         if (isSuccess) {
           Get.offNamed(RouteHelper.getOrderSuccessRoute(orderID, contactNumber, createAccount: createAccount, guestId: guestId));
         } else if (isFailed || isCancel) {
-          showCustomSnackBar('Payment Failed at URL: $url', isError: true, showToaster: true);
+          showCustomSnackBar('Payment Failed at URL: $url', isError: true);
           Get.offNamed(RouteHelper.getDigitalPaymentFailedScreen(orderID, createAccount: createAccount));
         }
-      } else{
+      } else {
         if(isSuccess || isFailed || isCancel) {
           if(Get.currentRoute.contains(RouteHelper.payment)) {
             Get.back();
