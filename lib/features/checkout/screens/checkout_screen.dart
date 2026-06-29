@@ -32,6 +32,8 @@ import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/common/widgets/footer_view.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 import 'package:sixam_mart/common/widgets/not_logged_in_screen.dart';
+import 'package:sixam_mart/features/checkout/widgets/offline_success_dialog.dart';
+import 'package:sixam_mart/features/checkout/widgets/verify_momo_dialog.dart';
 import 'package:sixam_mart/features/checkout/widgets/checkout_screen_shimmer_view.dart';
 import 'package:sixam_mart/features/checkout/widgets/payment_method_bottom_sheet.dart';
 import 'package:get/get.dart';
@@ -93,7 +95,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> initCall() async {
-
+    Get.find<CheckoutController>().loadPendingVerification();
 
     bool isLoggedIn = AuthHelper.isLoggedIn();
     Get.find<CheckoutController>().resetOrderTax();
@@ -494,18 +496,37 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _orderPlaceButton(CheckoutController checkoutController, bool todayClosed, bool tomorrowClosed,
       double orderAmount, double? deliveryCharge, double tax, double? discount, double total, double? maxCodOrderAmount, bool isPrescriptionRequired) {
-    return Container(
-      width: Dimensions.webMaxWidth,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeLarge),
-      child: SafeArea(
-        child: CustomButton(
-          isLoading: checkoutController.isLoading,
-          buttonText: 'place_order'.tr,
-          onPressed: checkoutController.acceptTerms ? () async {
-          bool isAvailable = true;
-          DateTime scheduleStartDate = DateTime.now();
-          DateTime scheduleEndDate = DateTime.now();
+    return Column(
+      children: [
+        if (checkoutController.paymentMethodIndex == 4)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeSmall),
+            child: TextField(
+              controller: checkoutController.momoPhoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: 'Mobile Money Number',
+                hintText: '231...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
+              ),
+            ),
+          ),
+        Container(
+          width: Dimensions.webMaxWidth,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeLarge),
+          child: SafeArea(
+            child: CustomButton(
+              isLoading: checkoutController.isLoading,
+              buttonText: checkoutController.hasPendingVerify ? 'Verify Payment' : (checkoutController.paymentMethodIndex == 3 ? 'track_order'.tr : 'place_order'.tr),
+              onPressed: (checkoutController.acceptTerms && !checkoutController.isLoading) ? () async {
+                if (checkoutController.hasPendingVerify) {
+                  Get.dialog(const VerifyMomoDialog(), barrierDismissible: false);
+                  return;
+                }
+                bool isAvailable = true;
+                DateTime scheduleStartDate = DateTime.now();
+                DateTime scheduleEndDate = DateTime.now();
           bool isGuestLogIn = AuthHelper.isGuestLoggedIn();
           bool isDesktop = ResponsiveHelper.isDesktop(context);
           if(checkoutController.timeSlots == null || checkoutController.timeSlots!.isEmpty) {
@@ -726,10 +747,27 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 bringChangeAmount: checkoutController.paymentMethodIndex == 0 && checkoutController.exchangeAmount > 0 ? checkoutController.exchangeAmount : null,
               );
 
-              checkoutController.placeOrder(
-                placeOrderBody, checkoutController.store!.zoneId, total, maxCodOrderAmount, widget.fromCart,
-                _isCashOnDeliveryActive!, checkoutController.pickedPrescriptions, isOfflinePay: checkoutController.paymentMethodIndex == 3,
-              );
+              if (checkoutController.paymentMethodIndex == 4) {
+                bool success = await checkoutController.initiateMomoPayment(
+                  checkoutController.momoPhoneController.text.trim(),
+                  total.toString(),
+                  placeOrderBody,
+                  checkoutController.store!.zoneId,
+                  total,
+                  maxCodOrderAmount,
+                  widget.fromCart,
+                  _isCashOnDeliveryActive!,
+                  checkoutController.pickedPrescriptions,
+                );
+                if (success) {
+                  Get.dialog(const VerifyMomoDialog(), barrierDismissible: false);
+                }
+              } else {
+                checkoutController.placeOrder(
+                  placeOrderBody, checkoutController.store!.zoneId, total, maxCodOrderAmount, widget.fromCart,
+                  _isCashOnDeliveryActive!, checkoutController.pickedPrescriptions, isOfflinePay: checkoutController.paymentMethodIndex == 3,
+                );
+              }
             }else{
               checkoutController.placePrescriptionOrder(storeId: widget.storeId,
                 zoneID: checkoutController.store!.zoneId, distance: checkoutController.distance,
@@ -747,6 +785,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           }
         } : null),
       ),
+      ),
+      ],
     );
   }
 

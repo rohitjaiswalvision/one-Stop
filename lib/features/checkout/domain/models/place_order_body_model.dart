@@ -141,6 +141,7 @@ class PlaceOrderBodyModel {
   int? get senderZoneId => _senderZoneId;
   String? get contactPersonName => _contactPersonName;
   String? get contactPersonNumber => _contactPersonNumber;
+  String? get addressType => _addressType;
   String? get parcelCategoryId => _parcelCategoryId;
   String? get chargePayer => _chargePayer;
   String? get streetNumber => _streetNumber;

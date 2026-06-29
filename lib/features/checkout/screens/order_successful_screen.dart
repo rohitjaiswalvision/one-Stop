@@ -53,7 +53,7 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
       Get.find<OrderController>().trackOrder(orderId.toString(), null, false, contactNumber: widget.contactPersonNumber).then((v) {
         if(orderController.trackModel != null) {
           bool success = orderController.trackModel!.paymentStatus == 'paid' || orderController.trackModel!.paymentMethod == 'cash_on_delivery'
-              || orderController.trackModel!.paymentMethod == 'partial_payment' || orderController.trackModel!.paymentMethod == 'wallet';
+              || orderController.trackModel!.paymentMethod == 'partial_payment' || orderController.trackModel!.paymentMethod == 'wallet' || orderController.trackModel!.paymentMethod == 'momo';
 
           if (!success && !Get.isDialogOpen! && orderController.trackModel!.orderStatus != 'canceled' && Get.currentRoute.startsWith(RouteHelper.orderSuccess)) {
             Get.find<OrderController>().getPaymentFailedDetails(orderId);
@@ -83,14 +83,14 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
           if(orderController.trackModel != null) {
             total = ((orderController.trackModel!.orderAmount! / 100) * Get.find<SplashController>().configModel!.loyaltyPointItemPurchasePoint!);
             success = orderController.trackModel!.paymentStatus == 'paid' || orderController.trackModel!.paymentMethod == 'cash_on_delivery'
-              || orderController.trackModel!.paymentMethod == 'partial_payment' || orderController.trackModel!.paymentMethod == 'wallet';
+              || orderController.trackModel!.paymentMethod == 'partial_payment' || orderController.trackModel!.paymentMethod == 'wallet' || orderController.trackModel!.paymentMethod == 'momo';
             parcel = orderController.trackModel!.orderType == 'parcel';
             takeAway = orderController.trackModel!.orderType == 'take_away';
           }
 
           if(orderController.paymentModel != null && GetPlatform.isWeb) {
             success = orderController.paymentModel!.paymentStatus == 'paid'|| orderController.paymentModel!.paymentMethod == 'cash_on_delivery'
-                /*|| orderController.trackModel!.paymentMethod == 'partial_payment' */ || orderController.paymentModel!.paymentMethod == 'wallet';
+                /*|| orderController.trackModel!.paymentMethod == 'partial_payment' */ || orderController.paymentModel!.paymentMethod == 'wallet' || orderController.paymentModel!.paymentMethod == 'momo';
             total = ((orderController.paymentModel!.orderAmount! / 100) * Get.find<SplashController>().configModel!.loyaltyPointItemPurchasePoint!);
             parcel = orderController.paymentModel!.orderType == 'parcel';
             takeAway = orderController.paymentModel!.orderType == 'take_away';
