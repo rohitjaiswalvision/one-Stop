@@ -12,6 +12,7 @@ import 'package:sixam_mart/features/order/domain/services/order_service_interfac
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
+import 'package:sixam_mart/features/checkout/widgets/momo_polling_dialog.dart';
 
 class OrderService implements OrderServiceInterface {
   final OrderRepositoryInterface orderRepositoryInterface;
@@ -143,6 +144,23 @@ class OrderService implements OrderServiceInterface {
     bool forSubscription = (subscriptionUrl != null && subscriptionUrl.isNotEmpty && addFundUrl == '' && addFundUrl!.isEmpty);
 
     if(canRedirect) {
+      Uri uri = Uri.parse(url);
+      String? paymentId = uri.queryParameters['payment_id'];
+      
+      if (forOrder && paymentId != null && paymentId.isNotEmpty) {
+        if (_hasRedirected) return;
+        _hasRedirected = true;
+        onClose();
+        Get.dialog(MomoPollingDialog(
+          paymentId: paymentId,
+          orderId: orderID,
+          contactNumber: contactNumber ?? '',
+          createAccount: createAccount,
+          guestId: guestId,
+        ), barrierDismissible: false);
+        return;
+      }
+
       bool isSuccess = forSubscription ? url.startsWith('${AppConstants.baseUrl}/subscription-success')
           : url.startsWith('${AppConstants.baseUrl}/payment-success');
       bool isFailed = forSubscription ? url.startsWith('${AppConstants.baseUrl}/subscription-fail')
@@ -164,6 +182,7 @@ class OrderService implements OrderServiceInterface {
         if (isSuccess) {
           Get.offNamed(RouteHelper.getOrderSuccessRoute(orderID, contactNumber, createAccount: createAccount, guestId: guestId));
         } else if (isFailed || isCancel) {
+          showCustomSnackBar('Payment Failed at URL: $url', isError: true, showToaster: true);
           Get.offNamed(RouteHelper.getDigitalPaymentFailedScreen(orderID, createAccount: createAccount));
         }
       } else{

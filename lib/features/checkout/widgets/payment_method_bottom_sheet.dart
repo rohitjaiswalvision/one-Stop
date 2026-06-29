@@ -159,20 +159,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
                     widget.isCashOnDeliveryActive && notHideCod && widget.paymentModel == null ? changeAmountView(checkoutController) : const SizedBox(),
 
-                    paymentButtonView(
-                      padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
-                      title: 'Mobile Money (MoMo)',
-                      isSelected: checkoutController.paymentMethodIndex == 4,
-                      disablePayments: disablePayments,
-                      onTap: disablePayments ? null : () {
-                        checkoutController.setPaymentMethod(4);
-                        if (showChangeAmount) {
-                          setState(() {
-                            showChangeAmount = false;
-                          });
-                        }
-                      },
-                    ),
+
 
                     widget.isDigitalPaymentActive && notHideDigital && Get.find<SplashController>().configModel!.activePaymentMethodList!.isNotEmpty ? Container(
                       decoration: BoxDecoration(
