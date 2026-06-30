@@ -12,7 +12,7 @@ void showCartSnackBar() {
       right: ResponsiveHelper.isDesktop(Get.context) ? Get.context!.width*0.7 : Dimensions.paddingSizeSmall,
       top: Dimensions.paddingSizeSmall, bottom: Dimensions.paddingSizeSmall, left: Dimensions.paddingSizeSmall,
     ),
-    duration: const Duration(seconds: 3),
+    duration: const Duration(seconds: 2),
     backgroundColor: Colors.green,
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
@@ -20,7 +20,7 @@ void showCartSnackBar() {
     action: SnackBarAction(label: 'view_cart'.tr, onPressed: () => Get.toNamed(RouteHelper.getCartRoute()), textColor: Colors.white),
   ));
 
-  Future.delayed(Duration(seconds: 3), () {
+  Future.delayed(Duration(seconds: 2), () {
     ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
   });
 }
