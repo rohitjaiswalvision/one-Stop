@@ -87,7 +87,7 @@ class _PickMapScreenState extends State<PickMapScreen> {
       appBar: widget.fromGuestCheckout && !ResponsiveHelper.isDesktop(context) ? CustomAppBar(title: 'delivery_address'.tr) : null,
       endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
       body: SafeArea(child: Center(child: Container(
-        height:  ResponsiveHelper.isDesktop(context) ? 600 : null,
+        height:  ResponsiveHelper.isDesktop(context) ? 600 : MediaQuery.of(context).size.height,
         width: ResponsiveHelper.isDesktop(context) ? 700 : Dimensions.webMaxWidth,
         decoration: context.width > 700 ? BoxDecoration(
           color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(Dimensions.radiusSmall),

@@ -199,7 +199,7 @@ class BottomButton extends StatelessWidget {
             side: BorderSide(width: 1, color: Theme.of(context).primaryColor),
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
           ),
-          minimumSize: const Size(Dimensions.webMaxWidth, 50),
+          minimumSize: const Size(double.infinity, 50),
           padding: EdgeInsets.zero,
         ),
         onPressed: () {

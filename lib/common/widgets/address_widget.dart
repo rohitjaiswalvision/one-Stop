@@ -42,31 +42,27 @@ class AddressWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Flexible(
-                      child: Row(children: [
-                        Image.asset(
-                          address!.addressType == 'home' ? Images.homeIcon : address!.addressType == 'office' ? Images.workIcon : Images.otherIcon,
-                          color: Theme.of(context).primaryColor, height: ResponsiveHelper.isDesktop(context) ? 25 : 20, width: ResponsiveHelper.isDesktop(context) ? 25 : 20,
-                        ),
-                        const SizedBox(width: Dimensions.paddingSizeSmall),
+                    Row(children: [
+                      Image.asset(
+                        address!.addressType == 'home' ? Images.homeIcon : address!.addressType == 'office' ? Images.workIcon : Images.otherIcon,
+                        color: Theme.of(context).primaryColor, height: ResponsiveHelper.isDesktop(context) ? 25 : 20, width: ResponsiveHelper.isDesktop(context) ? 25 : 20,
+                      ),
+                      const SizedBox(width: Dimensions.paddingSizeSmall),
 
-                        Expanded(
-                          child: Text(
-                            address!.addressType!.tr,
-                            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
-                            maxLines: 1, overflow: TextOverflow.ellipsis,
-                          ),
+                      Expanded(
+                        child: Text(
+                          address!.addressType!.tr,
+                          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
                         ),
-                      ]),
-                    ),
+                      ),
+                    ]),
                     const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
-                    Flexible(
-                      child: Text(
-                        address!.address!,
-                        style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                      ),
+                    Text(
+                      address!.address!,
+                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                     ),
                   ]),
                 ),
