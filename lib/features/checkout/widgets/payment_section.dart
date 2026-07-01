@@ -33,8 +33,10 @@ class PaymentSection extends StatelessWidget {
             if(isCashOnDeliveryActive || isDigitalPaymentActive || isWalletActive || isOfflinePaymentActive){
               Get.bottomSheet(
                 PaymentMethodBottomSheet(
-                  isCashOnDeliveryActive: isCashOnDeliveryActive, isDigitalPaymentActive: isDigitalPaymentActive,
-                  totalPrice: total, isOfflinePaymentActive: isOfflinePaymentActive,
+                  // isCashOnDeliveryActive: isCashOnDeliveryActive, 
+                  isDigitalPaymentActive: isDigitalPaymentActive,
+                  totalPrice: total, 
+                  // isOfflinePaymentActive: isOfflinePaymentActive,
                 ),
                 backgroundColor: Colors.transparent, isScrollControlled: true,
               );
@@ -76,8 +78,10 @@ class PaymentSection extends StatelessWidget {
             if(ResponsiveHelper.isDesktop(context) && checkoutController.paymentMethodIndex == -1){
               if(isCashOnDeliveryActive || isDigitalPaymentActive || isWalletActive || isOfflinePaymentActive){
                 Get.dialog(Dialog(backgroundColor: Colors.transparent, child: PaymentMethodBottomSheet(
-                  isCashOnDeliveryActive: isCashOnDeliveryActive, isDigitalPaymentActive: isDigitalPaymentActive,
-                  totalPrice: total, isOfflinePaymentActive: isOfflinePaymentActive,
+                  // isCashOnDeliveryActive: isCashOnDeliveryActive, 
+                  isDigitalPaymentActive: isDigitalPaymentActive,
+                  totalPrice: total, 
+                  // isOfflinePaymentActive: isOfflinePaymentActive,
                 )));
               }else{
                 showCustomSnackBar('no_payment_method_found'.tr);
@@ -135,8 +139,10 @@ class PaymentSection extends StatelessWidget {
               onTap: (){
                 if(isCashOnDeliveryActive || isDigitalPaymentActive || isWalletActive || isOfflinePaymentActive){
                   Get.dialog(Dialog(backgroundColor: Colors.transparent, child: PaymentMethodBottomSheet(
-                    isCashOnDeliveryActive: isCashOnDeliveryActive, isDigitalPaymentActive: isDigitalPaymentActive,
-                    totalPrice: total, isOfflinePaymentActive: isOfflinePaymentActive,
+                    // isCashOnDeliveryActive: isCashOnDeliveryActive, 
+                    isDigitalPaymentActive: isDigitalPaymentActive,
+                    totalPrice: total, 
+                    // isOfflinePaymentActive: isOfflinePaymentActive,
                   )));
                 }else{
                   showCustomSnackBar('no_payment_method_found'.tr);

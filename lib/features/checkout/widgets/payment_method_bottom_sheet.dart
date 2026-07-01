@@ -19,14 +19,14 @@ import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/features/payment/widgets/offline_payment_button.dart';
 
 class PaymentMethodBottomSheet extends StatefulWidget {
-  final bool isCashOnDeliveryActive;
+  final bool? isCashOnDeliveryActive;
   final bool isDigitalPaymentActive;
-  final bool isOfflinePaymentActive;
+  final bool? isOfflinePaymentActive;
   final double totalPrice;
   final PaymentModel? paymentModel;
   final bool fromHome;
-  const PaymentMethodBottomSheet({super.key, required this.isCashOnDeliveryActive, required this.isDigitalPaymentActive,
-    required this.totalPrice, required this.isOfflinePaymentActive, this.paymentModel, this.fromHome = false});
+  const PaymentMethodBottomSheet({super.key,  this.isCashOnDeliveryActive, required this.isDigitalPaymentActive,
+    required this.totalPrice,  this.isOfflinePaymentActive, this.paymentModel, this.fromHome = false});
 
   @override
   State<PaymentMethodBottomSheet> createState() => _PaymentMethodBottomSheetState();
@@ -142,7 +142,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
                     walletView(checkoutController),
 
-                    widget.isCashOnDeliveryActive && notHideCod ? paymentButtonView(
+                    widget.isCashOnDeliveryActive != null && widget.isCashOnDeliveryActive! && notHideCod ? paymentButtonView(
                       padding: EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
                       title: 'cash_on_delivery'.tr,
                       isSelected: checkoutController.paymentMethodIndex == 0,
@@ -157,7 +157,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                       },
                     ) : const SizedBox(),
 
-                    widget.isCashOnDeliveryActive && notHideCod && widget.paymentModel == null ? changeAmountView(checkoutController) : const SizedBox(),
+                    widget.isCashOnDeliveryActive != null && widget.isCashOnDeliveryActive! && notHideCod && widget.paymentModel == null ? changeAmountView(checkoutController) : const SizedBox(),
 
 
 
@@ -205,10 +205,10 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                     ) : const SizedBox(),
                     const SizedBox(height: Dimensions.paddingSizeDefault),
 
-                    widget.isOfflinePaymentActive && showOfflinePay && !Get.find<CheckoutController>().isPartialPay ? OfflinePaymentButton(
+                    widget.isOfflinePaymentActive != null && widget.isOfflinePaymentActive! && showOfflinePay && !Get.find<CheckoutController>().isPartialPay ? OfflinePaymentButton(
                       isSelected: checkoutController.paymentMethodIndex == 3,
                       offlineMethodList: checkoutController.offlineMethodList,
-                      isOfflinePaymentActive: widget.isOfflinePaymentActive,
+                      isOfflinePaymentActive: widget.isOfflinePaymentActive!,
                       onTap: disablePayments ? null : () {
                         checkoutController.setPaymentMethod(3);
                         if(showChangeAmount) {

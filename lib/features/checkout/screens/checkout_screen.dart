@@ -216,8 +216,17 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         print('====> COD : $_isCashOnDeliveryActive, Digital : $_isDigitalPaymentActive, Offline : $_isOfflinePaymentActive');
         print('====> Active Payment Methods count: ${Get.find<SplashController>().configModel!.activePaymentMethodList?.length}');
 
-        if(checkoutController.isFirstTimeCodActive && (_isCashOnDeliveryActive ?? false)){
+        // Commented out Cash on Delivery default selection, use only online
+        /*if(checkoutController.isFirstTimeCodActive && (_isCashOnDeliveryActive ?? false)){
           Future.delayed(Duration.zero, () => checkoutController.setPaymentMethod(0));
+        }*/
+        if(checkoutController.paymentMethodIndex == -1 && (_isDigitalPaymentActive ?? false)) {
+          Future.delayed(Duration.zero, () {
+            checkoutController.setPaymentMethod(2);
+            if(Get.find<SplashController>().configModel!.activePaymentMethodList != null && Get.find<SplashController>().configModel!.activePaymentMethodList!.isNotEmpty) {
+              checkoutController.changeDigitalPaymentName(Get.find<SplashController>().configModel!.activePaymentMethodList![0].getWay!);
+            }
+          });
         }
 
         if(checkoutController.store != null) {
@@ -355,7 +364,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           total = total - referralDiscount;
 
           if(widget.storeId != null){
-            Future.delayed(Duration.zero, () => checkoutController.setPaymentMethod(0, isUpdate: false));
+            // Commented out Cash on Delivery (0), use only online (2)
+            Future.delayed(Duration.zero, () => checkoutController.setPaymentMethod(2, isUpdate: false));
           }
           checkoutController.setTotalAmount(total - (checkoutController.isPartialPay ? Get.find<ProfileController>().userInfoModel!.walletBalance! : 0));
 
@@ -576,8 +586,10 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             if(ResponsiveHelper.isDesktop(Get.context)){
               if(_isCashOnDeliveryActive! || _isDigitalPaymentActive! || _isWalletActive || _isOfflinePaymentActive){
                 Get.dialog(Dialog(backgroundColor: Colors.transparent, child: PaymentMethodBottomSheet(
-                  isCashOnDeliveryActive: _isCashOnDeliveryActive!, isDigitalPaymentActive: _isDigitalPaymentActive!,
-                  totalPrice: total, isOfflinePaymentActive: _isOfflinePaymentActive,
+                  // isCashOnDeliveryActive: _isCashOnDeliveryActive!, 
+                  isDigitalPaymentActive: _isDigitalPaymentActive!,
+                  totalPrice: total, 
+                  // isOfflinePaymentActive: _isOfflinePaymentActive,
                 )));
               }else{
                 showCustomSnackBar('no_payment_method_found'.tr);
@@ -586,8 +598,10 @@ class CheckoutScreenState extends State<CheckoutScreen> {
               if(_isCashOnDeliveryActive! || _isDigitalPaymentActive! || _isWalletActive || _isOfflinePaymentActive){
                 Get.bottomSheet(
                   PaymentMethodBottomSheet(
-                    isCashOnDeliveryActive: _isCashOnDeliveryActive!, isDigitalPaymentActive: _isDigitalPaymentActive!,
-                    totalPrice: total, isOfflinePaymentActive: _isOfflinePaymentActive,
+                    // isCashOnDeliveryActive: _isCashOnDeliveryActive!, 
+                    isDigitalPaymentActive: _isDigitalPaymentActive!,
+                    totalPrice: total, 
+                    // isOfflinePaymentActive: _isOfflinePaymentActive,
                   ),
                   backgroundColor: Colors.transparent, isScrollControlled: true, useRootNavigator: true,
                 );
@@ -810,7 +824,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   bool _checkCODActive({required Store? store}) {
-    bool isCashOnDeliveryActive = false;
+    // Commented out Cash on Delivery, use only online payment
+    return false;
+    /*bool isCashOnDeliveryActive = false;
     if(store != null){
       for(ZoneData zData in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {
         if(zData.id ==  store.zoneId) {
@@ -818,7 +834,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
     }
-    return isCashOnDeliveryActive;
+    return isCashOnDeliveryActive;*/
   }
 
   bool _checkDigitalPaymentActive({required Store? store}) {
