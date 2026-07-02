@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'package:sixam_mart/api/api_client.dart';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:sixam_mart/common/controllers/theme_controller.dart';
@@ -21,6 +22,7 @@ import 'package:sixam_mart/helper/pusher_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
@@ -43,6 +45,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
   GoogleMapController? _controller;
   bool _isLoading = true;
   Set<Marker> _markers = HashSet<Marker>();
+  Set<Polyline> _polylines = HashSet<Polyline>();
   Timer? _timer;
   bool showChatPermission = true;
   bool isHovered = false;
@@ -53,6 +56,11 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
       double.parse(AddressHelper.getUserAddressFromSharedPref()!.longitude!),
     ));
     await Get.find<OrderController>().trackOrder(widget.orderID, null, true, contactNumber: widget.contactNumber);
+
+    final track = Get.find<OrderController>().trackModel;
+    if (track != null) {
+      _fetchAndDrawRoute(track);
+    }
 
     if(Get.find<SplashController>().configModel!.websocketEnabled!) {
       _trackWithPusher();
@@ -79,28 +87,27 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
 
   void _timerTrackOrder(){
     if(Get.find<OrderController>().trackModel?.orderStatus != 'delivered' && Get.find<OrderController>().trackModel?.orderStatus != 'failed' && Get.find<OrderController>().trackModel?.orderStatus != 'canceled') {
-      Get.find<OrderController>().timerTrackOrder(widget.orderID.toString(), contactNumber: widget.contactNumber);
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
         if(Get.currentRoute.contains(RouteHelper.orderDetails) || Get.currentRoute.contains(RouteHelper.orderTracking)){
-          Get.find<OrderController>().timerTrackOrder(widget.orderID.toString(), contactNumber: widget.contactNumber);
-
-          updateMarker(
-            Get.find<OrderController>().trackModel?.store, Get.find<OrderController>().trackModel!.deliveryMan,
-            Get.find<OrderController>().trackModel?.orderType == 'take_away' ? Get.find<LocationController>().position.latitude == 0 ? Get.find<OrderController>().trackModel?.deliveryAddress : AddressModel(
-              latitude: Get.find<LocationController>().position.latitude.toString(),
-              longitude: Get.find<LocationController>().position.longitude.toString(),
-              address: Get.find<LocationController>().address,
-            ) : Get.find<OrderController>().trackModel?.deliveryAddress,
-            Get.find<OrderController>().trackModel?.orderType == 'take_away', Get.find<OrderController>().trackModel?.orderType == 'parcel', Get.find<OrderController>().trackModel?.moduleType == 'food',
-          );
-
+          Get.find<OrderController>().timerTrackOrder(widget.orderID.toString(), contactNumber: widget.contactNumber).then((_) {
+            if(!mounted) return;
+            if(Get.find<OrderController>().trackModel != null) {
+              updateMarker(
+                Get.find<OrderController>().trackModel?.store, Get.find<OrderController>().trackModel!.deliveryMan,
+                Get.find<OrderController>().trackModel?.orderType == 'take_away' ? Get.find<LocationController>().position.latitude == 0 ? Get.find<OrderController>().trackModel?.deliveryAddress : AddressModel(
+                  latitude: Get.find<LocationController>().position.latitude.toString(),
+                  longitude: Get.find<LocationController>().position.longitude.toString(),
+                  address: Get.find<LocationController>().address,
+                ) : Get.find<OrderController>().trackModel?.deliveryAddress,
+                Get.find<OrderController>().trackModel?.orderType == 'take_away', Get.find<OrderController>().trackModel?.orderType == 'parcel', Get.find<OrderController>().trackModel?.moduleType == 'food',
+              );
+            }
+          });
         } else {
           _timer?.cancel();
         }
       });
-    }else{
-      Get.find<OrderController>().timerTrackOrder(widget.orderID.toString(), contactNumber: widget.contactNumber);
     }
   }
 
@@ -176,6 +183,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
                   minMaxZoomPreference: const MinMaxZoomPreference(0, 16),
                   zoomControlsEnabled: false,
                   markers: _markers,
+                  polylines: _polylines,
                   onMapCreated: (GoogleMapController controller) {
                     _controller = controller;
                     _isLoading = false;
@@ -188,6 +196,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
                         address: Get.find<LocationController>().address,
                       ) : track.deliveryAddress, track.orderType == 'take_away', track.orderType == 'parcel', track.moduleType == 'food',
                     );
+                    _fetchAndDrawRoute(track);
                   },
                   style: Get.isDarkMode ? Get.find<ThemeController>().darkMap : Get.find<ThemeController>().lightMap,
                 ),
@@ -359,9 +368,13 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
 
     }catch(_) {}
     setState(() {});
+    // Draw route polyline after initial markers are set
+    final track = Get.find<OrderController>().trackModel;
+    if(track != null) _fetchAndDrawRoute(track);
   }
 
   Future<void> updateDeliverymanMarker(RecordLocationBodyModel dmLocation) async {
+    if (!mounted) return;
     BitmapDescriptor deliveryBoyImageData = await MarkerHelper.convertAssetToBitmapDescriptor(
       width: 30, imagePath: Images.deliveryManMarker,
     );
@@ -379,7 +392,14 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
         icon: deliveryBoyImageData,
       ));
 
-      setState(() { });
+      if (Get.find<OrderController>().trackModel?.deliveryMan != null) {
+        Get.find<OrderController>().trackModel!.deliveryMan!.lat = dmLocation.latitude;
+        Get.find<OrderController>().trackModel!.deliveryMan!.lng = dmLocation.longitude;
+      }
+
+      if(mounted) setState(() { });
+      final track = Get.find<OrderController>().trackModel;
+      if (track != null) _fetchAndDrawRoute(track);
     }
   }
 
@@ -472,7 +492,119 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
       )) : const SizedBox();
 
     }catch(_) {}
-    setState(() {});
+    if(mounted) setState(() {});
+    // Draw route polyline after markers are updated
+    if(mounted) {
+      final track = Get.find<OrderController>().trackModel;
+      if(track != null) _fetchAndDrawRoute(track);
+    }
+  }
+
+  /// Fetches the route from deliveryman (or store/sender) → customer (or receiver) and draws the blue polyline.
+  Future<void> _fetchAndDrawRoute(OrderModel track) async {
+    if (!mounted) return;
+    try {
+      // Determine origin: deliveryman location if available, else store or parcel sender address
+      String? originLat, originLng;
+      if (track.deliveryMan != null && (track.deliveryMan!.lat?.isNotEmpty ?? false) && track.deliveryMan!.lat != '0') {
+        originLat = track.deliveryMan!.lat;
+        originLng = track.deliveryMan!.lng;
+      } else if (track.orderType == 'parcel' && track.deliveryAddress != null) {
+        originLat = track.deliveryAddress!.latitude;
+        originLng = track.deliveryAddress!.longitude;
+      } else if (track.store != null) {
+        originLat = track.store!.latitude;
+        originLng = track.store!.longitude;
+      }
+
+      // Determine destination: customer delivery address or parcel receiver address
+      String? destLat, destLng;
+      if (track.orderType == 'parcel' && track.receiverDetails != null) {
+        destLat = track.receiverDetails!.latitude;
+        destLng = track.receiverDetails!.longitude;
+      } else if (track.deliveryAddress != null) {
+        destLat = track.deliveryAddress!.latitude;
+        destLng = track.deliveryAddress!.longitude;
+      }
+
+      if (originLat == null || originLng == null || destLat == null || destLng == null) {
+        debugPrint('====> _fetchAndDrawRoute: Missing origin or destination coordinates ($originLat, $originLng -> $destLat, $destLng)');
+        return;
+      }
+
+      debugPrint('====> Fetching Route: $originLat,$originLng to $destLat,$destLng');
+      final apiClient = Get.find<ApiClient>();
+      final response = await apiClient.getData(
+        '${AppConstants.directionUri}?origin_lat=$originLat&origin_lng=$originLng&destination_lat=$destLat&destination_lng=$destLng',
+      );
+      if (response.statusCode != 200) {
+        debugPrint('====> _fetchAndDrawRoute failed with status code ${response.statusCode}: ${response.body}');
+        return;
+      }
+
+      final data = response.body as Map<String, dynamic>?;
+      if (data == null) return;
+      final routes = data['routes'] as List?;
+      if (routes == null || routes.isEmpty) {
+        debugPrint('====> _fetchAndDrawRoute: No routes found in direction API response.');
+        return;
+      }
+
+      final encodedPoints = routes[0]['overview_polyline']?['points'] as String?;
+      if (encodedPoints == null || encodedPoints.isEmpty) {
+        debugPrint('====> _fetchAndDrawRoute: Empty overview_polyline points.');
+        return;
+      }
+
+      final List<LatLng> points = _decodePolyline(encodedPoints);
+      if (!mounted) return;
+
+      debugPrint('====> Route decoded successfully with ${points.length} points!');
+      setState(() {
+        _polylines = {
+          Polyline(
+            polylineId: const PolylineId('delivery_route'),
+            color: const Color(0xFF1A73E8), // Google blue
+            width: 5,
+            points: points,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+            jointType: JointType.round,
+          ),
+        };
+      });
+    } catch (e) {
+      debugPrint('====> _fetchAndDrawRoute Error: $e');
+    }
+  }
+
+  /// Decodes a Google Maps encoded polyline string into a list of LatLng points.
+  List<LatLng> _decodePolyline(String encoded) {
+    final List<LatLng> points = [];
+    int index = 0;
+    int lat = 0, lng = 0;
+    while (index < encoded.length) {
+      int shift = 0, result = 0;
+      int byte;
+      do {
+        byte = encoded.codeUnitAt(index++) - 63;
+        result |= (byte & 0x1F) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      lat += (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+
+      shift = 0;
+      result = 0;
+      do {
+        byte = encoded.codeUnitAt(index++) - 63;
+        result |= (byte & 0x1F) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      lng += (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+
+      points.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+    return points;
   }
 
   Future<void> zoomToFit(GoogleMapController? controller, LatLngBounds? bounds, LatLng centerBounds, {double padding = 0.5}) async {

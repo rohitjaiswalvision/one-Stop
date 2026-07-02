@@ -20,8 +20,15 @@ class PusherHelper{
   static PusherChannelsClient?  pusherClient;
 
   static Future<void> initializePusher() async{
+    bool isEnabled = Get.find<SplashController>().configModel?.websocketEnabled ?? false;
+    String? host = Get.find<SplashController>().configModel?.websocketUrl;
+    if (!isEnabled || host == null || host.trim().isEmpty) {
+      log('=================Pusher disabled or empty websocketUrl, skipping initialization');
+      return;
+    }
+
     PusherChannelsOptions testOptions = PusherChannelsOptions.fromHost(
-      host: Get.find<SplashController>().configModel?.websocketUrl ?? '192.168.1.62',
+      host: host,
       scheme: 'ws',
       key: '6ammart',
       port: 6001,
@@ -31,7 +38,9 @@ class PusherHelper{
       options: testOptions,
       connectionErrorHandler: (exception, trace, refresh) async {
         log('=================$exception');
-        refresh();
+        Future.delayed(const Duration(seconds: 5), () {
+          refresh();
+        });
       },
     );
 
@@ -52,9 +61,13 @@ class PusherHelper{
   }
 
   // late PrivateChannel pusherDriverLocation;
-  late PublicChannel? publicChannel;
+  PublicChannel? publicChannel;
 
   void pusherDriverStatus({required String deliverymanId, required Function(RecordLocationBodyModel) onLocationReceived}){
+    if (pusherClient == null) {
+      log('========pusherClient is null, cannot subscribe to driver location');
+      return;
+    }
 
     String channel = 'dm_location_$deliverymanId';
 
@@ -96,8 +109,11 @@ class PusherHelper{
   late PrivateChannel driverPaymentReceived;
 
   void pusherRiderStatus(String tripId){
+    if (pusherClient == null) {
+      return;
+    }
 
-    if (Get.find<SplashController>().pusherConnectionStatus != null || Get.find<SplashController>().pusherConnectionStatus == 'Connected'){
+    if (Get.find<SplashController>().pusherConnectionStatus != null && Get.find<SplashController>().pusherConnectionStatus == 'Connected'){
       pusherDriverAccepted = pusherClient!.privateChannel("private-driver-trip-accepted.$tripId", authorizationDelegate:
       EndpointAuthorizableChannelTokenAuthorizationDelegate.forPrivateChannel(
         authorizationEndpoint: Uri.parse('${AppConstants.baseUrl}${AppConstants.pusherBroadcustUrl}'),

@@ -435,7 +435,9 @@ class OrderInfoWidget extends StatelessWidget {
             const SizedBox(height: Dimensions.paddingSizeLarge),
 
             DetailsWidget(title: 'receiver_details'.tr, address: order.receiverDetails),
-          ]) : Theme(
+          ]) : Material(
+            color: Colors.transparent,
+            child: Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
               childrenPadding: EdgeInsets.zero,
@@ -467,8 +469,9 @@ class OrderInfoWidget extends StatelessWidget {
                       child: OrderItemWidget(order: order, orderDetails: orderController.orderDetails![index]),
                     );
                   },
-                ),
+                 ),
               ],
+            ),
             ),
           ),
         ) : const SizedBox() : const SizedBox(),

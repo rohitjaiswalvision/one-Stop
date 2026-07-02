@@ -151,12 +151,21 @@ class _CartScreenState extends State<CartScreen> {
           return cartController.cartList.isEmpty? const Text("My Cart"):Column(
               mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("My Cart"),
-              Text(
-                "${cartController.cartList.length} items • Great choice",
-              ),
-            ],
+children: [
+                                        // if (Get.find<CartController>().cartList.isEmpty)
+
+            Text("My Cart",style: TextStyle(color: Colors.black,fontSize: 15,fontWeight: FontWeight.bold),
+            ),
+            Text.rich(TextSpan(children: [
+                            if (Get.find<CartController>().cartList.isNotEmpty)
+
+              TextSpan(text: "${Get.find<CartController>().cartList.length} items",style: TextStyle(color: Colors.black,fontSize: 12)),
+                                          if (Get.find<CartController>().cartList.isNotEmpty)
+
+              TextSpan(text: " * Great choice",style: TextStyle(color: Colors.green,fontSize: 12))
+            ]))
+            // \Text.rich("${Get.find<CartController>().cartList.length} Items",style: TextStyle(color: Colors.black,fontSize: 12),)
+          ],
           );
         }),
       ),
