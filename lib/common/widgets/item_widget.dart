@@ -252,7 +252,7 @@ class ItemWidget extends StatelessWidget {
                           ]) : Row(children: [
                             Text(
                               PriceConverter.convertPrice(item!.price, discount: discount, discountType: discountType),
-                              style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr,
+                              style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall,color: Colors.deepOrange), textDirection: TextDirection.ltr,
                             ),
                             SizedBox(width: discount! > 0 ? Dimensions.paddingSizeExtraSmall : 0),
 

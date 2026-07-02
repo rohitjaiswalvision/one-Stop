@@ -113,7 +113,17 @@ class CategoryItemScreenState extends State<CategoryItemScreen> with TickerProvi
         },
         child: Scaffold(
           appBar: (ResponsiveHelper.isDesktop(context) ? const WebMenuBar() : AppBar(
-            backgroundColor: Theme.of(context).cardColor,
+            backgroundColor: Colors.transparent,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [
+                  Colors.blue,
+                  Colors.orange
+          //           Color(0xFF1565C0), // Blue
+          // Color(0xFFFF9800), // Orange
+                ])
+              ),
+            ),
             surfaceTintColor: Theme.of(context).cardColor,
             shadowColor: Theme.of(context).disabledColor.withValues(alpha: 0.5),
             elevation: 2,
@@ -202,7 +212,8 @@ class CategoryItemScreenState extends State<CategoryItemScreen> with TickerProvi
 
               const SizedBox(width: Dimensions.paddingSizeSmall),
             ],
-          )),
+          )
+          ),
           endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
           body: ResponsiveHelper.isDesktop(context) ? SingleChildScrollView(
             child: FooterView(
@@ -339,17 +350,18 @@ class CategoryItemScreenState extends State<CategoryItemScreen> with TickerProvi
                     return InkWell(
                       onTap: () => catController.setSubCategoryIndex(index, widget.categoryID),
                       child: Container(
+                        
                         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
                         margin: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                          color: index == catController.subCategoryIndex ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                          color: index == catController.subCategoryIndex ? Colors.blue : Colors.transparent,
                         ),
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                           Text(
                             catController.subCategoryList![index].name!,
                             style: index == catController.subCategoryIndex
-                                ? robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor)
+                                ? robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Colors.white)
                                 : robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
                           ),
                         ]),

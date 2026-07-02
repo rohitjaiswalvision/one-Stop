@@ -46,6 +46,7 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  
   final ScrollController scrollController = ScrollController();
   GlobalKey<ExpandableBottomSheetState> key = GlobalKey();
 
@@ -143,8 +144,45 @@ class _CartScreenState extends State<CartScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: CustomAppBar(title: 'my_cart'.tr, backButton: (isDesktop || !widget.fromNav)),
-      endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
+      appBar: AppBar(
+        centerTitle: Get.find<CartController>().cartList.isEmpty,
+        title: Obx((){
+          final cartController = Get.find<CartController>();
+          return cartController.cartList.isEmpty? const Text("My Cart"):Column(
+              mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("My Cart"),
+              Text(
+                "${cartController.cartList.length} items • Great choice",
+              ),
+            ],
+          );
+        }),
+      ),
+      // appBar: AppBar(
+      //   centerTitle:  Get.find<CartController>().cartList.isEmpty,
+      //   title: Get.find<CartController>().cartList.isEmpty? Text("My Cart",style: TextStyle(color: Colors.black,fontSize: 15,fontWeight: FontWeight.bold),):Column(
+      //     crossAxisAlignment: CrossAxisAlignment.start,
+      //     children: [
+      //                                   // if (Get.find<CartController>().cartList.isEmpty)
+
+      //       Text("My Cart",style: TextStyle(color: Colors.black,fontSize: 15,fontWeight: FontWeight.bold),
+      //       ),
+      //       Text.rich(TextSpan(children: [
+      //                       if (Get.find<CartController>().cartList.isNotEmpty)
+
+      //         TextSpan(text: "${Get.find<CartController>().cartList.length} items",style: TextStyle(color: Colors.black,fontSize: 12)),
+      //                                     if (Get.find<CartController>().cartList.isNotEmpty)
+
+      //         TextSpan(text: " * Great choice",style: TextStyle(color: Colors.green,fontSize: 12))
+      //       ]))
+      //       // \Text.rich("${Get.find<CartController>().cartList.length} Items",style: TextStyle(color: Colors.black,fontSize: 12),)
+      //     ],
+      //   ),
+      // ),
+      // appBar: CustomAppBar(title: 'my_cart'.tr, backButton: (isDesktop || !widget.fromNav)),
+      // endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
       body: GetBuilder<StoreController>(builder: (storeController) {
         return GetBuilder<CartController>(builder: (cartController) {
           return cartController.cartList.isNotEmpty ? Column(children: [
@@ -424,6 +462,7 @@ class _CartScreenState extends State<CartScreen> {
                       }
                     },
                     child: Row(children: [
+                      Icon(Icons.shopping_bag,color: Colors.blue,),
                       Expanded(child: Text('if_any_product_is_not_available'.tr, style: robotoMedium, maxLines: 2, overflow: TextOverflow.ellipsis)),
                       const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
                     ]),

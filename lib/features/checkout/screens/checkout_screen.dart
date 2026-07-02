@@ -1,5 +1,6 @@
 import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:sixam_mart/common/widgets/address_widget.dart';
+import 'package:sixam_mart/common/widgets/shader_icon.dart';
 import 'package:sixam_mart/features/address/controllers/address_controller.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/coupon/controllers/coupon_controller.dart';
@@ -467,6 +468,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeExtraSmall),
                     child: Row(children: [
+                      ShaderIcon(icon: Icons.account_balance_wallet_outlined,),
+                      SizedBox(width: 5,),
                       Text(
                         checkoutController.isPartialPay ? 'due_payment'.tr : 'total_amount'.tr,
                         style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor),

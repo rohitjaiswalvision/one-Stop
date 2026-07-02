@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:sixam_mart/common/widgets/custom_tool_tip_widget.dart';
+import 'package:sixam_mart/common/widgets/shader_icon.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/checkout/widgets/extra_discount_view_widget.dart';
 import 'package:sixam_mart/features/checkout/widgets/upload_prescription_widget.dart';
@@ -53,6 +54,7 @@ class BottomSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const wSpace = SizedBox(width: 10,);
     bool takeAway = checkoutController.orderType == 'take_away';
     bool isDesktop = ResponsiveHelper.isDesktop(context);
     bool isGuestLoggedIn = AuthHelper.isGuestLoggedIn();
@@ -145,6 +147,8 @@ class BottomSection extends StatelessWidget {
   }
 
   Widget pricingView({required BuildContext context, required bool takeAway}) {
+        const wSpace = SizedBox(width: 10,);
+
     return Column(children: [
 
       ResponsiveHelper.isDesktop(context) ? Align(
@@ -159,16 +163,31 @@ class BottomSection extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeLarge : 0),
         child: Column(
           children: [
-            storeId == null ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(module.addOn! ? 'subtotal'.tr : 'item_price'.tr, style: robotoRegular),
-              Text(PriceConverter.convertPrice(subTotal), style: robotoMedium, textDirection: TextDirection.ltr),
-            ]) : const SizedBox(),
+            storeId == null ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row( children: [
+                  ShaderIcon(icon: Icons.shopping_cart_outlined),wSpace,
+                  Text(module.addOn! ? 'subtotal'.tr : 'item_price'.tr, style: robotoRegular),
+                ]),
+                                  Text(PriceConverter.convertPrice(subTotal), style: robotoMedium, textDirection: TextDirection.ltr),
+
+              ],
+            ) : const SizedBox(),
             SizedBox(height: storeId == null ? Dimensions.paddingSizeSmall : 0),
 
-            storeId == null ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('discount'.tr, style: robotoRegular),
-              Text('(-) ${PriceConverter.convertPrice(discount)}', style: robotoRegular, textDirection: TextDirection.ltr),
-            ]) : const SizedBox(),
+            storeId == null ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row( children: [
+                ShaderIcon(icon: Icons.local_offer_outlined,),
+                wSpace,
+                  Text('discount'.tr, style: robotoRegular),
+                  // SizedBox(width: 20,),
+                ]),
+                                  Text('(-) ${PriceConverter.convertPrice(discount)}', style: robotoRegular, textDirection: TextDirection.ltr),
+
+              ],
+            ) : const SizedBox(),
             const SizedBox(height: Dimensions.paddingSizeSmall),
 
             (couponController.discount! > 0 || couponController.freeDelivery) ? Column(children: [
@@ -205,8 +224,16 @@ class BottomSection extends StatelessWidget {
             (!takeAway && Get.find<SplashController>().configModel!.dmTipsStatus == 1) ? Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('delivery_man_tips'.tr, style: robotoRegular),
-                Text('(+) ${PriceConverter.convertPrice(checkoutController.tips)}', style: robotoRegular, textDirection: TextDirection.ltr),
+                Row(
+                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                  ShaderIcon(icon: Icons.volunteer_activism_outlined),
+                  wSpace,
+                    Text('delivery_man_tips'.tr, style: robotoRegular),
+                  ],
+                ),
+                                    Text('(+) ${PriceConverter.convertPrice(checkoutController.tips)}', style: robotoRegular, textDirection: TextDirection.ltr),
+
               ],
             ) : const SizedBox.shrink(),
             SizedBox(height: !takeAway && Get.find<SplashController>().configModel!.dmTipsStatus == 1 ? Dimensions.paddingSizeSmall : 0.0),
@@ -221,8 +248,7 @@ class BottomSection extends StatelessWidget {
             SizedBox(height: storeId == null ? (checkoutController.store!.extraPackagingStatus! && Get.find<CartController>().needExtraPackage) ? Dimensions.paddingSizeSmall : 0.0 : 0.0),
 
             (AuthHelper.isGuestLoggedIn() && checkoutController.guestAddress == null) ? const SizedBox() : Row( children: [
-              Icon(Icons.delivery_dining_outlined),
-              Text('delivery_fee'.tr, style: robotoRegular),
+ShaderIcon(icon:  Icons.local_shipping_outlined),   wSpace,       Text('delivery_fee'.tr, style: robotoRegular),
               const SizedBox(width: 5),
 
               (checkoutController.orderType == 'delivery') && (checkoutController.store?.selfDeliverySystem == 0) && (checkoutController.surgePrice?.customerNoteStatus == 1) ? CustomToolTip(

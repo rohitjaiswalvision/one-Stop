@@ -44,7 +44,8 @@ class CornerDiscountTag extends StatelessWidget {
     } else {
       return (discount! > 0 || freeDelivery!) ? CornerBanner(
         bannerPosition: bannerPosition,
-        bannerColor: Theme.of(context).colorScheme.error,
+        // bannerColor: Theme.of(context).colorScheme.error,
+        bannerColor: Colors.deepOrange,
         elevation: 5,
         shadowColor: Colors.transparent,
         child: _buildBannerContent(),

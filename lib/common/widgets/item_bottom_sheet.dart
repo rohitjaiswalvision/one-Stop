@@ -337,7 +337,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                                   '${PriceConverter.convertPrice(startingPrice, discount: initialDiscount, discountType: discountType)}'
                                       '${endingPrice != null ? ' - ${PriceConverter.convertPrice(endingPrice, discount: initialDiscount,
                                       discountType: discountType)}' : ''}',
-                                  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge), textDirection: TextDirection.ltr,
+                                  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge,color: Colors.orange), textDirection: TextDirection.ltr,
                                 ),
                                 price > priceWithDiscount ? Text(
                                   '${PriceConverter.convertPrice(startingPrice)}'
