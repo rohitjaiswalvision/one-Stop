@@ -1,5 +1,6 @@
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:get/get.dart';
+import 'package:gradient_borders/input_borders/gradient_outline_input_border.dart';
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -133,14 +134,33 @@ class CustomTextFieldState extends State<CustomTextField> {
               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
               borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: ResponsiveHelper.isDesktop(context) ? 0.7 : 0.3, color: Theme.of(context).disabledColor),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 1, color: Theme.of(context).primaryColor),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 0.3, color: Theme.of(context).primaryColor),
-            ),
+      //       focusedBorder: OutlineInputBorder(
+      //         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+      //         borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 1,   Colors: [
+      //   Color(0xFF1565C0), // Blue
+      //   Color(0xFFFF9800), // Orange
+      // ],),
+      //       ),
+      focusedBorder: GradientOutlineInputBorder(
+  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+  gradient: const LinearGradient(
+    colors: [
+      Color(0xFF1565C0),
+      Color(0xFFFF9800),
+    ],
+  ),
+  width: 1.5,
+),
+border: GradientOutlineInputBorder(
+  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+  gradient: const LinearGradient(
+    colors: [
+      Color(0xFF1565C0),
+      Color(0xFFFF9800),
+    ],
+  ),
+  width: 1,
+),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
               borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, color: Theme.of(context).colorScheme.error),

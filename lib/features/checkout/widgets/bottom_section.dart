@@ -221,6 +221,7 @@ class BottomSection extends StatelessWidget {
             SizedBox(height: storeId == null ? (checkoutController.store!.extraPackagingStatus! && Get.find<CartController>().needExtraPackage) ? Dimensions.paddingSizeSmall : 0.0 : 0.0),
 
             (AuthHelper.isGuestLoggedIn() && checkoutController.guestAddress == null) ? const SizedBox() : Row( children: [
+              Icon(Icons.delivery_dining_outlined),
               Text('delivery_fee'.tr, style: robotoRegular),
               const SizedBox(width: 5),
 

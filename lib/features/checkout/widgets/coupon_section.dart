@@ -133,13 +133,21 @@ class CouponSection extends StatelessWidget {
                     }
                   },
                   child: Container(
+                    
                     height: 45, width: (couponController.discount! <= 0 && !couponController.freeDelivery) ? 100 : 50,
                     alignment: Alignment.center,
                     margin: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                    decoration: BoxDecoration(
-                      color: (couponController.discount! <= 0 && !couponController.freeDelivery) ? Theme.of(context).primaryColor : Colors.transparent,
-                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                    ),
+decoration: BoxDecoration(
+  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+  gradient: const LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [
+      Color(0xFF1565C0), // Blue
+      Color(0xFFFF9800), // Orange
+    ],
+  ),
+),
                     child: (couponController.discount! <= 0 && !couponController.freeDelivery) ? !couponController.isLoading ? Text(
                       'apply'.tr,
                       style: robotoMedium.copyWith(color: Theme.of(context).cardColor),
