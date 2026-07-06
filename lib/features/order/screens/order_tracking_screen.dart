@@ -380,6 +380,17 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
     );
 
     if(dmLocation.latitude != null && dmLocation.latitude!.isNotEmpty) {
+      double rotation = 0;
+      if (Get.find<OrderController>().trackModel?.deliveryMan != null) {
+        double oldLat = double.tryParse(Get.find<OrderController>().trackModel!.deliveryMan!.lat ?? '0') ?? 0;
+        double oldLng = double.tryParse(Get.find<OrderController>().trackModel!.deliveryMan!.lng ?? '0') ?? 0;
+        double newLat = double.tryParse(dmLocation.latitude ?? '0') ?? 0;
+        double newLng = double.tryParse(dmLocation.longitude ?? '0') ?? 0;
+        if (oldLat != 0 && oldLng != 0 && newLat != 0 && newLng != 0 && (oldLat != newLat || oldLng != newLng)) {
+          rotation = Geolocator.bearingBetween(oldLat, oldLng, newLat, newLng);
+        }
+      }
+
       _markers.removeWhere((m) => m.markerId.value == 'delivery_boy');
       _markers.add(Marker(
         markerId: const MarkerId('delivery_boy'),
@@ -388,7 +399,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
           title: 'delivery_man'.tr,
           snippet: dmLocation.location,
         ),
-        // rotation: rotation,
+        rotation: rotation,
         icon: deliveryBoyImageData,
       ));
 
@@ -550,9 +561,17 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
         return;
       }
 
-      final encodedPoints = routes[0]['overview_polyline']?['points'] as String?;
+      String? encodedPoints;
+      if (routes[0] is Map) {
+        final route = routes[0] as Map;
+        if (route['overview_polyline'] != null && route['overview_polyline'] is Map) {
+          encodedPoints = route['overview_polyline']['points'] as String?;
+        } else if (route['polyline'] != null && route['polyline'] is Map) {
+          encodedPoints = route['polyline']['encodedPolyline'] as String?;
+        }
+      }
       if (encodedPoints == null || encodedPoints.isEmpty) {
-        debugPrint('====> _fetchAndDrawRoute: Empty overview_polyline points.');
+        debugPrint('====> _fetchAndDrawRoute: Empty overview_polyline/encodedPolyline points.');
         return;
       }
 

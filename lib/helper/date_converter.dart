@@ -100,6 +100,8 @@ class DateConverter {
   }
 
   static bool isAvailable(String? start, String? end, {DateTime? time}) {
+    // Server APP_TIMEZONE=Asia/Kolkata, so schedule times are already in IST.
+    // currentTime (DateTime.now()) is also IST on Indian devices — direct comparison is correct.
     DateTime currentTime;
     if(time != null) {
       currentTime = time;

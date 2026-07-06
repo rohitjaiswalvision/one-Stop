@@ -10,16 +10,18 @@ class AppDownloadSectionModel {
   });
 
   AppDownloadSectionModel.fromJson(Map<String, dynamic> json) {
-    downloadUserAppSectionStatus = int.tryParse(json['download_user_app_section_status']?.toString() ?? '0');
+    downloadUserAppSectionStatus = json['download_user_app_section_status'];
     downloadUserAppTitle = json['download_user_app_title'];
-    downloadUserAppLinks = json['download_user_app_links'] != null ? DownloadUserAppLinks.fromJson(json['download_user_app_links']) : null;
+    downloadUserAppLinks = json['download_user_app_links'] != null
+        ? DownloadUserAppLinks.fromJson(json['download_user_app_links'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['download_user_app_section_status'] = downloadUserAppSectionStatus;
     data['download_user_app_title'] = downloadUserAppTitle;
-    if(downloadUserAppLinks != null) {
+    if (downloadUserAppLinks != null) {
       data['download_user_app_links'] = downloadUserAppLinks!.toJson();
     }
     return data;
