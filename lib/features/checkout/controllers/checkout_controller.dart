@@ -263,6 +263,13 @@ class CheckoutController extends GetxController implements GetxService {
         Get.find<SplashController>().setModule(Get.find<SplashController>().moduleList![i]);
       }
 
+      // Service bookings are always schedulable: force the date/time slot picker
+      // on for service-module providers even when the store itself has schedule
+      // order disabled. This flips both the slot UI and the scheduleAt payload.
+      if(Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service) {
+        _store!.scheduleOrder = true;
+      }
+
       initializeTimeSlot(_store!);
     }
   }

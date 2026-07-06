@@ -82,3 +82,4 @@ Data models use **hand-written `fromJson(Map<String,dynamic>)` constructors and 
 ### Platform integrations
 
 Firebase (Core, Messaging, Auth), Google Maps + Geolocator (used by location, order tracking, and the ride/taxi modules for polylines and live tracking), and social/payment SDKs are initialized in `main.dart`. Firebase web options are inlined in `main()`; mobile uses platform config files.
+do the changes in the androidmanifetsfile = true 

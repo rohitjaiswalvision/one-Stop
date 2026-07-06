@@ -35,7 +35,7 @@
         android:name="${applicationName}"
         android:extractNativeLibs="true"
         android:requestLegacyExternalStorage="true"
-        android:usesCleartextTraffic="false"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/launcher_icon">
         <uses-library
             android:name="org.apache.http.legacy"

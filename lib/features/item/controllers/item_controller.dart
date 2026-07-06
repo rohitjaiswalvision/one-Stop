@@ -822,6 +822,10 @@ class ItemController extends GetxController implements GetxService {
 
   void itemDirectlyAddToCart(Item? item, BuildContext context, {bool inStore = false, bool isCampaign = false}) {
     getItemDetails(itemId: item!.id!, isCampaign: isCampaign).then((value) {
+      if (_item == null) {
+        showCustomSnackBar('item_not_found'.tr);
+        return;
+      }
       if (((_item!.foodVariations != null && _item!.foodVariations!.isEmpty) && _item?.moduleType == AppConstants.food) || (_item?.variations != null && _item!.variations!.isEmpty && _item?.moduleType != AppConstants.food)) {
         double price = _item!.price!;
         double discount = _item!.discount!;

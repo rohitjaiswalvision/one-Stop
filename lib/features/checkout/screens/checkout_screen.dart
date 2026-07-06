@@ -513,7 +513,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       child: SafeArea(
         child: CustomButton(
           isLoading: checkoutController.isLoading,
-          buttonText: checkoutController.paymentMethodIndex == 3 ? 'track_order'.tr : 'place_order'.tr,
+          buttonText: checkoutController.paymentMethodIndex == 3 ? 'track_order'.tr
+              : (Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service ? 'confirm_booking'.tr : 'place_order'.tr),
           onPressed: (checkoutController.acceptTerms && !checkoutController.isLoading) ? () async {
             bool isAvailable = true;
                 DateTime scheduleStartDate = DateTime.now();

@@ -32,6 +32,7 @@ import 'package:sixam_mart/features/home/screens/modules/food_home_screen.dart';
 import 'package:sixam_mart/features/home/screens/modules/grocery_home_screen.dart';
 import 'package:sixam_mart/features/home/screens/modules/pharmacy_home_screen.dart';
 import 'package:sixam_mart/features/home/screens/modules/shop_home_screen.dart';
+import 'package:sixam_mart/features/home/screens/modules/service_home_screen.dart';
 import 'package:sixam_mart/features/parcel/controllers/parcel_controller.dart';
 import 'package:sixam_mart/features/rental_module/home/controllers/taxi_home_controller.dart';
 import 'package:sixam_mart/features/rental_module/home/screens/taxi_home_screen.dart';
@@ -254,6 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bool isFood = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.food;
       bool isShop = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.ecommerce;
       bool isGrocery = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.grocery;
+      bool isService = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.service;
       bool isTaxi = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.taxi;
       bool isRide = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.ride;
 
@@ -475,6 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             // : isPharmacy ? const PharmacyHomeScreen()
                             : isFood ? const FoodHomeScreen()
                             : isShop ? const ShopHomeScreen()
+                            : isService ? const ServiceHomeScreen()
                             // : isTaxi ? const TaxiHomeScreen()
                             : isRide ? const RideHomeScreen()
                             : const SizedBox(),

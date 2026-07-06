@@ -106,6 +106,7 @@
   "delivery_fee": "Delivery Fee",
   "deliver_to": "Deliver To",
   "place_order": "Place Order",
+  "item_not_found": "This item is currently unavailable",
   "favorite": "Favorite",
   "my_orders": "My Orders",
   "running": "Running",
