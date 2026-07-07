@@ -9,6 +9,8 @@ import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/profile/controllers/profile_controller.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
+import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
+import 'package:sixam_mart/features/service_booking/domain/models/service_booking_model.dart';
 import 'package:sixam_mart/features/address/domain/models/address_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/common/models/config_model.dart';
@@ -712,37 +714,48 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 ));
               }
 
-              // Service module (booking) requires dedicated date/time-slot/location
-              // fields on the order body; they are omitted for every other module.
+              // Service module (booking): build the `service_bookings` array from the
+              // per-item slot selections. Omitted entirely for every other module.
               final bool isServiceModule = Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service;
-              final bool hasSelectedSlot = checkoutController.timeSlots != null && checkoutController.timeSlots!.isNotEmpty;
-              final String? serviceDate = (isServiceModule && hasSelectedSlot) ? DateConverter.dateToDate(scheduleStartDate) : null;
-              final String? serviceStartTime = (isServiceModule && hasSelectedSlot)
-                  ? DateConverter.dateToTime24(checkoutController.timeSlots![checkoutController.selectedTimeSlot].startTime!) : null;
-              final String? serviceLocationType = isServiceModule ? (checkoutController.orderType == 'take_away' ? 'store' : 'home') : null;
-              // customer_address_id: prefer the selected address; if the user is on an
-              // unsaved "my_location" (id == null), fall back to the saved-pref address,
-              // then to the first saved address that covers the store's zone.
+              List<ServiceBooking>? serviceBookings;
               int? serviceCustomerAddressId;
               if(isServiceModule) {
-                serviceCustomerAddressId = finalAddress?.id ?? AddressHelper.getUserAddressFromSharedPref()?.id;
-                if(serviceCustomerAddressId == null) {
-                  final List<AddressModel>? savedAddresses = Get.find<AddressController>().addressList;
-                  final int? storeZoneId = checkoutController.store?.zoneId;
-                  if(savedAddresses != null) {
-                    for(final AddressModel saved in savedAddresses) {
-                      if(saved.id != null && (storeZoneId == null || (saved.zoneIds?.contains(storeZoneId) ?? false))) {
-                        serviceCustomerAddressId = saved.id;
-                        break;
+                final List<int> serviceItemIds = _cartList!.where((c) => c?.item?.id != null).map((c) => c!.item!.id!).toList();
+                final ServiceBookingController serviceBookingController = Get.find<ServiceBookingController>();
+
+                // Never submit an incomplete selection — keep the user on the slot screen.
+                if(!serviceBookingController.isSelectionComplete(serviceItemIds)) {
+                  showCustomSnackBar('please_select_date_and_time_slot_for_the_service'.tr);
+                  return;
+                }
+                serviceBookings = serviceBookingController.buildServiceBookings(serviceItemIds);
+
+                // Only home bookings need a saved address id. Prefer the selected
+                // address, then saved-pref, then the first saved address in the zone.
+                if(serviceBookingController.requiresCustomerAddress(serviceItemIds)) {
+                  serviceCustomerAddressId = finalAddress?.id ?? AddressHelper.getUserAddressFromSharedPref()?.id;
+                  if(serviceCustomerAddressId == null) {
+                    final List<AddressModel>? savedAddresses = Get.find<AddressController>().addressList;
+                    final int? storeZoneId = checkoutController.store?.zoneId;
+                    if(savedAddresses != null) {
+                      for(final AddressModel saved in savedAddresses) {
+                        if(saved.id != null && (storeZoneId == null || (saved.zoneIds?.contains(storeZoneId) ?? false))) {
+                          serviceCustomerAddressId = saved.id;
+                          break;
+                        }
                       }
                     }
+                  }
+                  if(serviceCustomerAddressId == null) {
+                    showCustomSnackBar('please_select_a_saved_address_for_home_service'.tr);
+                    return;
                   }
                 }
               }
 
               PlaceOrderBodyModel placeOrderBody = PlaceOrderBodyModel(
                 cart: carts, couponDiscountAmount: Get.find<CouponController>().discount, distance: checkoutController.distance,
-                serviceDate: serviceDate, startTime: serviceStartTime, locationType: serviceLocationType, customerAddressId: serviceCustomerAddressId,
+                serviceBookings: serviceBookings, customerAddressId: serviceCustomerAddressId,
                 scheduleAt: !checkoutController.store!.scheduleOrder! ? null : (checkoutController.selectedDateSlot == 0
                     && checkoutController.selectedTimeSlot == 0) ? null : DateConverter.dateToDateAndTime(scheduleEndDate),
                 orderAmount: total, orderNote: checkoutController.noteController.text, orderType: checkoutController.orderType,

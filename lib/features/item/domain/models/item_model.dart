@@ -110,6 +110,8 @@ class Item {
   bool? isStoreHalalActive;
   bool? isHalalItem;
   bool? isPrescriptionRequired;
+  bool? homeService; // service item can be performed at the customer's address
+  bool? atStore;     // service item can be performed at the provider's store
   List<String>? nutritionsName;
   List<String>? allergiesName;
   List<String>? genericName;
@@ -164,6 +166,8 @@ class Item {
     this.isStoreHalalActive,
     this.isHalalItem,
     this.isPrescriptionRequired,
+    this.homeService,
+    this.atStore,
     this.nutritionsName,
     this.allergiesName,
     this.genericName,
@@ -258,6 +262,8 @@ class Item {
     isStoreHalalActive = json['halal_tag_status'] == 1;
     isHalalItem = json['is_halal'] == 1;
     isPrescriptionRequired = json['is_prescription_required'] == 1;
+    homeService = json['home_service'] == 1 || json['home_service'] == true;
+    atStore = json['at_store'] == 1 || json['at_store'] == true;
     nutritionsName = json['nutritions_name']?.cast<String>();
     allergiesName = json['allergies_name']?.cast<String>();
     genericName = json['generic_name']?.cast<String>();
@@ -327,6 +333,8 @@ class Item {
     data['halal_tag_status'] = isStoreHalalActive;
     data['is_halal'] = isHalalItem;
     data['is_prescription_required'] = isPrescriptionRequired;
+    data['home_service'] = homeService;
+    data['at_store'] = atStore;
     data['nutritions_name'] = nutritionsName;
     data['allergies_name'] = allergiesName;
     data['generic_name'] = genericName;

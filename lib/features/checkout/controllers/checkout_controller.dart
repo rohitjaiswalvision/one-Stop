@@ -31,6 +31,8 @@ import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/payment/domain/models/offline_method_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
+import 'package:sixam_mart/common/models/error_response.dart';
+import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
 import 'package:sixam_mart/features/checkout/domain/models/timeslote_model.dart';
 import 'package:sixam_mart/features/checkout/domain/services/checkout_service_interface.dart';
 import 'package:sixam_mart/features/checkout/widgets/order_successfull_dialog.dart';
@@ -1023,6 +1025,7 @@ class CheckoutController extends GetxController implements GetxService {
         print('-------- Order placed successfully $orderID ----------');
       }
     } else {
+      _handleServiceBookingError(response, placeOrderBody);
       if(!isOfflinePay) {
         callback(false, response.statusText, '-1', zoneID, amount, maximumCodOrderAmount, fromCart, isCashOnDeliveryActive, placeOrderBody.contactPersonNumber, userID);
       } else {
@@ -1032,6 +1035,40 @@ class CheckoutController extends GetxController implements GetxService {
     update();
 
     return orderID;
+  }
+
+  /// Reacts to the service-booking specific 403 error codes returned by
+  /// /order/place. The human message is surfaced by the normal callback; here
+  /// we do the side effects the spec requires:
+  ///   service_slot  -> the slot was taken/expired: silently re-fetch slots.
+  ///   location_type -> the item doesn't support the chosen location: flip it.
+  ///   service_booking -> no date/slot sent: nothing to refresh, user re-picks.
+  void _handleServiceBookingError(Response response, PlaceOrderBodyModel placeOrderBody) {
+    if(placeOrderBody.serviceBookings == null || placeOrderBody.serviceBookings!.isEmpty) return;
+    String? code;
+    try {
+      if(response.body != null && response.body.toString().contains('errors')) {
+        final ErrorResponse errorResponse = ErrorResponse.fromJson(response.body);
+        if(errorResponse.errors != null && errorResponse.errors!.isNotEmpty) {
+          code = errorResponse.errors![0].code;
+        }
+      }
+    } catch (_) {}
+    if(code == null) return;
+
+    if(!Get.isRegistered<ServiceBookingController>()) return;
+    final ServiceBookingController serviceBookingController = Get.find<ServiceBookingController>();
+    final List<int> itemIds = placeOrderBody.serviceBookings!.where((b) => b.itemId != null).map((b) => b.itemId!).toList();
+
+    if(code == 'service_slot') {
+      for(final int id in itemIds) {
+        serviceBookingController.onSlotConflict(id);
+      }
+    } else if(code == 'location_type') {
+      for(final int id in itemIds) {
+        serviceBookingController.onLocationTypeRejected(id);
+      }
+    }
   }
 
   Future<void> placePrescriptionOrder({required int? storeId, required int? zoneID, required double? distance, required String address, required String longitude,

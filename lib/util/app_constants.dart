@@ -272,6 +272,12 @@ class AppConstants {
   static const String getProviderBasedOnSubcategory = '/api/v1/service/customer/provider/list-by-sub-category';
   static const String rebookApi = '/api/v1/service/customer/rebook/cart-add';
   static const String getPostDetails = '/api/v1/service/customer/post/details';
+
+  /// service booking / appointments (new services vertical)
+  static const String serviceAvailableSlotsUri = '/api/v1/services/available-slots';
+  static const String serviceStaffUri = '/api/v1/services/staff';
+  static const String serviceMyAppointmentsUri = '/api/v1/services/my-appointments';
+  static const String serviceAppointmentsUri = '/api/v1/services/appointments';
   static const String offlinePaymentDataStore = '/api/v1/service/customer/booking/store-offline-payment-data';
   static const String switchPaymentMethod = '/api/v1/service/customer/booking/switch-payment-method';
   static const String placeRequest = '/api/v1/service/customer/booking/request/send';

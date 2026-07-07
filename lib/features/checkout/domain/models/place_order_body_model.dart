@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:sixam_mart/features/address/domain/models/address_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
+import 'package:sixam_mart/features/service_booking/domain/models/service_booking_model.dart';
 
 class PlaceOrderBodyModel {
   List<OnlineCart>? _cart;
@@ -42,9 +43,7 @@ class PlaceOrderBodyModel {
   bool? isPrescriptionOrder;
   double? _bringChangeAmount;
   // Service module only
-  String? _serviceDate;
-  String? _startTime;
-  String? _locationType;
+  List<ServiceBooking>? _serviceBookings;
   int? _customerAddressId;
 
   PlaceOrderBodyModel({
@@ -86,9 +85,7 @@ class PlaceOrderBodyModel {
     required String? password,
     this.isPrescriptionOrder = false,
     double? bringChangeAmount,
-    String? serviceDate,
-    String? startTime,
-    String? locationType,
+    List<ServiceBooking>? serviceBookings,
     int? customerAddressId,
   }) {
     _cart = cart;
@@ -129,9 +126,7 @@ class PlaceOrderBodyModel {
     _password = password;
     isPrescriptionOrder = isPrescriptionOrder ?? false;
     _bringChangeAmount = bringChangeAmount;
-    _serviceDate = serviceDate;
-    _startTime = startTime;
-    _locationType = locationType;
+    _serviceBookings = serviceBookings;
     _customerAddressId = customerAddressId;
   }
 
@@ -173,9 +168,7 @@ class PlaceOrderBodyModel {
   String? get password => _password;
   bool? get isPrescription => isPrescriptionOrder;
   double? get bringChangeAmount => _bringChangeAmount;
-  String? get serviceDate => _serviceDate;
-  String? get startTime => _startTime;
-  String? get locationType => _locationType;
+  List<ServiceBooking>? get serviceBookings => _serviceBookings;
   int? get customerAddressId => _customerAddressId;
 
   PlaceOrderBodyModel.fromJson(Map<String, dynamic> json) {
@@ -223,9 +216,10 @@ class PlaceOrderBodyModel {
     _password = json['password'];
     isPrescriptionOrder = json['is_prescription'] != null ? json['is_prescription'] == 'true' : false;
     _bringChangeAmount = json['bring_change_amount'] != null ? double.parse(json['bring_change_amount'].toString()) : null;
-    _serviceDate = json['service_date'];
-    _startTime = json['start_time'];
-    _locationType = json['location_type'];
+    if (json['service_bookings'] != null) {
+      _serviceBookings = [];
+      json['service_bookings'].forEach((v) => _serviceBookings!.add(ServiceBooking.fromJson(v)));
+    }
     _customerAddressId = json['customer_address_id'] != null ? int.parse(json['customer_address_id'].toString()) : null;
   }
 
@@ -300,14 +294,8 @@ class PlaceOrderBodyModel {
       data['bring_change_amount'] = _bringChangeAmount;
     }
     // Service module only — omitted for all other modules
-    if(_serviceDate != null) {
-      data['service_date'] = _serviceDate;
-    }
-    if(_startTime != null) {
-      data['start_time'] = _startTime;
-    }
-    if(_locationType != null) {
-      data['location_type'] = _locationType;
+    if(_serviceBookings != null && _serviceBookings!.isNotEmpty) {
+      data['service_bookings'] = _serviceBookings!.map((v) => v.toJson()).toList();
     }
     if(_customerAddressId != null) {
       data['customer_address_id'] = _customerAddressId;

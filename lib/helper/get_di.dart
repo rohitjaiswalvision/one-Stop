@@ -10,6 +10,11 @@ import 'package:sixam_mart/features/business/domain/repositories/business_repo_i
 import 'package:sixam_mart/features/business/domain/services/business_service.dart';
 import 'package:sixam_mart/features/business/domain/services/business_service_interface.dart';
 import 'package:sixam_mart/features/coupon/domain/repositories/coupon_repository.dart';
+import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
+import 'package:sixam_mart/features/service_booking/domain/repositories/service_booking_repository.dart';
+import 'package:sixam_mart/features/service_booking/domain/repositories/service_booking_repository_interface.dart';
+import 'package:sixam_mart/features/service_booking/domain/services/service_booking_service.dart';
+import 'package:sixam_mart/features/service_booking/domain/services/service_booking_service_interface.dart';
 import 'package:sixam_mart/features/coupon/domain/repositories/coupon_repository_interface.dart';
 import 'package:sixam_mart/features/home/controllers/advertisement_controller.dart';
 import 'package:sixam_mart/features/home/controllers/home_controller.dart';
@@ -287,6 +292,9 @@ Future<Map<String, Map<String, String>>> init() async {
   CouponRepositoryInterface couponRepositoryInterface = CouponRepository(apiClient: Get.find());
   Get.lazyPut(() => couponRepositoryInterface);
 
+  ServiceBookingRepositoryInterface serviceBookingRepositoryInterface = ServiceBookingRepository(apiClient: Get.find());
+  Get.lazyPut(() => serviceBookingRepositoryInterface);
+
   FavouriteRepositoryInterface favouriteRepositoryInterface = FavouriteRepository(apiClient: Get.find());
   Get.lazyPut(() => favouriteRepositoryInterface);
 
@@ -435,6 +443,9 @@ Future<Map<String, Map<String, String>>> init() async {
   CouponServiceInterface couponServiceInterface = CouponService(couponRepositoryInterface: Get.find());
   Get.lazyPut(() => couponServiceInterface);
 
+  ServiceBookingServiceInterface serviceBookingServiceInterface = ServiceBookingService(serviceBookingRepositoryInterface: Get.find());
+  Get.lazyPut(() => serviceBookingServiceInterface);
+
   FavouriteServiceInterface favouriteServiceInterface = FavouriteService(favouriteRepositoryInterface: Get.find());
   Get.lazyPut(() => favouriteServiceInterface);
 
@@ -561,6 +572,7 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => ReelsController(reelsServiceInterface: Get.find()), fenix: true);
   Get.lazyPut(() => SearchController(searchServiceInterface: Get.find()));
   Get.lazyPut(() => CouponController(couponServiceInterface: Get.find()));
+  Get.lazyPut(() => ServiceBookingController(serviceBookingServiceInterface: Get.find()));
   Get.lazyPut(() => OrderController(orderServiceInterface: Get.find()));
   Get.lazyPut(() => NotificationController(notificationServiceInterface: Get.find()));
   Get.lazyPut(() => CampaignController(campaignServiceInterface: Get.find()));

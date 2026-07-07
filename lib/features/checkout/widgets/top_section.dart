@@ -19,6 +19,8 @@ import 'package:sixam_mart/features/checkout/widgets/delivery_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/deliveryman_tips_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/payment_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/time_slot_section.dart';
+import 'package:sixam_mart/features/service_booking/widgets/service_slot_picker.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/features/checkout/widgets/web_delivery_instruction_view.dart';
 
 import 'upload_prescription_widget.dart';
@@ -151,11 +153,14 @@ class TopSection extends StatelessWidget {
         !takeAway ? isDesktop ? const WebDeliveryInstructionView() : const DeliveryInstructionView() : const SizedBox(),
         SizedBox(height: !takeAway ? isDesktop ? Dimensions.paddingSizeLarge : Dimensions.paddingSizeSmall : 0),
 
-        /// Time Slot
-        TimeSlotSection(
-          storeId: storeId, checkoutController: checkoutController, cartList: cartList, tooltipController2: tooltipController2,
-          tomorrowClosed: tomorrowClosed, todayClosed: todayClosed, module: module,
-        ),
+        /// Time Slot — the service module replaces the generic slot picker with
+        /// server-driven appointment slots (date + slot grid) per service item.
+        (Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service)
+            ? _serviceSlotSection(context)
+            : TimeSlotSection(
+                storeId: storeId, checkoutController: checkoutController, cartList: cartList, tooltipController2: tooltipController2,
+                tomorrowClosed: tomorrowClosed, todayClosed: todayClosed, module: module,
+              ),
 
         /// Coupon..
         !isDesktop && !isGuestLoggedIn ? CouponSection(
@@ -187,6 +192,34 @@ class TopSection extends StatelessWidget {
         ),
         SizedBox(height: isDesktop ? Dimensions.paddingSizeLarge : 0),
 
+      ]),
+    );
+  }
+
+  /// One appointment slot picker per service item in the cart.
+  Widget _serviceSlotSection(BuildContext context) {
+    final List<CartModel?> items = cartList ?? [];
+    final List<CartModel> serviceItems = items.whereType<CartModel>().where((c) => c.item != null).toList();
+    if(serviceItems.isEmpty) return const SizedBox();
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+        boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.05), blurRadius: 10)],
+      ),
+      padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        for(int i = 0; i < serviceItems.length; i++) ...[
+          if(serviceItems.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
+              child: Text(serviceItems[i].item!.name ?? '', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge)),
+            ),
+          ServiceSlotPicker(item: serviceItems[i].item!),
+          if(i != serviceItems.length - 1) const Divider(height: Dimensions.paddingSizeExtraLarge),
+        ],
       ]),
     );
   }

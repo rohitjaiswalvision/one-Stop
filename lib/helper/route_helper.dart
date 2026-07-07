@@ -61,6 +61,7 @@ import 'package:sixam_mart/features/checkout/screens/order_successful_screen.dar
 import 'package:sixam_mart/features/payment/screens/payment_screen.dart';
 import 'package:sixam_mart/features/payment/screens/payment_webview_screen.dart';
 import 'package:sixam_mart/features/coupon/screens/coupon_screen.dart';
+import 'package:sixam_mart/features/service_booking/screens/my_appointments_screen.dart';
 import 'package:sixam_mart/features/dashboard/screens/dashboard_screen.dart';
 import 'package:sixam_mart/features/favourite/screens/favourite_screen.dart';
 import 'package:sixam_mart/features/flash_sale/screens/flash_sale_details_screen.dart';
@@ -121,6 +122,7 @@ class RouteHelper {
   static const String updateProfile = '/update-profile';
   static const String coupon = '/coupon';
   static const String notification = '/notification';
+  static const String myAppointments = '/my-appointments';
   static const String map = '/store-location';
   static const String address = '/address';
   static const String orderSuccess = '/order-successful';
@@ -238,6 +240,7 @@ class RouteHelper {
   static String getProfileRoute() => profile;
   static String getUpdateProfileRoute() => updateProfile;
   static String getCouponRoute() => coupon;
+  static String getMyAppointmentsRoute() => myAppointments;
   static String getNotificationRoute({bool? fromNotification}) => '$notification?from=${fromNotification.toString()}';
   static String getMapRoute(AddressModel addressModel, String page, bool isFood, {String? storeName, int? moduleId, required String slug}) {
     List<int> encoded = utf8.encode(jsonEncode(addressModel.toJson()));
@@ -500,6 +503,7 @@ class RouteHelper {
     GetPage(name: profile, page: () => const ProfileScreen()),
     GetPage(name: updateProfile, page: () => getRoute(const UpdateProfileScreen())),
     GetPage(name: coupon, page: () => const CouponScreen()),
+    GetPage(name: myAppointments, page: () => getRoute(const MyAppointmentsScreen())),
     GetPage(name: notification, page: () => getRoute(NotificationScreen(fromNotification: Get.parameters['from'] == 'true'))),
     GetPage(name: '$map/:slug', page: () {
       List<int> decode = base64Decode(Get.parameters['address']!.replaceAll(' ', '+'));
