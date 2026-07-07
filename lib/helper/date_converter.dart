@@ -25,6 +25,10 @@ class DateConverter {
     return DateFormat('yyyy-MM-dd').format(dateTime);
   }
 
+  static String dateToTime24(DateTime dateTime) {
+    return DateFormat('HH:mm').format(dateTime);
+  }
+
   static String dateToReadableDate(DateTime dateTime) {
     return DateFormat('dd MMM, yyy').format(dateTime);
   }

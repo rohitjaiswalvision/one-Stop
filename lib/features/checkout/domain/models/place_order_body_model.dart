@@ -41,6 +41,11 @@ class PlaceOrderBodyModel {
   String? _password;
   bool? isPrescriptionOrder;
   double? _bringChangeAmount;
+  // Service module only
+  String? _serviceDate;
+  String? _startTime;
+  String? _locationType;
+  int? _customerAddressId;
 
   PlaceOrderBodyModel({
     required List<OnlineCart> cart,
@@ -81,6 +86,10 @@ class PlaceOrderBodyModel {
     required String? password,
     this.isPrescriptionOrder = false,
     double? bringChangeAmount,
+    String? serviceDate,
+    String? startTime,
+    String? locationType,
+    int? customerAddressId,
   }) {
     _cart = cart;
     _couponDiscountAmount = couponDiscountAmount;
@@ -120,6 +129,10 @@ class PlaceOrderBodyModel {
     _password = password;
     isPrescriptionOrder = isPrescriptionOrder ?? false;
     _bringChangeAmount = bringChangeAmount;
+    _serviceDate = serviceDate;
+    _startTime = startTime;
+    _locationType = locationType;
+    _customerAddressId = customerAddressId;
   }
 
   List<OnlineCart>? get cart => _cart;
@@ -160,6 +173,10 @@ class PlaceOrderBodyModel {
   String? get password => _password;
   bool? get isPrescription => isPrescriptionOrder;
   double? get bringChangeAmount => _bringChangeAmount;
+  String? get serviceDate => _serviceDate;
+  String? get startTime => _startTime;
+  String? get locationType => _locationType;
+  int? get customerAddressId => _customerAddressId;
 
   PlaceOrderBodyModel.fromJson(Map<String, dynamic> json) {
     if (json['cart'] != null) {
@@ -206,6 +223,10 @@ class PlaceOrderBodyModel {
     _password = json['password'];
     isPrescriptionOrder = json['is_prescription'] != null ? json['is_prescription'] == 'true' : false;
     _bringChangeAmount = json['bring_change_amount'] != null ? double.parse(json['bring_change_amount'].toString()) : null;
+    _serviceDate = json['service_date'];
+    _startTime = json['start_time'];
+    _locationType = json['location_type'];
+    _customerAddressId = json['customer_address_id'] != null ? int.parse(json['customer_address_id'].toString()) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -277,6 +298,19 @@ class PlaceOrderBodyModel {
     data['is_prescription'] = isPrescriptionOrder == true;
     if(_bringChangeAmount != null) {
       data['bring_change_amount'] = _bringChangeAmount;
+    }
+    // Service module only — omitted for all other modules
+    if(_serviceDate != null) {
+      data['service_date'] = _serviceDate;
+    }
+    if(_startTime != null) {
+      data['start_time'] = _startTime;
+    }
+    if(_locationType != null) {
+      data['location_type'] = _locationType;
+    }
+    if(_customerAddressId != null) {
+      data['customer_address_id'] = _customerAddressId;
     }
     return data;
   }

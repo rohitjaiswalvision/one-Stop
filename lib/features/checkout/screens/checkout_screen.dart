@@ -712,8 +712,37 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 ));
               }
 
+              // Service module (booking) requires dedicated date/time-slot/location
+              // fields on the order body; they are omitted for every other module.
+              final bool isServiceModule = Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service;
+              final bool hasSelectedSlot = checkoutController.timeSlots != null && checkoutController.timeSlots!.isNotEmpty;
+              final String? serviceDate = (isServiceModule && hasSelectedSlot) ? DateConverter.dateToDate(scheduleStartDate) : null;
+              final String? serviceStartTime = (isServiceModule && hasSelectedSlot)
+                  ? DateConverter.dateToTime24(checkoutController.timeSlots![checkoutController.selectedTimeSlot].startTime!) : null;
+              final String? serviceLocationType = isServiceModule ? (checkoutController.orderType == 'take_away' ? 'store' : 'home') : null;
+              // customer_address_id: prefer the selected address; if the user is on an
+              // unsaved "my_location" (id == null), fall back to the saved-pref address,
+              // then to the first saved address that covers the store's zone.
+              int? serviceCustomerAddressId;
+              if(isServiceModule) {
+                serviceCustomerAddressId = finalAddress?.id ?? AddressHelper.getUserAddressFromSharedPref()?.id;
+                if(serviceCustomerAddressId == null) {
+                  final List<AddressModel>? savedAddresses = Get.find<AddressController>().addressList;
+                  final int? storeZoneId = checkoutController.store?.zoneId;
+                  if(savedAddresses != null) {
+                    for(final AddressModel saved in savedAddresses) {
+                      if(saved.id != null && (storeZoneId == null || (saved.zoneIds?.contains(storeZoneId) ?? false))) {
+                        serviceCustomerAddressId = saved.id;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+
               PlaceOrderBodyModel placeOrderBody = PlaceOrderBodyModel(
                 cart: carts, couponDiscountAmount: Get.find<CouponController>().discount, distance: checkoutController.distance,
+                serviceDate: serviceDate, startTime: serviceStartTime, locationType: serviceLocationType, customerAddressId: serviceCustomerAddressId,
                 scheduleAt: !checkoutController.store!.scheduleOrder! ? null : (checkoutController.selectedDateSlot == 0
                     && checkoutController.selectedTimeSlot == 0) ? null : DateConverter.dateToDateAndTime(scheduleEndDate),
                 orderAmount: total, orderNote: checkoutController.noteController.text, orderType: checkoutController.orderType,
@@ -842,6 +871,12 @@ class CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   bool _checkDigitalPaymentActive({required Store? store}) {
+    // Service module: enable digital payment directly from global config and
+    // bypass the per-zone gate (service providers aren't zoned like stores).
+    // COD stays disabled (see _checkCODActive) so only digital is offered.
+    if(Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service) {
+      return Get.find<SplashController>().configModel!.digitalPayment ?? false;
+    }
     bool isDigitalPaymentActive = false;
     if(store != null){
       for(ZoneData zData in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {
