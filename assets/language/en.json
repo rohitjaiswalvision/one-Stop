@@ -2324,5 +2324,8 @@
   "appointment_cancel_failed": "Could not cancel the appointment",
   "provider": "Provider",
   "staff": "Staff",
-  "location": "Location"
+  "location": "Location",
+  "choose_schedule": "Choose Schedule",
+  "select_your_schedule": "Select your preferred date & time slot",
+  "schedule_your_service": "Schedule your service"
 }

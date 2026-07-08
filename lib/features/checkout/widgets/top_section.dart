@@ -19,7 +19,11 @@ import 'package:sixam_mart/features/checkout/widgets/delivery_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/deliveryman_tips_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/payment_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/time_slot_section.dart';
-import 'package:sixam_mart/features/service_booking/widgets/service_slot_picker.dart';
+import 'package:sixam_mart/features/item/domain/models/item_model.dart';
+import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
+import 'package:sixam_mart/features/service_booking/domain/models/service_slot_model.dart';
+import 'package:sixam_mart/features/service_booking/widgets/service_schedule_bottom_sheet.dart';
+import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/features/checkout/widgets/web_delivery_instruction_view.dart';
 
@@ -217,10 +221,67 @@ class TopSection extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
               child: Text(serviceItems[i].item!.name ?? '', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge)),
             ),
-          ServiceSlotPicker(item: serviceItems[i].item!),
+          _chooseScheduleField(context, serviceItems[i].item!),
           if(i != serviceItems.length - 1) const Divider(height: Dimensions.paddingSizeExtraLarge),
         ],
       ]),
     );
+  }
+
+  /// Collapsed "Choose Schedule" field. Tapping it opens the date + time-slot
+  /// picker in a bottom sheet (dialog on desktop); the field itself shows the
+  /// selected schedule once picked.
+  Widget _chooseScheduleField(BuildContext context, Item item) {
+    return GetBuilder<ServiceBookingController>(builder: (controller) {
+      final ServiceSlot? slot = controller.selectedSlot(item.id!);
+      final bool hasSelection = slot != null;
+      final String summary = hasSelection
+          ? '${DateConverter.dateToReadableDate(controller.selectedDate(item.id!))}  •  ${slot.displayLabel}'
+          : 'select_your_schedule'.tr;
+
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('choose_schedule'.tr, style: robotoMedium),
+        const SizedBox(height: Dimensions.paddingSizeSmall),
+
+        InkWell(
+          onTap: () => _openScheduleSheet(context, item),
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          child: Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).primaryColor, width: 0.3),
+              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+            ),
+            child: Row(children: [
+              Icon(Icons.calendar_month_outlined, color: Theme.of(context).primaryColor, size: 20),
+              const SizedBox(width: Dimensions.paddingSizeSmall),
+
+              Expanded(
+                child: Text(
+                  summary, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: robotoRegular.copyWith(
+                    color: hasSelection ? Theme.of(context).textTheme.bodyMedium!.color : Theme.of(context).disabledColor,
+                  ),
+                ),
+              ),
+
+              const Icon(Icons.arrow_drop_down, size: 28),
+            ]),
+          ),
+        ),
+      ]);
+    });
+  }
+
+  void _openScheduleSheet(BuildContext context, Item item) {
+    if(ResponsiveHelper.isDesktop(context)) {
+      showDialog(context: context, builder: (con) => Dialog(child: ServiceScheduleBottomSheet(item: item)));
+    } else {
+      showModalBottomSheet(
+        context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
+        builder: (con) => ServiceScheduleBottomSheet(item: item),
+      );
+    }
   }
 }
