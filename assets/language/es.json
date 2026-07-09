@@ -1546,6 +1546,9 @@
   "select_date": "Seleccione fecha",
   "expire_date": "Fecha de vencimiento",
   "duration": "Duración",
+  "service_details": "Service Details",
+  "service_provider": "Service Provider",
+  "service_date": "Service Date",
   "tin_number": "Número TIN",
   "vat_tax_inc" : "(IVA incluido)",
 

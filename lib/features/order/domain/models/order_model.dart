@@ -101,6 +101,8 @@ class OrderModel {
   double? bringChangeAmount;
   String? cancellationNote;
   List<Reviews>? reviews;
+  List<OrderServiceBooking>? serviceBookings;
+  ServiceStaff? serviceStaff;
 
   OrderModel({
     this.id,
@@ -167,6 +169,8 @@ class OrderModel {
     this.bringChangeAmount,
     this.cancellationNote,
     this.reviews,
+    this.serviceBookings,
+    this.serviceStaff,
   });
 
   OrderModel.fromJson(Map<String, dynamic> json) {
@@ -258,6 +262,13 @@ class OrderModel {
         reviews!.add(Reviews.fromJson(v));
       });
     }
+    if (json['service_bookings'] != null) {
+      serviceBookings = <OrderServiceBooking>[];
+      json['service_bookings'].forEach((v) {
+        serviceBookings!.add(OrderServiceBooking.fromJson(v));
+      });
+    }
+    serviceStaff = json['service_staff'] != null ? ServiceStaff.fromJson(json['service_staff']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -344,6 +355,99 @@ class OrderModel {
     if (reviews != null) {
       data['reviews'] = reviews!.map((v) => v.toJson()).toList();
     }
+    if (serviceBookings != null) {
+      data['service_bookings'] = serviceBookings!.map((v) => v.toJson()).toList();
+    }
+    if (serviceStaff != null) {
+      data['service_staff'] = serviceStaff!.toJson();
+    }
+    return data;
+  }
+}
+
+/// One entry of the `service_bookings` array returned with a services-module order.
+class OrderServiceBooking {
+  int? id;
+  int? orderDetailId;
+  int? itemId;
+  String? itemName;
+  String? serviceDate;
+  String? startTime;
+  String? endTime;
+  int? duration;
+  String? locationType;
+  String? status;
+  ServiceStaff? staff;
+
+  OrderServiceBooking({
+    this.id,
+    this.orderDetailId,
+    this.itemId,
+    this.itemName,
+    this.serviceDate,
+    this.startTime,
+    this.endTime,
+    this.duration,
+    this.locationType,
+    this.status,
+    this.staff,
+  });
+
+  OrderServiceBooking.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    orderDetailId = json['order_detail_id'];
+    itemId = json['item_id'];
+    itemName = json['item_name'];
+    serviceDate = json['service_date'];
+    startTime = json['start_time'];
+    endTime = json['end_time'];
+    duration = json['duration'] != null ? int.tryParse(json['duration'].toString()) : null;
+    locationType = json['location_type'];
+    status = json['status'];
+    staff = json['staff'] != null ? ServiceStaff.fromJson(json['staff']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['order_detail_id'] = orderDetailId;
+    data['item_id'] = itemId;
+    data['item_name'] = itemName;
+    data['service_date'] = serviceDate;
+    data['start_time'] = startTime;
+    data['end_time'] = endTime;
+    data['duration'] = duration;
+    data['location_type'] = locationType;
+    data['status'] = status;
+    if (staff != null) {
+      data['staff'] = staff!.toJson();
+    }
+    return data;
+  }
+}
+
+/// The provider assigned to a service booking. Null until the store assigns one.
+class ServiceStaff {
+  int? id;
+  String? name;
+  String? phone;
+  String? imageFullUrl;
+
+  ServiceStaff({this.id, this.name, this.phone, this.imageFullUrl});
+
+  ServiceStaff.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    phone = json['phone'];
+    imageFullUrl = json['image_full_url'] ?? json['image'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['phone'] = phone;
+    data['image'] = imageFullUrl;
     return data;
   }
 }

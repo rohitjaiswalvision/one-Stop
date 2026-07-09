@@ -29,6 +29,7 @@ import 'package:sixam_mart/features/order/widgets/delivery_details_widget.dart';
 import 'package:sixam_mart/features/payment/widgets/offline_info_edit_dialog_widget.dart';
 import 'package:sixam_mart/features/order/widgets/order_banner_view_widget.dart';
 import 'package:sixam_mart/features/order/widgets/order_item_widget.dart';
+import 'package:sixam_mart/features/order/widgets/service_booking_details_widget.dart';
 import 'package:sixam_mart/features/parcel/widgets/details_widget.dart';
 import 'package:sixam_mart/features/review/widgets/review_dialog_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -51,6 +52,10 @@ class OrderInfoWidget extends StatelessWidget {
     ExpansibleController controller = ExpansibleController();
     bool isDesktop = ResponsiveHelper.isDesktop(context);
     bool isGuestLoggedIn = AuthHelper.isGuestLoggedIn();
+
+    // Services orders show the real slot in ServiceBookingDetailsWidget instead;
+    // their schedule_at just mirrors created_at.
+    bool showScheduleAt = order.scheduleAt != null && order.scheduled == 1;
 
     return Stack(children: [
 
@@ -115,12 +120,12 @@ class OrderInfoWidget extends StatelessWidget {
             ]),
             Divider(height: Dimensions.paddingSizeLarge, color: Theme.of(context).disabledColor.withValues(alpha: 0.5)),
 
-            order.scheduled == 1 ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            showScheduleAt ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text('scheduled_at'.tr, style: robotoRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.6))),
 
-              Text(DateConverter.dateTimeStringToDateTime(order.scheduleAt!), style: robotoRegular),
+              Text(DateConverter.dateTimeStringToDateTime(order.scheduleAt!), style: robotoMedium),
             ]) : const SizedBox(),
-            order.scheduled == 1 ? Divider(height: Dimensions.paddingSizeLarge, color: Theme.of(context).disabledColor.withValues(alpha: 0.5)) : const SizedBox(),
+            showScheduleAt ? Divider(height: Dimensions.paddingSizeLarge, color: Theme.of(context).disabledColor.withValues(alpha: 0.5)) : const SizedBox(),
 
             order.orderStatus != 'canceled' && Get.find<SplashController>().configModel!.orderDeliveryVerification! ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text('delivery_verification_code'.tr, style: robotoRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.6))),
@@ -311,6 +316,9 @@ class OrderInfoWidget extends StatelessWidget {
           ]),
         ),
         SizedBox(height: Dimensions.paddingSizeSmall),
+
+        ServiceBookingDetailsWidget(order: order),
+        SizedBox(height: (order.serviceBookings?.isNotEmpty ?? false) ? Dimensions.paddingSizeSmall : 0),
 
         (order.orderNote != null && order.orderNote!.isNotEmpty) ? CustomCard(
           borderRadius: isDesktop ? Dimensions.radiusDefault : 0, isBorder: false,

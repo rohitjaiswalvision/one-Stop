@@ -1546,6 +1546,9 @@
   "select_date": "তারিখ নির্বাচন করুন",
   "expire_date": "মেয়াদ শেষের তারিখ",
   "duration": "সময়কাল",
+  "service_details": "Service Details",
+  "service_provider": "Service Provider",
+  "service_date": "Service Date",
   "tin_number": "TIN নম্বর",
   "vat_tax_inc" : "(ভ্যাট/ট্যাক্স অন্তর্ভুক্ত)",
 

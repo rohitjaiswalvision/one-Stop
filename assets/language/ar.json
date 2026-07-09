@@ -1546,6 +1546,9 @@
   "select_date": "حدد التاريخ",
   "expire_date": "تاريخ الانتهاء",
   "duration": "المدة",
+  "service_details": "Service Details",
+  "service_provider": "Service Provider",
+  "service_date": "Service Date",
   "tin_number": "رقم TIN",
   "vat_tax_inc" : "(ضريبة القيمة المضافة/الضريبة شاملة)",
 

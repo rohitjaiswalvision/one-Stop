@@ -364,6 +364,27 @@ class DateConverter {
     return DateFormat('HH:mm').parse(time);
   }
 
+  /// `2026-07-08` -> `08 Jul 2026`. Returns the raw string if it is not a plain date.
+  static String serviceDateToReadable(String? date) {
+    if (date == null || date.isEmpty) return '';
+    try {
+      return DateFormat('dd MMM yyyy').format(DateFormat('yyyy-MM-dd').parse(date));
+    } catch (_) {
+      return date;
+    }
+  }
+
+  /// `12:00:00` (or `12:00`) -> `12:00 PM`, honouring the configured 12/24h format.
+  static String serviceTimeToReadable(String? time) {
+    if (time == null || time.isEmpty) return '';
+    try {
+      final List<String> parts = time.split(':');
+      return DateFormat(_timeFormatter()).format(DateFormat('HH:mm').parse('${parts[0]}:${parts[1]}'));
+    } catch (_) {
+      return time;
+    }
+  }
+
 
 
 }
