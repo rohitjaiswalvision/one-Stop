@@ -14,6 +14,7 @@ import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -581,6 +582,12 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                               if(AddressHelper.getUserAddressFromSharedPref() == null) {
                                 Get.back();
                                 Get.find<LocationController>().navigateToLocationScreen('home', canRoute: true);
+                                return;
+                              }
+
+                              if(SquareFeetHelper.isSquareFeetItem(item)) {
+                                Get.back();
+                                SquareFeetHelper.openSquareFeetSheet(item, cart: widget.cart, cartIndex: widget.cartIndex);
                                 return;
                               }
 

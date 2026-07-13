@@ -1713,5 +1713,9 @@
   "fresh_finds": "Hallazgos frescos",
   "trending_now": "Tendencia ahora",
   "health_highlights": "Destacados de salud",
-  "quick_picks": "Selecciones rápidas"
+  "quick_picks": "Selecciones rápidas",
+  "sq_ft": "pies²",
+  "enter_area_in": "Introduce el área en",
+  "e_g_10": "p. ej. 10",
+  "enter_a_valid_area": "Introduce un área válida"
 }

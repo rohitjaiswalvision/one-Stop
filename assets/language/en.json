@@ -2328,5 +2328,9 @@
   "location": "Location",
   "choose_schedule": "Choose Schedule",
   "select_your_schedule": "Select your preferred date & time slot",
-  "schedule_your_service": "Schedule your service"
+  "schedule_your_service": "Schedule your service",
+  "sq_ft": "sq ft",
+  "enter_area_in": "Enter area in",
+  "e_g_10": "e.g. 10",
+  "enter_a_valid_area": "Please enter a valid area"
 }

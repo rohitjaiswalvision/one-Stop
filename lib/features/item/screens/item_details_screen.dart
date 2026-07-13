@@ -11,6 +11,7 @@ import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -405,6 +406,15 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
                                     if(AddressHelper.getUserAddressFromSharedPref() == null) {
                                       Get.find<LocationController>().navigateToLocationScreen('home', canRoute: true);
+                                      return;
+                                    }
+
+                                    if(SquareFeetHelper.isSquareFeetItem(item)) {
+                                      SquareFeetHelper.openSquareFeetSheet(
+                                        item,
+                                        cart: itemController.cartIndex != -1 ? cartController.cartList[itemController.cartIndex] : null,
+                                        cartIndex: itemController.cartIndex != -1 ? itemController.cartIndex : null,
+                                      );
                                       return;
                                     }
 

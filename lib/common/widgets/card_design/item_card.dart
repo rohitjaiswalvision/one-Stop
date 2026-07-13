@@ -7,6 +7,7 @@ import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -178,10 +179,10 @@ class ItemCard extends StatelessWidget {
                             // SizedBox(height: item.discount != null && item.discount! > 0 ? Dimensions.paddingSizeExtraSmall : 0),
 
                             Text(
-                              PriceConverter.convertPrice(
+                              '${PriceConverter.convertPrice(
                                 Get.find<ItemController>().getStartingPrice(item), discount: discount,
                                 discountType: discountType,
-                              ),
+                              )}${SquareFeetHelper.perUnitSuffix(item)}',
                               textDirection: TextDirection.ltr, style: robotoMedium,
                             ),
 

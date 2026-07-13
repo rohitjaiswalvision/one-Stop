@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
@@ -824,6 +825,10 @@ class ItemController extends GetxController implements GetxService {
     getItemDetails(itemId: item!.id!, isCampaign: isCampaign).then((value) {
       if (_item == null) {
         showCustomSnackBar('item_not_found'.tr);
+        return;
+      }
+      if (SquareFeetHelper.isSquareFeetItem(_item)) {
+        SquareFeetHelper.openSquareFeetSheet(_item!);
         return;
       }
       if (((_item!.foodVariations != null && _item!.foodVariations!.isEmpty) && _item?.moduleType == AppConstants.food) || (_item?.variations != null && _item!.variations!.isEmpty && _item?.moduleType != AppConstants.food)) {

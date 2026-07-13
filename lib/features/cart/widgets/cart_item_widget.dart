@@ -8,6 +8,7 @@ import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
@@ -58,6 +59,8 @@ class _CartItemWidgetState extends State<CartItemWidget> {
 
     double totalPrice = _calculatePriceWithVariation(cartModel: widget.cart, discount: discount, discountType: discountType);
 
+    bool isSquareFeet = SquareFeetHelper.isSquareFeetItem(widget.cart.item);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 0),
       child: Slidable(
@@ -87,6 +90,10 @@ class _CartItemWidgetState extends State<CartItemWidget> {
           ),
           child: CustomInkWell(
             onTap: () {
+              if(isSquareFeet) {
+                SquareFeetHelper.openSquareFeetSheet(widget.cart.item!, cart: widget.cart, cartIndex: widget.cartIndex);
+                return;
+              }
               ResponsiveHelper.isMobile(context) ? showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
@@ -184,7 +191,11 @@ class _CartItemWidgetState extends State<CartItemWidget> {
 
                       const SizedBox(height: 2),
 
-                      Wrap(children: [
+                      isSquareFeet ? Text(
+                        SquareFeetHelper.areaBreakdown(widget.cart),
+                        style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
+                        textDirection: TextDirection.ltr, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ) : Wrap(children: [
                         Text(
                           '${PriceConverter.convertPrice(startingPrice, discount: discount, discountType: discountType)}'
                               '${endingPrice!= null ? ' - ${PriceConverter.convertPrice(endingPrice, discount: discount, discountType: discountType)}' : ''}',
@@ -242,7 +253,28 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                   GetBuilder<CartController>(
                     builder: (cartController) {
                       return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Row(children: [
+                        isSquareFeet ? InkWell(
+                          onTap: cartController.isLoading ? null : () => SquareFeetHelper.openSquareFeetSheet(
+                            widget.cart.item!, cart: widget.cart, cartIndex: widget.cartIndex,
+                          ),
+                          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraSmall, horizontal: Dimensions.paddingSizeSmall),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                              border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.5)),
+                            ),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Text(
+                                '${widget.cart.quantity} ${SquareFeetHelper.unitLabel(widget.cart.item)}',
+                                style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
+                              ),
+                              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+
+                              Icon(Icons.edit, size: 14, color: Theme.of(context).primaryColor),
+                            ]),
+                          ),
+                        ) : Row(children: [
                           QuantityButton(
                             onTap: cartController.isLoading ? null : () {
                               if (widget.cart.quantity! > 1) {

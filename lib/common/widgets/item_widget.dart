@@ -14,6 +14,7 @@ import 'package:sixam_mart/common/models/module_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -251,7 +252,7 @@ class ItemWidget extends StatelessWidget {
 
                           ]) : Row(children: [
                             Text(
-                              PriceConverter.convertPrice(item!.price, discount: discount, discountType: discountType),
+                              '${PriceConverter.convertPrice(item!.price, discount: discount, discountType: discountType)}${SquareFeetHelper.perUnitSuffix(item)}',
                               style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall,color: Colors.deepOrange), textDirection: TextDirection.ltr,
                             ),
                             SizedBox(width: discount! > 0 ? Dimensions.paddingSizeExtraSmall : 0),

@@ -2312,5 +2312,9 @@
   "staff": "Personnel",
   "choose_schedule": "Choisir un créneau",
   "select_your_schedule": "Sélectionnez votre date et créneau horaire préférés",
-  "schedule_your_service": "Planifiez votre service"
+  "schedule_your_service": "Planifiez votre service",
+  "sq_ft": "pi²",
+  "enter_area_in": "Saisissez la surface en",
+  "e_g_10": "ex. 10",
+  "enter_a_valid_area": "Veuillez saisir une surface valide"
 }

@@ -1712,5 +1712,9 @@
   "fresh_finds": "ফ্রেশ ফাইন্ডস",
   "trending_now": "এখন ট্রেন্ডিং",
   "health_highlights": "হেলথ হাইলাইটস",
-  "quick_picks": "কুইক পিক্স"
+  "quick_picks": "কুইক পিক্স",
+  "sq_ft": "বর্গফুট",
+  "enter_area_in": "ক্ষেত্রফল লিখুন",
+  "e_g_10": "যেমন ১০",
+  "enter_a_valid_area": "অনুগ্রহ করে সঠিক ক্ষেত্রফল লিখুন"
 }
