@@ -27,6 +27,7 @@ class ServiceHomeScreen extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
       Container(
+        
         width: MediaQuery.of(context).size.width,
         color: Theme.of(context).disabledColor.withValues(alpha: 0.1),
         child: const Column(

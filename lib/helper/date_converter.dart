@@ -385,6 +385,61 @@ class DateConverter {
     }
   }
 
+  /// Parses what a customer might type into a time field — `10:30`, `10:30 AM`,
+  /// `10.30am`, `22:30`, `9pm`, `9 PM` — and returns null for anything else.
+  static TimeOfDay? parseFlexibleTime(String? input) {
+    if (input == null || input.trim().isEmpty) return null;
+
+    final String text = input.trim().toUpperCase().replaceAll(RegExp(r'\s+'), '');
+    final RegExpMatch? match = RegExp(r'^(\d{1,2})(?:[:.](\d{1,2}))?(AM|PM)?$').firstMatch(text);
+    if (match == null) return null;
+
+    int? hour = int.tryParse(match.group(1)!);
+    final int minute = match.group(2) != null ? (int.tryParse(match.group(2)!) ?? -1) : 0;
+    final String? meridiem = match.group(3);
+    if (hour == null || minute < 0 || minute > 59) return null;
+
+    if (meridiem != null) {
+      if (hour < 1 || hour > 12) return null;
+      if (meridiem == 'AM' && hour == 12) {
+        hour = 0;
+      } else if (meridiem == 'PM' && hour != 12) {
+        hour += 12;
+      }
+    }
+    if (hour < 0 || hour > 23) return null;
+
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  /// Whether [time] falls inside a store's opening window. [opening]/[closing] are
+  /// `HH:mm` (or `HH:mm:ss`) as carried on `Schedules`.
+  ///
+  /// Inclusive of both bounds — booking exactly at opening or closing is legitimate.
+  /// (`isAvailable` above is deliberately exclusive, so it cannot be reused here.)
+  /// A window whose close is before its open is treated as running past midnight.
+  static bool isTimeWithinOpeningHours(TimeOfDay time, String? opening, String? closing) {
+    final int? open = _minutesOfTime(opening);
+    final int? close = _minutesOfTime(closing);
+    if (open == null || close == null) return false;
+
+    final int candidate = (time.hour * 60) + time.minute;
+    if (open == close) return true;
+    if (close > open) return candidate >= open && candidate <= close;
+    return candidate >= open || candidate <= close;
+  }
+
+  static int? _minutesOfTime(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    final List<String> parts = raw.split(':');
+    if (parts.length < 2) return null;
+    final int? hour = int.tryParse(parts[0]);
+    final int? minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+    return (hour * 60) + minute;
+  }
+
 
 
 }

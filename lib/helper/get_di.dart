@@ -37,6 +37,8 @@ import 'package:sixam_mart/features/cart/domain/repositories/cart_repository_int
 import 'package:sixam_mart/features/cart/domain/services/cart_service.dart';
 import 'package:sixam_mart/features/cart/domain/services/cart_service_interface.dart';
 import 'package:sixam_mart/features/category/controllers/category_controller.dart';
+import 'package:sixam_mart/features/category/controllers/service_category_controller.dart';
+import 'package:sixam_mart/features/store/controllers/service_store_category_controller.dart';
 import 'package:sixam_mart/features/category/domain/reposotories/category_repository.dart';
 import 'package:sixam_mart/features/category/domain/reposotories/category_repository_interface.dart';
 import 'package:sixam_mart/features/category/domain/services/category_service.dart';
@@ -564,6 +566,8 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => ProfileController(profileServiceInterface: Get.find()));
   Get.lazyPut(() => BannerController(bannerServiceInterface: Get.find()));
   Get.lazyPut(() => CategoryController(categoryServiceInterface: Get.find()));
+  Get.lazyPut(() => ServiceCategoryController(categoryServiceInterface: Get.find()));
+  Get.lazyPut(() => ServiceStoreCategoryController(categoryServiceInterface: Get.find(), storeServiceInterface: Get.find()));
   Get.lazyPut(() => ItemController(itemServiceInterface: Get.find()));
   Get.lazyPut(() => CartController(cartServiceInterface: Get.find()));
   Get.lazyPut(() => StoreController(storeServiceInterface: Get.find()));

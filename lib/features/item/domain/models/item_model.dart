@@ -351,17 +351,23 @@ class CategoryIds {
   int? id;
   int? position;
 
-  CategoryIds({this.id, this.position});
+  /// The category's name, which the API sends alongside the id — so an item already knows
+  /// what it is filed under and no lookup against the category tree is needed.
+  String? name;
+
+  CategoryIds({this.id, this.position, this.name});
 
   CategoryIds.fromJson(Map<String, dynamic> json) {
     id = int.tryParse(json['id'].toString())??0;
     position = int.tryParse(json['position'].toString())??0;
+    name = json['name'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['position'] = position;
+    data['name'] = name;
     return data;
   }
 }

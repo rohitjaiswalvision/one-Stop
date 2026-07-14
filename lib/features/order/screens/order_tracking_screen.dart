@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:collection';
 import 'package:sixam_mart/api/api_client.dart';
@@ -152,10 +153,19 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
       endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
       body: GetBuilder<OrderController>(builder: (orderController) {
         OrderModel? track;
+
+        // A service booking has no courier and no delivery pipeline: the stepper
+        // ("Order placed" -> "Delivered") and the delivery-man card are meaningless,
+        // so the map — vendor to customer — is all we show.
+        bool isService = false;
+
         if(orderController.trackModel != null) {
           track = orderController.trackModel;
+          isService = track!.orderType == AppConstants.serviceOrderType
+              || track.moduleType == AppConstants.service
+              || (track.serviceBookings?.isNotEmpty ?? false);
 
-          if(track!.orderType != 'parcel') {
+          if(track.orderType != 'parcel') {
             if (track.store!.storeBusinessModel == 'commission') {
               showChatPermission = true;
             } else if (track.store!.storeSubscription != null && track.store!.storeBusinessModel == 'subscription') {
@@ -204,13 +214,13 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
 
               _isLoading ? const Center(child: CircularProgressIndicator()) : const SizedBox(),
 
-              Positioned(
+              if(!isService) Positioned(
                 top: Dimensions.paddingSizeSmall, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
                 child: TrackingStepperWidget(status: track.orderStatus, takeAway: track.orderType == 'take_away'),
               ),
 
               Positioned(
-                right: 15, bottom: track.orderType != 'take_away' && track.deliveryMan == null ? 150 : 220,
+                right: 15, bottom: isService ? 15 : track.orderType != 'take_away' && track.deliveryMan == null ? 150 : 220,
                 child: InkWell(
                   onTap: () => _checkPermission(() async {
                     AddressModel address = await Get.find<LocationController>().getCurrentLocation(false, mapController: _controller);
@@ -233,7 +243,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
                 ),
               ),
 
-              Positioned(
+              if(!isService) Positioned(
                 bottom: Dimensions.paddingSizeSmall, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
                 child: TrackDetailsViewWidget(status: track.orderStatus, track: track, showChatPermission: showChatPermission, callback: () async{
                   bool takeAway = track?.orderType == 'take_away';

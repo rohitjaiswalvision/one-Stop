@@ -6,7 +6,6 @@ import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
-import 'package:sixam_mart/util/app_constants.dart';
 
 /// Area-based pricing for the service module.
 ///
@@ -29,12 +28,7 @@ class SquareFeetHelper {
     return unitType != null && _squareFeetUnits.contains(unitType);
   }
 
-  static bool _inServiceModule(Item item) {
-    if (item.moduleType != null && item.moduleType!.isNotEmpty) {
-      return item.moduleType == AppConstants.service;
-    }
-    return ModuleHelper.getModule()?.moduleType == AppConstants.service;
-  }
+  static bool _inServiceModule(Item item) => ModuleHelper.isService(moduleType: item.moduleType);
 
   /// The unit as the admin spelled it, falling back to a translated label.
   static String unitLabel(Item? item) {

@@ -17,6 +17,7 @@ import 'package:sixam_mart/common/models/config_model.dart';
 import 'package:sixam_mart/features/location/domain/models/zone_response_model.dart';
 import 'package:sixam_mart/features/checkout/controllers/checkout_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/custom_validator.dart';
@@ -622,7 +623,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           }else if((checkoutController.selectedDateSlot == 0 && todayClosed) || (checkoutController.selectedDateSlot == 1 && tomorrowClosed)) {
             showCustomSnackBar(Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText!
                 ? 'restaurant_is_closed'.tr : 'store_is_closed'.tr);
-          }else if(checkoutController.paymentMethodIndex == 0 && _isCashOnDeliveryActive! && maxCodOrderAmount != null && maxCodOrderAmount != 0 && (total > maxCodOrderAmount) && widget.storeId == null){
+          }else if(!ModuleHelper.isService() && checkoutController.paymentMethodIndex == 0 && _isCashOnDeliveryActive! && maxCodOrderAmount != null && maxCodOrderAmount != 0 && (total > maxCodOrderAmount) && widget.storeId == null){
             showCustomSnackBar('${'you_cant_order_more_then'.tr} ${PriceConverter.convertPrice(maxCodOrderAmount)} ${'in_cash_on_delivery'.tr}');
           }else if(checkoutController.paymentMethodIndex != 0 && widget.storeId != null){
             showCustomSnackBar('payment_method_is_not_available'.tr);
@@ -682,41 +683,11 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
             if(widget.storeId == null){
 
-              List<OnlineCart> carts = [];
-              for (int index = 0; index < _cartList!.length; index++) {
-                CartModel cart = _cartList![index]!;
-                List<int?> addOnIdList = [];
-                List<int?> addOnQtyList = [];
-                for (var addOn in cart.addOnIds!) {
-                  addOnIdList.add(addOn.id);
-                  addOnQtyList.add(addOn.quantity);
-                }
-
-                List<OrderVariation> variations = [];
-                if(Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation!) {
-                  for(int i=0; i<cart.item!.foodVariations!.length; i++) {
-                    if(cart.foodVariations![i].contains(true)) {
-                      variations.add(OrderVariation(name: cart.item!.foodVariations![i].name, values: OrderVariationValue(label: [])));
-                      for(int j=0; j<cart.item!.foodVariations![i].variationValues!.length; j++) {
-                        if(cart.foodVariations![i][j]!) {
-                          variations[variations.length-1].values!.label!.add(cart.item!.foodVariations![i].variationValues![j].level);
-                        }
-                      }
-                    }
-                  }
-                }
-                carts.add(OnlineCart(
-                  cart.id, cart.item!.id, cart.isCampaign! ? cart.item!.id : null,
-                  cart.discountedPrice.toString(), '',
-                  Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? null : cart.variation,
-                  Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? variations : null,
-                  cart.quantity, addOnIdList, cart.addOns, addOnQtyList, 'Item', itemType: !widget.fromCart ? "AppModelsItemCampaign" : null,
-                ));
-              }
+              List<OnlineCart> carts = _buildOnlineCarts(_cartList!.whereType<CartModel>().toList());
 
               // Service module (booking): build the `service_bookings` array from the
               // per-item slot selections. Omitted entirely for every other module.
-              final bool isServiceModule = Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service;
+              final bool isServiceModule = ModuleHelper.isService();
               List<ServiceBooking>? serviceBookings;
               int? serviceCustomerAddressId;
               if(isServiceModule) {
@@ -751,6 +722,17 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                     return;
                   }
                 }
+              }
+
+              // A service cart may hold several providers (a plumber and an electrician).
+              // An order carries one store_id, so split by provider and place one order each.
+              if(isServiceModule) {
+                final List<PlaceOrderBodyModel> bodies = _buildServiceOrderBodies(
+                  checkoutController: checkoutController, finalAddress: finalAddress!, isGuestLogIn: isGuestLogIn,
+                  total: total, tax: tax, discount: discount, customerAddressId: serviceCustomerAddressId,
+                );
+                checkoutController.placeServiceOrders(bodies, fromCart: widget.fromCart);
+                return;
               }
 
               PlaceOrderBodyModel placeOrderBody = PlaceOrderBodyModel(
@@ -869,7 +851,130 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     return moduleData;
   }
 
+  /// Maps cart rows to the `cart[]` payload. Extracted so a service cart can be
+  /// converted one provider-group at a time.
+  List<OnlineCart> _buildOnlineCarts(List<CartModel> items) {
+    List<OnlineCart> carts = [];
+    for (CartModel cart in items) {
+      List<int?> addOnIdList = [];
+      List<int?> addOnQtyList = [];
+      for (var addOn in cart.addOnIds!) {
+        addOnIdList.add(addOn.id);
+        addOnQtyList.add(addOn.quantity);
+      }
+
+      List<OrderVariation> variations = [];
+      if(Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation!) {
+        for(int i=0; i<cart.item!.foodVariations!.length; i++) {
+          if(cart.foodVariations![i].contains(true)) {
+            variations.add(OrderVariation(name: cart.item!.foodVariations![i].name, values: OrderVariationValue(label: [])));
+            for(int j=0; j<cart.item!.foodVariations![i].variationValues!.length; j++) {
+              if(cart.foodVariations![i][j]!) {
+                variations[variations.length-1].values!.label!.add(cart.item!.foodVariations![i].variationValues![j].level);
+              }
+            }
+          }
+        }
+      }
+      carts.add(OnlineCart(
+        cart.id, cart.item!.id, cart.isCampaign! ? cart.item!.id : null,
+        cart.discountedPrice.toString(), '',
+        Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? null : cart.variation,
+        Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? variations : null,
+        cart.quantity, addOnIdList, cart.addOns, addOnQtyList, 'Item', itemType: !widget.fromCart ? "AppModelsItemCampaign" : null,
+      ));
+    }
+    return carts;
+  }
+
+  /// One order body per service provider in the cart.
+  ///
+  /// An order carries a single `store_id`, so a cart holding a plumber and an
+  /// electrician becomes two orders. Money figures are split across providers in
+  /// proportion to each provider's subtotal, so the parts still sum to the totals the
+  /// customer was shown. With a single provider this reduces exactly to the old body.
+  ///
+  /// `schedule_at` is left null: each booking carries its own date and time in
+  /// `service_bookings`, which is the real schedule for a service.
+  List<PlaceOrderBodyModel> _buildServiceOrderBodies({
+    required CheckoutController checkoutController, required AddressModel finalAddress,
+    required bool isGuestLogIn, required double total, required double? tax,
+    required double? discount, required int? customerAddressId,
+  }) {
+    final double taxTotal = tax ?? 0;
+    final double discountTotal = discount ?? 0;
+    final List<CartModel> items = _cartList!.whereType<CartModel>().toList();
+
+    final Map<int, List<CartModel>> byProvider = {};
+    for (final CartModel cart in items) {
+      byProvider.putIfAbsent(cart.item!.storeId!, () => []).add(cart);
+    }
+
+    double subtotalOf(List<CartModel> list) => list.fold(
+      0.0, (sum, cart) => sum + ((cart.discountedPrice ?? 0) * (cart.quantity ?? 0)),
+    );
+    final double cartSubtotal = subtotalOf(items);
+
+    // A coupon is scoped to one store, so it can only be honoured when the cart holds a
+    // single provider. With several, it is dropped rather than silently applied to one.
+    final bool singleProvider = byProvider.length == 1;
+    final CouponController couponController = Get.find<CouponController>();
+    final bool hasCoupon = singleProvider && couponController.coupon != null
+        && (couponController.discount! > 0 || couponController.freeDelivery);
+
+    final ServiceBookingController serviceBookingController = Get.find<ServiceBookingController>();
+
+    final List<PlaceOrderBodyModel> bodies = [];
+    byProvider.forEach((int storeId, List<CartModel> providerItems) {
+      final double share = cartSubtotal > 0
+          ? subtotalOf(providerItems) / cartSubtotal
+          : 1 / byProvider.length;
+      final List<int> itemIds = providerItems.map((c) => c.item!.id!).toList();
+
+      bodies.add(PlaceOrderBodyModel(
+        cart: _buildOnlineCarts(providerItems),
+        serviceBookings: serviceBookingController.buildServiceBookings(itemIds),
+        customerAddressId: customerAddressId,
+        storeId: storeId,
+        orderAmount: total * share,
+        taxAmount: taxTotal * share,
+        discountAmount: discountTotal * share,
+        couponDiscountAmount: hasCoupon ? couponController.discount : 0,
+        couponCode: hasCoupon ? couponController.coupon!.code : null,
+        distance: checkoutController.distance,
+        scheduleAt: null,
+        orderNote: checkoutController.noteController.text,
+        // Not a delivery: the backend distinguishes bookings by this value.
+        orderType: AppConstants.serviceOrderType,
+        paymentMethod: 'cash_on_delivery',
+        address: finalAddress.address, latitude: finalAddress.latitude, longitude: finalAddress.longitude,
+        senderZoneId: null, addressType: finalAddress.addressType,
+        contactPersonName: finalAddress.contactPersonName ?? '${Get.find<ProfileController>().userInfoModel!.fName} '
+            '${Get.find<ProfileController>().userInfoModel!.lName}',
+        contactPersonNumber: finalAddress.contactPersonNumber ?? Get.find<ProfileController>().userInfoModel!.phone,
+        streetNumber: isGuestLogIn ? finalAddress.streetNumber ?? '' : checkoutController.streetNumberController.text.trim(),
+        house: isGuestLogIn ? finalAddress.house ?? '' : checkoutController.houseController.text.trim(),
+        floor: isGuestLogIn ? finalAddress.floor ?? '' : checkoutController.floorController.text.trim(),
+        receiverDetails: null, parcelCategoryId: null, chargePayer: null, dmTips: '',
+        cutlery: 0, unavailableItemNote: '', deliveryInstruction: '',
+        partialPayment: 0, guestId: isGuestLogIn ? int.parse(AuthHelper.getGuestId()) : 0,
+        isBuyNow: widget.fromCart ? 0 : 1, guestEmail: isGuestLogIn ? finalAddress.email : null,
+        extraPackagingAmount: 0,
+        createNewUser: checkoutController.isCreateAccount ? 1 : 0, password: guestPasswordController.text,
+        bringChangeAmount: null,
+      ));
+    });
+
+    return bodies;
+  }
+
   bool _checkCODActive({required Store? store}) {
+    // A service is paid to the vendor once the work is done, not when it is booked.
+    // 'cash_on_delivery' is the value the server already understands for "collect on
+    // completion", so it is the only method the service module offers.
+    if(ModuleHelper.isService()) {
+      return true;
+    }
     // Commented out Cash on Delivery, use only online payment
     return false;
     /*bool isCashOnDeliveryActive = false;
@@ -884,11 +989,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   bool _checkDigitalPaymentActive({required Store? store}) {
-    // Service module: enable digital payment directly from global config and
-    // bypass the per-zone gate (service providers aren't zoned like stores).
-    // COD stays disabled (see _checkCODActive) so only digital is offered.
-    if(Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service) {
-      return Get.find<SplashController>().configModel!.digitalPayment ?? false;
+    // Nothing is paid up front for a service, so no gateway is offered at checkout.
+    if(ModuleHelper.isService()) {
+      return false;
     }
     bool isDigitalPaymentActive = false;
     if(store != null){

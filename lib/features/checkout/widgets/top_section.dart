@@ -7,6 +7,7 @@ import 'package:sixam_mart/features/address/domain/models/address_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/common/models/config_model.dart';
 import 'package:sixam_mart/features/checkout/controllers/checkout_controller.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -23,6 +24,7 @@ import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
 import 'package:sixam_mart/features/service_booking/domain/models/service_slot_model.dart';
 import 'package:sixam_mart/features/service_booking/widgets/service_schedule_bottom_sheet.dart';
+import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/features/checkout/widgets/web_delivery_instruction_view.dart';
@@ -187,7 +189,9 @@ class TopSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge, horizontal: Dimensions.paddingSizeLarge),
           child: Column(children: [
 
-            PaymentSection(
+            // A service is settled with the vendor after the work is done, so there is
+            // nothing to choose here — the picker is replaced by a plain explanation.
+            ModuleHelper.isService() ? _payAfterServiceNote(context) : PaymentSection(
               storeId: storeId, isCashOnDeliveryActive: isCashOnDeliveryActive, isDigitalPaymentActive: isDigitalPaymentActive,
               isWalletActive: isWalletActive, total: total, checkoutController: checkoutController, isOfflinePaymentActive: isOfflinePaymentActive,
             ),
@@ -196,6 +200,34 @@ class TopSection extends StatelessWidget {
         ),
         SizedBox(height: isDesktop ? Dimensions.paddingSizeLarge : 0),
 
+      ]),
+    );
+  }
+
+  /// Stands in for the payment-method picker in the service module: there is nothing to
+  /// pay now, so the customer is simply told when and how they will pay.
+  Widget _payAfterServiceNote(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.verified_outlined, color: Theme.of(context).primaryColor, size: 22),
+        const SizedBox(width: Dimensions.paddingSizeSmall),
+
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('pay_after_service'.tr, style: robotoMedium.copyWith(
+            fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor,
+          )),
+          const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+
+          Text('you_will_pay_the_provider_after_the_work_is_done'.tr, style: robotoRegular.copyWith(
+            fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor,
+          )),
+        ])),
       ]),
     );
   }
@@ -275,12 +307,15 @@ class TopSection extends StatelessWidget {
   }
 
   void _openScheduleSheet(BuildContext context, Item item) {
+    // checkoutController.store is the full Store (loaded in initCheckoutData), so it
+    // already carries the weekly `schedules` the picker needs for opening hours.
+    final Store? store = checkoutController.store;
     if(ResponsiveHelper.isDesktop(context)) {
-      showDialog(context: context, builder: (con) => Dialog(child: ServiceScheduleBottomSheet(item: item)));
+      showDialog(context: context, builder: (con) => Dialog(child: ServiceScheduleBottomSheet(item: item, store: store)));
     } else {
       showModalBottomSheet(
         context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
-        builder: (con) => ServiceScheduleBottomSheet(item: item),
+        builder: (con) => ServiceScheduleBottomSheet(item: item, store: store),
       );
     }
   }

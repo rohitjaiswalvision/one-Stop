@@ -57,6 +57,26 @@ class OrderInfoWidget extends StatelessWidget {
     // their schedule_at just mirrors created_at.
     bool showScheduleAt = order.scheduleAt != null && order.scheduled == 1;
 
+    // Nothing is delivered for a service — the address is where the work happens.
+    // Three signals, any of which is enough: the new order_type the backend sends on
+    // bookings, the module type, or the presence of bookings. Orders placed before the
+    // backend introduced order_type='service' still carry 'delivery', so the last two
+    // are what keep those rendering correctly.
+    bool isService = order.orderType == AppConstants.serviceOrderType
+        || order.moduleType == AppConstants.service
+        || (order.serviceBookings?.isNotEmpty ?? false);
+    String addressSectionTitle = isService ? 'service_address'.tr : 'delivery_information'.tr;
+
+    // A service is performed at the customer's place or at the provider's, so the
+    // booking's location_type — not the delivery orderType — is what to show.
+    String orderTypeLabel;
+    if(isService) {
+      final bool atCustomer = order.serviceBookings?.any((b) => b.locationType == 'home') ?? true;
+      orderTypeLabel = atCustomer ? 'home_service'.tr : 'at_store'.tr;
+    } else {
+      orderTypeLabel = order.orderType == 'delivery' ? 'home_delivery'.tr : order.orderType!.tr;
+    }
+
     return Stack(children: [
 
       !isDesktop ? OrderBannerViewWidget(
@@ -154,7 +174,7 @@ class OrderInfoWidget extends StatelessWidget {
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text('order_type'.tr, style: robotoRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.6))),
 
-              Text(order.orderType == 'delivery' ? 'home_delivery'.tr : order.orderType!.tr ,
+              Text(orderTypeLabel,
                 style: robotoBold.copyWith(color: Colors.blueAccent, fontSize: Dimensions.fontSizeSmall),
               ),
             ]),
@@ -417,14 +437,14 @@ class OrderInfoWidget extends StatelessWidget {
         ) : const SizedBox(),
         SizedBox(height: parcel && order.parcelCancellation != null ?  Dimensions.paddingSizeSmall : 0),
 
-        (!parcel && isDesktop) ? Text('delivery_information'.tr, style: robotoMedium) :  const SizedBox(),
+        (!parcel && isDesktop) ? Text(addressSectionTitle, style: robotoMedium) :  const SizedBox(),
         (!parcel && isDesktop) ? const SizedBox(height: Dimensions.paddingSizeSmall) : const SizedBox(),
 
         (!parcel && order.store != null && (order.deliveryAddress?.address != null || order.deliveryAddress?.contactPersonNumber != null || order.deliveryAddress?.contactPersonName != null) ) ? CustomCard(
           borderRadius: isDesktop ? Dimensions.radiusDefault : 0, isBorder: false,
           padding: EdgeInsets.all(Dimensions.paddingSizeDefault),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            !isDesktop ? Text('delivery_information'.tr, style: robotoSemiBold) : const SizedBox(),
+            !isDesktop ? Text(addressSectionTitle, style: robotoSemiBold) : const SizedBox(),
             !isDesktop ? const Divider() : const SizedBox(),
 
             DeliveryDetailsWidget(deliveryAddress: order.deliveryAddress),
@@ -452,7 +472,7 @@ class OrderInfoWidget extends StatelessWidget {
               initiallyExpanded: true,
               tilePadding: EdgeInsets.zero,
               title: Row(children: [
-                Text('item_info'.tr, style: robotoSemiBold),
+                Text(isService ? 'service_info'.tr : 'item_info'.tr, style: robotoSemiBold),
                 const SizedBox(width: Dimensions.paddingSizeSmall),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),

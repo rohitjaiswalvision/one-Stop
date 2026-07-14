@@ -149,6 +149,7 @@ class PharmacyCategoryView extends StatelessWidget {
   final CategoryController categoryController;
   const PharmacyCategoryView({super.key, required this.categoryController});
 
+
   @override
   Widget build(BuildContext context) {
     final ScrollController scrollController = ScrollController();
@@ -273,6 +274,8 @@ class FoodCategoryView extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault, top: Dimensions.paddingSizeDefault),
                 child: InkWell(
+
+                  
                   onTap: () {
                     if(index == 9 && categoryController.categoryList!.length > 10) {
                       Get.toNamed(RouteHelper.getCategoryRoute());

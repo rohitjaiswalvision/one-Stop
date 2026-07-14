@@ -4,6 +4,7 @@ import 'package:sixam_mart/common/widgets/custom_button.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
 import 'package:sixam_mart/features/service_booking/widgets/service_slot_picker.dart';
+import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -15,7 +16,11 @@ import 'package:sixam_mart/util/styles.dart';
 /// the sheet is dismissed.
 class ServiceScheduleBottomSheet extends StatelessWidget {
   final Item item;
-  const ServiceScheduleBottomSheet({super.key, required this.item});
+
+  /// The service provider, supplying the opening hours the picker validates a
+  /// hand-entered time against. Optional — without it the picker shows chips only.
+  final Store? store;
+  const ServiceScheduleBottomSheet({super.key, required this.item, this.store});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +60,7 @@ class ServiceScheduleBottomSheet extends StatelessWidget {
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
-              child: ServiceSlotPicker(item: item),
+              child: ServiceSlotPicker(item: item, store: store),
             ),
           ),
 

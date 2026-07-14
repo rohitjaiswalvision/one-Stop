@@ -18,11 +18,21 @@ class ServiceBookingController extends GetxController implements GetxService {
   final Map<int, String> _locationType = {};
   final Set<int> _loadingItems = {};
 
+  /// Items whose selected slot was named by the customer rather than offered by
+  /// the server. Such a slot is absent from `slotsFor`, so it must be exempt from
+  /// the "drop what the server no longer offers" sweep in [getAvailableSlots].
+  final Set<int> _manualTimeItems = {};
+
   DateTime selectedDate(int itemId) => _selectedDate[itemId] ?? DateTime.now();
   List<ServiceSlot> slotsFor(int itemId) => _slots[itemId]?.slots ?? [];
   ServiceSlot? selectedSlot(int itemId) => _selectedSlot[itemId];
   String? locationType(int itemId) => _locationType[itemId];
   bool isLoadingSlots(int itemId) => _loadingItems.contains(itemId);
+  bool isManualTime(int itemId) => _manualTimeItems.contains(itemId);
+
+  /// Length of a booking in minutes, as reported with the day's slots. Null until
+  /// the slots have loaded, or if the server omits it.
+  int? slotDurationFor(int itemId) => _slots[itemId]?.duration;
 
   /// Seed defaults for an item and load its slots for today.
   /// `atStore`/`homeService` come from the Item; default location honours them.
@@ -35,6 +45,7 @@ class ServiceBookingController extends GetxController implements GetxService {
   Future<void> selectDate(int itemId, DateTime date) async {
     _selectedDate[itemId] = _stripTime(date);
     _selectedSlot[itemId] = null; // a new date invalidates the old slot
+    _manualTimeItems.remove(itemId);
     await getAvailableSlots(itemId);
   }
 
@@ -44,9 +55,10 @@ class ServiceBookingController extends GetxController implements GetxService {
     final String date = DateConverter.dateToDate(selectedDate(itemId));
     final AvailableSlotsModel? result = await serviceBookingServiceInterface.getAvailableSlots(itemId: itemId, date: date);
     _slots[itemId] = result;
-    // Drop a previously chosen slot if it is no longer offered.
+    // Drop a previously chosen slot if it is no longer offered. A time the customer
+    // named themselves is never in this list, so it is left alone.
     final ServiceSlot? chosen = _selectedSlot[itemId];
-    if (chosen != null && !(result?.slots?.any((s) => s.start == chosen.start) ?? false)) {
+    if (chosen != null && !isManualTime(itemId) && !(result?.slots?.any((s) => s.start == chosen.start) ?? false)) {
       _selectedSlot[itemId] = null;
     }
     _loadingItems.remove(itemId);
@@ -55,6 +67,17 @@ class ServiceBookingController extends GetxController implements GetxService {
 
   void selectSlot(int itemId, ServiceSlot slot) {
     _selectedSlot[itemId] = slot;
+    _manualTimeItems.remove(itemId);
+    update();
+  }
+
+  /// A time the customer typed or picked from the clock, rather than a server slot.
+  /// The caller is responsible for having validated it against the store's hours.
+  void selectManualTime(int itemId, int hour, int minute) {
+    _selectedSlot[itemId] = ServiceSlot.manual(
+      hour: hour, minute: minute, durationMinutes: slotDurationFor(itemId),
+    );
+    _manualTimeItems.add(itemId);
     update();
   }
 
@@ -68,6 +91,7 @@ class ServiceBookingController extends GetxController implements GetxService {
   /// drop the stale choice so the user must re-pick.
   Future<void> onSlotConflict(int itemId) async {
     _selectedSlot[itemId] = null;
+    _manualTimeItems.remove(itemId);
     await getAvailableSlots(itemId);
     showCustomSnackBar('selected_slot_no_longer_available'.tr);
   }
@@ -124,6 +148,7 @@ class ServiceBookingController extends GetxController implements GetxService {
     _selectedSlot.clear();
     _locationType.clear();
     _loadingItems.clear();
+    _manualTimeItems.clear();
   }
 
   // ----- My Appointments -----

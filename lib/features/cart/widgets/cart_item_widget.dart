@@ -7,6 +7,8 @@ import 'package:sixam_mart/features/language/controllers/language_controller.dar
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
+import 'package:sixam_mart/helper/html_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -60,6 +62,10 @@ class _CartItemWidgetState extends State<CartItemWidget> {
     double totalPrice = _calculatePriceWithVariation(cartModel: widget.cart, discount: discount, discountType: discountType);
 
     bool isSquareFeet = SquareFeetHelper.isSquareFeetItem(widget.cart.item);
+    bool isService = ModuleHelper.isService(moduleType: widget.cart.item!.moduleType);
+
+    // Admin-authored service descriptions arrive as HTML; show them as plain text.
+    String description = HtmlHelper.toPlainText(widget.cart.item!.description);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 0),
@@ -189,6 +195,18 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                         ]),
                       ) : const SizedBox(),
 
+                      (isService && description.isNotEmpty) ? Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          description,
+                          style: robotoRegular.copyWith(
+                            fontSize: Dimensions.fontSizeExtraSmall,
+                            color: Theme.of(context).disabledColor,
+                          ),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                        ),
+                      ) : const SizedBox(),
+
                       const SizedBox(height: 2),
 
                       isSquareFeet ? Text(
@@ -253,28 +271,40 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                   GetBuilder<CartController>(
                     builder: (cartController) {
                       return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        isSquareFeet ? InkWell(
-                          onTap: cartController.isLoading ? null : () => SquareFeetHelper.openSquareFeetSheet(
-                            widget.cart.item!, cart: widget.cart, cartIndex: widget.cartIndex,
-                          ),
-                          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraSmall, horizontal: Dimensions.paddingSizeSmall),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                              border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.5)),
+                        isSquareFeet ? Row(mainAxisSize: MainAxisSize.min, children: [
+                          InkWell(
+                            onTap: cartController.isLoading ? null : () => SquareFeetHelper.openSquareFeetSheet(
+                              widget.cart.item!, cart: widget.cart, cartIndex: widget.cartIndex,
                             ),
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Text(
-                                '${widget.cart.quantity} ${SquareFeetHelper.unitLabel(widget.cart.item)}',
-                                style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
+                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraSmall, horizontal: Dimensions.paddingSizeSmall),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                                border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.5)),
                               ),
-                              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text(
+                                  '${widget.cart.quantity} ${SquareFeetHelper.unitLabel(widget.cart.item)}',
+                                  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
+                                ),
+                                const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                              Icon(Icons.edit, size: 14, color: Theme.of(context).primaryColor),
-                            ]),
+                                Icon(Icons.edit, size: 14, color: Theme.of(context).primaryColor),
+                              ]),
+                            ),
                           ),
-                        ) : Row(children: [
+
+                          // An area-priced line has no quantity stepper, so this is the
+                          // only tap-to-remove affordance it gets (swiping still works).
+                          QuantityButton(
+                            onTap: cartController.isLoading ? null : () {
+                              Get.find<CartController>().removeFromCart(widget.cartIndex, item: widget.cart.item);
+                            },
+                            isIncrement: false,
+                            showRemoveIcon: true,
+                          ),
+                        ]) : Row(children: [
                           QuantityButton(
                             onTap: cartController.isLoading ? null : () {
                               if (widget.cart.quantity! > 1) {

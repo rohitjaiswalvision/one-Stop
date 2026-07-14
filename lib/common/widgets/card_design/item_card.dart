@@ -6,6 +6,8 @@ import 'package:sixam_mart/common/widgets/hover/text_hover.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
+import 'package:sixam_mart/features/category/controllers/category_controller.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -32,6 +34,11 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     double? discount = item.discount;
     String? discountType = item.discountType;
+
+    // Services are the only module where a card names its subcategory: the catalogue is
+    // three deep (Haircuts & Styling -> Coloring -> Highlights) and the name alone does
+    // not say where a service sits.
+    final bool showSubCategory = ModuleHelper.isService(moduleType: item.moduleType);
 
     return OnHover(
       isItem: true,
@@ -138,6 +145,30 @@ class ItemCard extends StatelessWidget {
                               ],
                             )
                                 : Text(item.name ?? '', style: robotoBold, maxLines: 1, overflow: TextOverflow.ellipsis),
+
+                            // Which part of the catalogue this service belongs to, e.g.
+                            // "Coloring" under a root-touch-up. Built inside a
+                            // GetBuilder<CategoryController> because the names are resolved
+                            // from the category tree, which may still be loading when the
+                            // popular items arrive — this way the label appears once it lands
+                            // instead of staying blank until the next rebuild.
+                            if (showSubCategory) GetBuilder<CategoryController>(
+                              builder: (CategoryController categoryController) {
+                                final String? subCategoryName = categoryController.subCategoryNameOf(item);
+                                if (subCategoryName == null) {
+                                  return const SizedBox();
+                                }
+                                return Text(
+                                  subCategoryName,
+                                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  textAlign: isPopularItem ? TextAlign.center : TextAlign.start,
+                                  style: robotoRegular.copyWith(
+                                    fontSize: Dimensions.fontSizeExtraSmall,
+                                    color: Theme.of(context).disabledColor,
+                                  ),
+                                );
+                              },
+                            ),
 
                             (isFood || isShop) ? Flexible(
                               child: Text(

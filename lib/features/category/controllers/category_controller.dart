@@ -91,6 +91,74 @@ class CategoryController extends GetxController implements GetxService {
     update();
   }
 
+  /// The name of the SUBcategory a service sits under — "Coloring" for a root-touch-up,
+  /// never the top category ("Haircuts & Styling"). Null when the item has no subcategory
+  /// or the tree has not loaded; callers must render nothing, not an error.
+  ///
+  /// An item carries only category IDs. Their `position` is the depth in the tree, but the
+  /// numbering is NOT dependable — this backend starts at 1, others at 0 — so relying on a
+  /// literal `position == 1` picks the top category on a 1-based tree. Instead: sort by
+  /// depth, discard the shallowest entry (that IS the category), and return the deepest of
+  /// the remainder whose name we can actually resolve.
+  ///
+  /// Names come from the `childes` that `/categories` already returns inline, so this costs
+  /// no extra request. `/categories` only nests one level, so a third-level id resolves to
+  /// nothing and we fall back to its parent — which is the subcategory we wanted anyway.
+  String? subCategoryNameOf(Item item) {
+    final List<CategoryIds>? ids = item.categoryIds;
+    if (ids == null || ids.length < 2) {
+      return null;
+    }
+
+    final List<CategoryIds> byDepth = List<CategoryIds>.from(ids)
+      ..sort((CategoryIds a, CategoryIds b) => (a.position ?? 0).compareTo(b.position ?? 0));
+
+    // Drop the shallowest: that is the top-level category, which is exactly what must not
+    // be shown. Then prefer the most specific name we can put on the card.
+    final List<CategoryIds> belowTop = byDepth.sublist(1).reversed.toList();
+
+    for (final CategoryIds candidate in belowTop) {
+      // The API sends the name with the id, so no lookup is normally needed.
+      final String? inlineName = candidate.name;
+      if (inlineName != null && inlineName.isNotEmpty) {
+        return inlineName;
+      }
+      // Fall back to the loaded tree for payloads that send ids only.
+      final String? name = _nameOfCategory(candidate.id);
+      if (name != null) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  /// Finds a category's name anywhere in the loaded tree, at any depth.
+  String? _nameOfCategory(int? categoryId) {
+    if (categoryId == null || _categoryList == null) {
+      return null;
+    }
+    for (final CategoryModel category in _categoryList!) {
+      final String? found = _searchTree(category, categoryId);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  String? _searchTree(CategoryModel node, int categoryId) {
+    for (final CategoryModel child in node.childes ?? const <CategoryModel>[]) {
+      if (child.id == categoryId) {
+        return child.name;
+      }
+      final String? deeper = _searchTree(child, categoryId);
+      if (deeper != null) {
+        return deeper;
+      }
+    }
+    return null;
+  }
+
   void getSubCategoryList(String? categoryID) async {
     _subCategoryIndex = 0;
     _subCategoryList = null;

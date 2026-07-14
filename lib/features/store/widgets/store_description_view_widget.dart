@@ -4,6 +4,7 @@ import 'package:sixam_mart/features/favourite/controllers/favourite_controller.d
 import 'package:sixam_mart/features/address/domain/models/address_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
@@ -24,6 +25,7 @@ class StoreDescriptionViewWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isAvailable = Get.find<StoreController>().isStoreOpenNow(store!.active!, store!.schedules);
     Color? textColor = ResponsiveHelper.isDesktop(context) ? Colors.white : null;
+    bool isService = ModuleHelper.isService();
 
     // Module? moduleData;
     // for(ZoneData zData in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {
@@ -192,16 +194,20 @@ class StoreDescriptionViewWidget extends StatelessWidget {
              Text('location'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
            ]),
          ),
-         const Expanded(child: SizedBox()),
-         const VerticalDivider(color: Colors.white, thickness: 1),
-         const Expanded(child: SizedBox()),
+         // Nothing is delivered for a service — the provider's delivery time is
+         // meaningless, so drop the column and its leading divider.
+         if(!isService) ...[
+           const Expanded(child: SizedBox()),
+           const VerticalDivider(color: Colors.white, thickness: 1),
+           const Expanded(child: SizedBox()),
 
-         Column(children: [
-           Image.asset(Images.storeDeliveryTimeIcon, height: 20, width: 20),
-           const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+           Column(children: [
+             Image.asset(Images.storeDeliveryTimeIcon, height: 20, width: 20),
+             const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
-           Text(store!.deliveryTime!, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
-         ]),
+             Text(store!.deliveryTime!, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
+           ]),
+         ],
 
          (store!.delivery! && store!.freeDelivery!) ? const Expanded(child: SizedBox()) : const SizedBox(),
          (store!.delivery! && store!.freeDelivery!) ? const VerticalDivider(color: Colors.white, thickness: 1) : const SizedBox(),
@@ -262,7 +268,7 @@ class StoreDescriptionViewWidget extends StatelessWidget {
          ),
        ),
 
-       Expanded(
+       isService ? const SizedBox() : Expanded(
          child: Column(children: [
            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
              Icon(Icons.timer, color: Theme.of(context).primaryColor, size: 20),

@@ -18,13 +18,13 @@ class CategoryRepository implements CategoryRepositoryInterface {
 
   @override
   Future getList({int? offset, bool categoryList = false, bool subCategoryList = false, bool categoryItemList = false, bool categoryStoreList = false,
-    bool? allCategory, String? id, String? type, DataSourceEnum? source}) async {
+    bool? allCategory, String? id, String? type, DataSourceEnum? source, int? limit}) async {
     if (categoryList) {
       return await _getCategoryList(allCategory!, source ?? DataSourceEnum.client);
     } else if (subCategoryList) {
       return await _getSubCategoryList(id);
     } else if (categoryItemList) {
-      return await _getCategoryItemList(id, offset!, type!);
+      return await _getCategoryItemList(id, offset!, type!, limit: limit);
     } else if (categoryStoreList) {
       return await _getCategoryStoreList(id, offset!, type!);
     }
@@ -76,9 +76,12 @@ class CategoryRepository implements CategoryRepositoryInterface {
     return subCategoryList;
   }
 
-  Future<ItemModel?> _getCategoryItemList(String? categoryID, int offset, String type) async {
+  /// [limit] defaults to 10 — the value every existing caller assumes, including the
+  /// `(pageSize / 10).ceil()` page-count maths in CategoryItemScreen. Only pass a
+  /// different limit where the caller does its own page maths (ServiceCategoryController).
+  Future<ItemModel?> _getCategoryItemList(String? categoryID, int offset, String type, {int? limit}) async {
     ItemModel? categoryItem;
-    Response response = await apiClient.getData('${AppConstants.categoryItemUri}$categoryID?limit=10&offset=$offset&type=$type');
+    Response response = await apiClient.getData('${AppConstants.categoryItemUri}$categoryID?limit=${limit ?? 10}&offset=$offset&type=$type');
     if (response.statusCode == 200) {
       categoryItem = ItemModel.fromJson(response.body);
     }

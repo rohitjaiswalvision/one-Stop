@@ -52,7 +52,7 @@ import 'package:sixam_mart/common/widgets/custom_loader.dart';
 import 'package:sixam_mart/common/widgets/image_viewer_screen.dart';
 import 'package:sixam_mart/common/widgets/not_found.dart';
 import 'package:sixam_mart/features/cart/screens/cart_screen.dart';
-import 'package:sixam_mart/features/category/screens/category_item_screen.dart';
+import 'package:sixam_mart/features/category/screens/category_item_dispatcher_screen.dart';
 import 'package:sixam_mart/features/chat/screens/chat_screen.dart';
 import 'package:sixam_mart/features/chat/screens/conversation_screen.dart';
 import 'package:sixam_mart/features/checkout/screens/checkout_screen.dart';
@@ -620,7 +620,9 @@ class RouteHelper {
         byPuss: (Get.parameters['module'] != null && Get.parameters['module']!.isNotEmpty && Get.parameters['module'] != 'null'),
         _waitForModule(
           Get.parameters['module'],
-          CategoryItemScreen(categoryID: Get.parameters['id'], categoryName: data),
+          CategoryItemDispatcherScreen(
+            categoryID: Get.parameters['id'], categoryName: data, slug: Get.parameters['slug'] ?? '',
+          ),
         ),
       );
     }),

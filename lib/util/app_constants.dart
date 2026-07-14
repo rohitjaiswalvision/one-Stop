@@ -447,6 +447,10 @@ class AppConstants {
   static const String ride = 'ride-share';
   static const String service = 'services';
 
+  /// The order's `order_type`, sent when booking a service and returned on service orders.
+  /// Deliberately singular — do NOT confuse with the module type `service` above ('services').
+  static const String serviceOrderType = 'service';
+
   ///ride share map zoom
   static const double mapZoom = 20;
 

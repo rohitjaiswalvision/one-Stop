@@ -2332,5 +2332,20 @@
   "sq_ft": "sq ft",
   "enter_area_in": "Enter area in",
   "e_g_10": "e.g. 10",
-  "enter_a_valid_area": "Please enter a valid area"
+  "enter_a_valid_area": "Please enter a valid area",
+  "store_hours": "Store hours",
+  "you_can_select_any_time_in_between": "You can select any time in between",
+  "or_enter_your_own_time": "Or enter your own time",
+  "enter_time": "Enter time (e.g. 10:30 AM)",
+  "closed_on_this_day": "The provider is closed on this day",
+  "invalid_time_format": "Enter a valid time, e.g. 10:30 AM",
+  "please_select_a_time_within_store_hours": "Please select a time within the store hours",
+  "please_select_a_future_time": "Please select a time later than now",
+  "service_address": "Service Address",
+  "home_service": "Home Service",
+  "pay_after_service": "Pay after service",
+  "you_will_pay_the_provider_after_the_work_is_done": "No payment now. You will pay the provider directly once the work is completed.",
+  "booking_failed_for": "Booking could not be placed for",
+  "up_to": "Up to",
+  "category_url_copied": "Category link copied"
 }

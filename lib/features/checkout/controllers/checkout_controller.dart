@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:sixam_mart/api/api_checker.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
+import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/payment_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/saved_prescription_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/surge_price_model.dart';
@@ -38,6 +39,7 @@ import 'package:sixam_mart/features/checkout/domain/services/checkout_service_in
 import 'package:sixam_mart/features/checkout/widgets/order_successfull_dialog.dart';
 import 'package:sixam_mart/features/checkout/widgets/partial_pay_dialog_widget.dart';
 import 'package:sixam_mart/features/home/screens/home_screen.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/file_validation_helper.dart';
@@ -268,8 +270,14 @@ class CheckoutController extends GetxController implements GetxService {
       // Service bookings are always schedulable: force the date/time slot picker
       // on for service-module providers even when the store itself has schedule
       // order disabled. This flips both the slot UI and the scheduleAt payload.
-      if(Get.find<SplashController>().module?.moduleType.toString() == AppConstants.service) {
+      if(ModuleHelper.isService()) {
         _store!.scheduleOrder = true;
+
+        // Nothing is paid when a service is booked. The customer settles up with the
+        // vendor once the work is done, so checkout offers no payment choice and pins
+        // the method to cash-on-delivery — the value the server already understands for
+        // "collect on completion". See _payAfterServiceNote in top_section.dart.
+        _paymentMethodIndex = 0;
       }
 
       initializeTimeSlot(_store!);
@@ -1035,6 +1043,77 @@ class CheckoutController extends GetxController implements GetxService {
     update();
 
     return orderID;
+  }
+
+  /// Places one order per service provider in the cart.
+  ///
+  /// A customer can book a plumber and an electrician together, but an order carries a
+  /// single `store_id`, so the cart is split by provider and posted one order at a time.
+  /// Nothing is paid at booking (see `_payAfterServiceNote`), so there is no gateway to
+  /// coordinate and no money at risk if a later order is rejected.
+  ///
+  /// Placement is sequential and NOT atomic: if provider 2's slot is taken between
+  /// validation and submit, provider 1's booking is already real. We keep it, tell the
+  /// customer which provider failed, and leave them on checkout to re-pick that slot.
+  Future<void> placeServiceOrders(List<PlaceOrderBodyModel> orderBodies, {required bool fromCart}) async {
+    if(orderBodies.isEmpty) return;
+
+    _isLoading = true;
+    update();
+
+    final List<String> placedOrderIds = [];
+    String? failedStoreName;
+
+    for(final PlaceOrderBodyModel body in orderBodies) {
+      final Response response = await checkoutServiceInterface.placeOrder(body, [], []);
+      if(response.statusCode == 200) {
+        placedOrderIds.add(response.body['order_id'].toString());
+      } else {
+        _handleServiceBookingError(response, body);
+        failedStoreName = _storeNameFor(body.storeId);
+        showCustomSnackBar(response.body?['message'] ?? response.statusText);
+        break;
+      }
+    }
+
+    _isLoading = false;
+    update();
+
+    if(placedOrderIds.isEmpty) {
+      // Nothing was created — the error is already on screen and the cart is intact.
+      return;
+    }
+
+    if(failedStoreName != null) {
+      // Partial: keep what succeeded, refresh the cart so the booked items disappear,
+      // and name the provider the customer still needs to re-book.
+      await Get.find<CartController>().getCartDataOnline();
+      showCustomSnackBar('${'booking_failed_for'.tr} $failedStoreName');
+    } else if(fromCart) {
+      Get.find<CartController>().clearCartList();
+    }
+
+    Get.find<ItemController>().cartIndexSet();
+    Get.find<ServiceBookingController>().clearSelections();
+    if(!Get.find<OrderController>().showBottomSheet) {
+      Get.find<OrderController>().showRunningOrders(canUpdate: false);
+    }
+    clearPrevData();
+    Get.find<CouponController>().removeCouponData(false);
+
+    Get.offNamed(RouteHelper.getOrderSuccessRoute(
+      placedOrderIds.first, orderBodies.first.contactPersonNumber,
+    ));
+  }
+
+  String _storeNameFor(int? storeId) {
+    final CartController cartController = Get.find<CartController>();
+    for(final CartModel cart in cartController.cartList) {
+      if(cart.item?.storeId == storeId) {
+        return cart.item?.storeName ?? '';
+      }
+    }
+    return '';
   }
 
   /// Reacts to the service-booking specific 403 error codes returned by

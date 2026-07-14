@@ -43,6 +43,25 @@ class ServiceSlot {
     end = json['end'];
   }
 
+  /// A time the customer typed or picked themselves rather than one the server
+  /// offered. [durationMinutes] comes from `AvailableSlotsModel.duration`; when it
+  /// is unknown the slot carries no end and renders as a bare start time.
+  factory ServiceSlot.manual({required int hour, required int minute, int? durationMinutes}) {
+    final int startMinutes = (hour * 60) + minute;
+    String? end;
+    if (durationMinutes != null && durationMinutes > 0) {
+      final int endMinutes = (startMinutes + durationMinutes) % (24 * 60);
+      end = _fromMinutes(endMinutes);
+    }
+    return ServiceSlot(start: _fromMinutes(startMinutes), end: end);
+  }
+
+  static String _fromMinutes(int minutes) {
+    final String hh = (minutes ~/ 60).toString().padLeft(2, '0');
+    final String mm = (minutes % 60).toString().padLeft(2, '0');
+    return '$hh:$mm:00';
+  }
+
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['start'] = start;
@@ -59,8 +78,13 @@ class ServiceSlot {
     return start!;
   }
 
-  /// "07:00 - 08:00" style label for the slot grid.
-  String get displayLabel => '${_hhmm(start)} - ${_hhmm(end)}';
+  /// "07:00 - 08:00" for a server slot; a bare "10:30" when the customer named a
+  /// time and the service duration is unknown, so there is no end to show.
+  String get displayLabel {
+    final String from = _hhmm(start);
+    final String to = _hhmm(end);
+    return to.isEmpty ? from : '$from - $to';
+  }
 
   static String _hhmm(String? raw) {
     if (raw == null) return '';

@@ -9,6 +9,7 @@ import 'package:sixam_mart/features/favourite/controllers/favourite_controller.d
 import 'package:sixam_mart/features/category/domain/models/category_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -37,6 +38,7 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/features/store/widgets/store_details_screen_shimmer_widget.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
 import 'package:sixam_mart/features/store/widgets/filter_widget.dart';
+import 'package:sixam_mart/features/store/screens/service_store_category_screen.dart';
 
 class StoreScreen extends StatefulWidget {
   final Store? store;
@@ -89,6 +91,15 @@ class _StoreScreenState extends State<StoreScreen> {
         Get.find<StoreController>().showButtonAnimation();
       }
     });
+  }
+
+  /// Drills into a category inside this provider: its children become the chips on the
+  /// next screen, and the services stay scoped to this store.
+  void _openServiceCategory(CategoryModel category, int storeId) {
+    if(category.id == null) return;
+    Get.to(() => ServiceStoreCategoryScreen(
+      storeId: storeId, categoryId: category.id!, categoryName: category.name ?? '',
+    ));
   }
 
   @override
@@ -734,7 +745,10 @@ class _StoreScreenState extends State<StoreScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
                           child: Row(children: [
-                            Text('all_products'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
+                            Text(
+                              ModuleHelper.isService() ? 'all_services'.tr : 'all_products'.tr,
+                              style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
+                            ),
                             const Expanded(child: SizedBox()),
 
                             !ResponsiveHelper.isDesktop(context) ? InkWell(
@@ -785,7 +799,14 @@ class _StoreScreenState extends State<StoreScreen> {
                             physics: const BouncingScrollPhysics(),
                             itemBuilder: (context, index) {
                               return InkWell(
-                                onTap: () => storeController.setCategoryIndex(index),
+                                // In the service module a category chip drills into that
+                                // category's children (Coloring -> Highlights / root
+                                // touch-ups / ...) rather than filtering in place. Index 0
+                                // is the synthetic "All", which has no children to drill
+                                // into, so it keeps the plain filter behaviour.
+                                onTap: () => (ModuleHelper.isService() && index > 0)
+                                    ? _openServiceCategory(storeController.categoryList![index], store!.id!)
+                                    : storeController.setCategoryIndex(index),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
                                   margin: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),

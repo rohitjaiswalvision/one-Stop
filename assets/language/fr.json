@@ -2316,5 +2316,20 @@
   "sq_ft": "pi²",
   "enter_area_in": "Saisissez la surface en",
   "e_g_10": "ex. 10",
-  "enter_a_valid_area": "Veuillez saisir une surface valide"
+  "enter_a_valid_area": "Veuillez saisir une surface valide",
+  "store_hours": "Horaires du magasin",
+  "you_can_select_any_time_in_between": "Vous pouvez choisir n'importe quelle heure entre les deux",
+  "or_enter_your_own_time": "Ou saisissez votre propre heure",
+  "enter_time": "Saisissez l'heure (ex. 10:30)",
+  "closed_on_this_day": "Le prestataire est fermé ce jour-là",
+  "invalid_time_format": "Saisissez une heure valide, ex. 10:30",
+  "please_select_a_time_within_store_hours": "Veuillez choisir une heure comprise dans les horaires du magasin",
+  "please_select_a_future_time": "Veuillez choisir une heure ultérieure à maintenant",
+  "service_address": "Adresse du service",
+  "home_service": "Service à domicile",
+  "pay_after_service": "Payer après le service",
+  "you_will_pay_the_provider_after_the_work_is_done": "Aucun paiement maintenant. Vous paierez le prestataire directement une fois le travail terminé.",
+  "booking_failed_for": "La réservation n'a pas pu être effectuée pour",
+  "up_to": "Jusqu'à",
+  "category_url_copied": "Lien de la catégorie copié"
 }

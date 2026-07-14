@@ -13,6 +13,8 @@ import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/common/models/module_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
+import 'package:sixam_mart/helper/html_helper.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -59,6 +61,11 @@ class ItemWidget extends StatelessWidget {
         genericName += name;
       }
     }
+
+    // A service card leads with what the service actually is; other modules keep
+    // the store name as their subtitle. Descriptions are HTML, so flatten them.
+    final bool isService = !isStore && ModuleHelper.isService(moduleType: item!.moduleType);
+    final String description = isService ? HtmlHelper.toPlainText(item!.description) : '';
     if(isStore) {
       discount = store!.discount != null ? store!.discount!.discount : 0;
       discountType = store!.discount != null ? store!.discount!.discountType : 'percent';
@@ -206,6 +213,20 @@ class ItemWidget extends StatelessWidget {
                                 genericName,
                                 style: robotoMedium.copyWith(
                                   fontSize: Dimensions.fontSizeSmall,
+                                  color: Theme.of(context).disabledColor,
+                                ),
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ) : const SizedBox(),
+
+                          description.isNotEmpty ? Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 3.0),
+                              child: Text(
+                                description,
+                                style: robotoRegular.copyWith(
+                                  fontSize: Dimensions.fontSizeExtraSmall,
                                   color: Theme.of(context).disabledColor,
                                 ),
                                 maxLines: 1, overflow: TextOverflow.ellipsis,

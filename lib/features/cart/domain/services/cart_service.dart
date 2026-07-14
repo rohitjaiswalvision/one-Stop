@@ -313,6 +313,12 @@ class CartService implements CartServiceInterface {
 
   @override
   bool existAnotherStoreItem(int? storeID, int? moduleId, List<CartModel> cartList) {
+    // A customer books several providers at once (a plumber and an electrician), so the
+    // service module deliberately allows services from different stores in one cart and
+    // never prompts to reset it. Every other module stays one-store-per-cart.
+    if(ModuleHelper.isService()) {
+      return false;
+    }
     for(CartModel cartModel in cartList) {
       if(cartModel.item!.storeId != storeID && cartModel.item!.moduleId == moduleId) {
         return true;
