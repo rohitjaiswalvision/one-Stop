@@ -1,3 +1,4 @@
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sixam_mart/common/enums/data_source_enum.dart';
 import 'package:sixam_mart/common/widgets/custom_button.dart';
@@ -89,7 +90,7 @@ class _PopularItemScreenState extends State<PopularItemScreen> {
         return Scaffold(
           appBar: CustomAppBar(
             key: scaffoldKey,
-            title: widget.isCommonCondition ? 'common_condition'.tr : widget.isPopular ? isShop ? 'most_popular_products'.tr : 'most_popular_items'.tr : widget.isSpecial ? 'special_offer'.tr : 'best_reviewed_item'.tr,
+            title: widget.isCommonCondition ? 'common_condition'.tr : widget.isPopular ? ModuleHelper.popularItemsTitle(isShop: isShop) : widget.isSpecial ? 'special_offer'.tr : 'best_reviewed_item'.tr,
             showCart: true,
             type: widget.isCommonCondition ? null : widget.isPopular ? itemController.popularType : widget.isSpecial ? itemController.discountedType : itemController.reviewType,
             onVegFilterTap: widget.isCommonCondition ? null : (String type) {
@@ -183,7 +184,7 @@ class _PopularItemScreenState extends State<PopularItemScreen> {
                         child: Stack(alignment: Alignment.center, children: [
 
                           Center(child: Text(
-                            widget.isPopular ? isShop ? 'most_popular_products'.tr : 'most_popular_items'.tr : widget.isSpecial ? 'special_offer'.tr : 'best_reviewed_item'.tr,
+                            widget.isPopular ? ModuleHelper.popularItemsTitle(isShop: isShop) : widget.isSpecial ? 'special_offer'.tr : 'best_reviewed_item'.tr,
                             style: robotoMedium,
                           )),
 

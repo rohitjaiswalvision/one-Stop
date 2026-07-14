@@ -1,3 +1,4 @@
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -193,7 +194,7 @@ class _ItemViewAllScreenState extends State<ItemViewAllScreen> {
                 padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault, top: Dimensions.paddingSizeDefault),
                 child: Row(children: [
         
-                  Text(widget.isPopular ? isShop ? 'most_popular_products'.tr : 'most_popular_items'.tr : widget.isSpecial ? 'special_offer'.tr : 'best_reviewed_item'.tr, style: robotoBold),
+                  Text(widget.isPopular ? ModuleHelper.popularItemsTitle(isShop: isShop) : widget.isSpecial ? 'special_offer'.tr : 'best_reviewed_item'.tr, style: robotoBold),
                   Text(' (${itemController.pageSize ?? 0})', style: robotoBold),
                   const Spacer(),
 

@@ -1,3 +1,4 @@
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
@@ -81,7 +82,7 @@ class _WebMostPopularItemViewWidgetState extends State<WebMostPopularItemViewWid
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraLarge, vertical: Dimensions.paddingSizeExtremeLarge),
               child: TitleWidget(
-                title: isShop ? 'most_popular_products'.tr : 'most_popular_items'.tr,
+                title: ModuleHelper.popularItemsTitle(isShop: isShop),
                 image: Images.mostPopularIcon,
                 onTap: () => Get.toNamed(RouteHelper.getPopularItemRoute(true, false)),
               ),

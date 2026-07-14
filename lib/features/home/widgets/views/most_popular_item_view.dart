@@ -1,3 +1,4 @@
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/common/widgets/card_design/item_card.dart';
@@ -32,7 +33,7 @@ class MostPopularItemView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: Dimensions.paddingSizeDefault, left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault),
                 child: TitleWidget(
-                  title: isShop ? 'most_popular_products'.tr : 'most_popular_items'.tr,
+                  title: ModuleHelper.popularItemsTitle(isShop: isShop),
                   image: Images.mostPopularIcon,
                   onTap: () => Get.toNamed(RouteHelper.getItemViewAllScreen(true, false)),
                 ),

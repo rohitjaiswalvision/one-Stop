@@ -29,4 +29,14 @@ class ModuleHelper {
     return module?.moduleType == AppConstants.service;
   }
 
+  /// Heading over the "most popular" rail. A service is booked, not bought, so the
+  /// service module names the rail after the service instead of reusing the generic
+  /// item/product wording every other module shares.
+  static String popularItemsTitle({bool isShop = false}) {
+    if (isService()) {
+      return 'most_popular_service'.tr;
+    }
+    return isShop ? 'most_popular_products'.tr : 'most_popular_items'.tr;
+  }
+
 }

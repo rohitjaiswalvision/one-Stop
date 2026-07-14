@@ -1,3 +1,4 @@
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -71,7 +72,7 @@ class ItemShimmerView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: Dimensions.paddingSizeDefault, left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault),
             child: TitleWidget(
-              title: isPopularItem ? 'most_popular_items'.tr : 'special_offer'.tr,
+              title: isPopularItem ? ModuleHelper.popularItemsTitle() : 'special_offer'.tr,
               image: isPopularItem ? Images.mostPopularIcon : Images.discountOfferIcon,
             ),
           ),
