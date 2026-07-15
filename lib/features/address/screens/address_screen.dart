@@ -91,7 +91,9 @@ class _AddressScreenState extends State<AddressScreen> {
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisSpacing: Dimensions.paddingSizeLarge,
                                   mainAxisSpacing: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeLarge : 0.01,
-                                  childAspectRatio: ResponsiveHelper.isDesktop(context) ? 4 : 4.8,
+                                  // Mobile cards were a hair too short for the two text lines
+                                  // (a ~0.2px RenderFlex overflow); 4.5 gives them enough height.
+                                  childAspectRatio: ResponsiveHelper.isDesktop(context) ? 4 : 4.5,
                                   crossAxisCount: ResponsiveHelper.isMobile(context) ? 1 : 3,
                                 ),
                                 physics: const NeverScrollableScrollPhysics(),

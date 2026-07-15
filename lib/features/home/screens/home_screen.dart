@@ -53,6 +53,7 @@ import 'package:sixam_mart/features/home/screens/web_new_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/home/widgets/module_view.dart';
+import 'package:sixam_mart/features/home/widgets/module_strip_widget.dart';
 import 'package:sixam_mart/features/parcel/screens/parcel_category_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -246,10 +247,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
-      if(splashController.moduleList != null && splashController.moduleList!.length == 1) {
+      // Skip the full-screen module grid landing: users should always land straight on a
+      // module's home. Whenever the modules are loaded but none is selected, auto-enter the
+      // first one — the pinned ModuleStripWidget then lets them switch between modules.
+      // (Previously this only auto-entered when the zone had exactly one module.)
+      if(splashController.moduleList != null && splashController.moduleList!.isNotEmpty
+          && splashController.module == null && splashController.configModel?.module == null) {
         splashController.switchModule(0, true);
       }
       bool showMobileModule = !ResponsiveHelper.isDesktop(context) && splashController.module == null && splashController.configModel!.module == null;
+      // Only reserve the pinned module strip when there are at least two switchable modules
+      // (mirrors the exclusions in ModuleStripWidget), so single-module zones show no empty band.
+      int switchableModuleCount = splashController.moduleList == null ? 0 : splashController.moduleList!.where(
+        (m) => m.moduleType.toString() != AppConstants.taxi && m.moduleType.toString() != AppConstants.pharmacy,
+      ).length;
+      bool showModuleStrip = switchableModuleCount >= 2;
       bool isParcel = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.parcel;
       bool isPharmacy = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.pharmacy;
       bool isFood = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.food;
@@ -430,6 +442,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     )),
                     actions: [const SizedBox()],
                   ),
+
+                  /// Swiggy-style module switcher strip — pinned above the search so the
+                  /// user can hop between modules without leaving the home feed. Hidden when
+                  /// inside the module grid (showMobileModule) or on single-module zones
+                  /// (the strip returns SizedBox itself, but we still avoid reserving height).
+                  showModuleStrip && !showMobileModule && !isTaxi && !isRide ? SliverPersistentHeader(
+                    pinned: true,
+                    delegate: SliverDelegate(callback: (val){}, height: 74, child: Center(child: SizedBox(
+                      width: Dimensions.webMaxWidth,
+                      child: const ModuleStripWidget(),
+                    ))),
+                  ) : const SliverToBoxAdapter(),
 
                   /// Search Button
                   !showMobileModule && !isTaxi && !isRide ? SliverPersistentHeader(

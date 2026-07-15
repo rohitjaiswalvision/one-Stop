@@ -20,6 +20,7 @@ import 'package:sixam_mart/features/parcel/widgets/parcel_app_bar_widget.dart';
 import 'package:sixam_mart/features/parcel/widgets/deliver_item_card_widget.dart';
 import 'package:sixam_mart/features/parcel/widgets/get_service_video_widget.dart';
 import 'package:sixam_mart/features/parcel/widgets/sevice_info_list_widget.dart';
+import 'package:sixam_mart/features/home/widgets/module_strip_widget.dart';
 
 class ParcelCategoryScreen extends StatefulWidget {
   const ParcelCategoryScreen({super.key});
@@ -46,7 +47,12 @@ class _ParcelCategoryScreenState extends State<ParcelCategoryScreen> {
     bool isDesktop = ResponsiveHelper.isDesktop(context);
     return Scaffold(
       appBar: isDesktop ? null : const ParcelAppBarWidget(),
-      body: GetBuilder<ParcelController>(builder: (parcelController) {
+      // Module switcher below the location app bar, matching the other modules' layout
+      // (location header first, then the strip). ModuleStripWidget hides itself in
+      // single-module zones, so nothing shows when there is nothing to switch to.
+      body: Column(children: [
+        if(!isDesktop) const ModuleStripWidget(),
+        Expanded(child: GetBuilder<ParcelController>(builder: (parcelController) {
         return GetBuilder<BannerController>(builder: (bannerController) {
 
           bool showVideoAndServices = parcelController.videoContentDetails != null && (parcelController.videoContentDetails!.bannerVideo != null || parcelController.videoContentDetails!.bannerImageFullUrl != null);
@@ -213,7 +219,8 @@ class _ParcelCategoryScreenState extends State<ParcelCategoryScreen> {
 
           ]);
         });
-      }),
+      })),
+        ]),
     );
   }
 

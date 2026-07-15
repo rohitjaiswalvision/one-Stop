@@ -270,7 +270,12 @@ class SplashController extends GetxController implements GetxService {
   }
 
   Module getModuleConfig(String? moduleType) {
-    Module module = Module.fromJson(_data!['module_config'][moduleType]);
+    // The config (_data) may not have arrived yet: at startup the cart list can return
+    // before /config, and calculating a persisted cart item calls this. Guard against a
+    // null module_config so we return a usable default instead of crashing on null['type'].
+    final dynamic moduleConfig = _data?['module_config'];
+    final dynamic moduleJson = (moduleConfig != null && moduleType != null) ? moduleConfig[moduleType] : null;
+    Module module = moduleJson != null ? Module.fromJson(moduleJson) : Module();
     moduleType == 'food' ? module.newVariation = true : module.newVariation = false;
     return module;
   }

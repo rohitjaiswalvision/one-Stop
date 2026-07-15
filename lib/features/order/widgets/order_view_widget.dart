@@ -1,8 +1,12 @@
 import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
+import 'package:sixam_mart/common/widgets/custom_loader.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
+import 'package:sixam_mart/features/order/domain/models/order_details_model.dart';
 import 'package:sixam_mart/features/order/domain/models/order_model.dart';
+import 'package:sixam_mart/features/review/screens/rate_review_screen.dart';
 import 'package:sixam_mart/features/order/widgets/order_shimmer_widget.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
+import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -15,6 +19,17 @@ import 'package:sixam_mart/common/widgets/paginated_list_view.dart';
 import 'package:sixam_mart/features/order/screens/order_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Status to show for an order row. For a services order the booking carries the real
+/// status (e.g. "accepted" while the order row is still "pending"), so prefer the first
+/// service_booking's status; every other module keeps the order-level status.
+String _orderDisplayStatus(OrderModel order) {
+  final List<OrderServiceBooking>? bookings = order.serviceBookings;
+  if (bookings != null && bookings.isNotEmpty && (bookings.first.status?.isNotEmpty ?? false)) {
+    return bookings.first.status!;
+  }
+  return order.orderStatus ?? '';
+}
 
 class OrderViewWidget extends StatelessWidget {
   final bool isRunning;
@@ -61,7 +76,7 @@ class OrderViewWidget extends StatelessWidget {
                     },
                     totalSize: isRunning ? orderController.runningOrderModel?.totalSize : orderController.historyOrderModel?.totalSize,
                     offset: isRunning ? orderController.runningOrderModel?.offset : orderController.historyOrderModel?.offset,
-                    itemView: GridView.builder(
+                    itemView: ResponsiveHelper.isDesktop(context) ? GridView.builder(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisSpacing: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeExtremeLarge : Dimensions.paddingSizeLarge,
                         mainAxisSpacing: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeExtremeLarge : 0,
@@ -159,7 +174,7 @@ class OrderViewWidget extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                           color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                         ),
-                                        child: Text(paginatedOrderModel.orders![index].orderStatus!.tr, style: robotoMedium.copyWith(
+                                        child: Text(_orderDisplayStatus(paginatedOrderModel.orders![index]).tr, style: robotoMedium.copyWith(
                                           fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
                                         )),
                                       ),
@@ -180,7 +195,7 @@ class OrderViewWidget extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                       color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                     ),
-                                    child: Text(paginatedOrderModel.orders![index].orderStatus!.tr, style: robotoMedium.copyWith(
+                                    child: Text(_orderDisplayStatus(paginatedOrderModel.orders![index]).tr, style: robotoMedium.copyWith(
                                       fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
                                     )),
                                   ) : const SizedBox(),
@@ -223,7 +238,14 @@ class OrderViewWidget extends StatelessWidget {
                             ]),
                           ),
                         );
-                      },),
+                      },)
+                    : ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeSmall),
+                        itemCount: paginatedOrderModel.orders!.length,
+                        itemBuilder: (context, index) => _orderCard(context, paginatedOrderModel!.orders![index]),
+                      ),
                   ),
                 ),
               ),
@@ -232,5 +254,182 @@ class OrderViewWidget extends StatelessWidget {
         ) : NoDataScreen(text: 'no_order_found'.tr, showFooter: true) : OrderShimmerWidget(orderController: orderController);
       }),
     );
+  }
+
+  /// Swiggy-style order card (mobile): store logo + name/address header, a status/date row,
+  /// then item count + total with a primary action (Track for running, Re-order for history).
+  Widget _orderCard(BuildContext context, OrderModel order) {
+    final bool isParcel = order.orderType == 'parcel';
+    final String status = _orderDisplayStatus(order);
+    final Color statusColor = _statusColor(context, status);
+
+    final String title = isParcel
+        ? (order.parcelCategory?.name ?? 'parcel'.tr)
+        : (order.store?.name ?? '#${order.id}');
+    final String subtitle = isParcel
+        ? '${'delivery_id'.tr}: #${order.id}'
+        : ((order.store?.address?.isNotEmpty ?? false) ? order.store!.address! : '${'order_id'.tr}: #${order.id}');
+    final String image = isParcel
+        ? (order.parcelCategory?.imageFullUrl ?? '')
+        : (order.store?.logoFullUrl ?? '');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+        border: Border.all(color: Theme.of(context).disabledColor.withValues(alpha: 0.15)),
+        boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: CustomInkWell(
+        onTap: () => Get.toNamed(
+          RouteHelper.getOrderDetailsRoute(order.id),
+          arguments: OrderDetailsScreen(orderId: order.id, orderModel: order),
+        ),
+        radius: Dimensions.radiusLarge,
+        child: Column(children: [
+
+          // Header: logo + store name / address + chevron
+          Padding(
+            padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+            child: Row(children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                child: Container(
+                  height: 52, width: 52, alignment: Alignment.center,
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
+                  child: (image.isEmpty && isParcel)
+                      ? Icon(Icons.local_shipping_outlined, color: Theme.of(context).primaryColor)
+                      : CustomImage(image: image, height: 52, width: 52, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(width: Dimensions.paddingSizeSmall),
+
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault), maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(subtitle, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ])),
+
+              Icon(Icons.chevron_right, color: Theme.of(context).disabledColor),
+            ]),
+          ),
+
+          Divider(height: 1, thickness: 1, color: Theme.of(context).disabledColor.withValues(alpha: 0.12)),
+
+          // Status + date
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
+            child: Row(children: [
+              Container(height: 8, width: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+              Text(status.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: statusColor)),
+              const Spacer(),
+              Text(
+                DateConverter.dateTimeStringToDateTime(order.createdAt!),
+                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor),
+              ),
+            ]),
+          ),
+
+          // Item count + total + action
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0, Dimensions.paddingSizeSmall, Dimensions.paddingSizeSmall),
+            child: Row(children: [
+              if(!isParcel) ...[
+                Text(
+                  '${order.detailsCount ?? 0} ${(order.detailsCount ?? 0) > 1 ? 'items'.tr : 'item'.tr}',
+                  style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
+                  child: Text('•', style: robotoRegular.copyWith(color: Theme.of(context).disabledColor)),
+                ),
+              ],
+              Text(
+                PriceConverter.convertPrice(order.orderAmount), textDirection: TextDirection.ltr,
+                style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge),
+              ),
+              const Spacer(),
+
+              if(isRunning)
+                _actionButton(context, filled: true, icon: Images.tracking, text: isParcel ? 'track_delivery'.tr : 'track_order'.tr,
+                    onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(order.id, null)))
+              else ...[
+                // Completed order → let the customer rate the store/service (and the delivery man).
+                if(_isCompleted(status)) _actionButton(context, filled: true, text: 'rate'.tr,
+                    onTap: () => _openReview(order)),
+                if(_isCompleted(status) && order.store != null && !isParcel) const SizedBox(width: Dimensions.paddingSizeSmall),
+                if(order.store != null && !isParcel) _actionButton(context, filled: false, text: 're_order'.tr,
+                    onTap: () => Get.toNamed(RouteHelper.getStoreRoute(id: order.store!.id, page: 'store', slug: order.store!.slug ?? ''))),
+              ],
+            ]),
+          ),
+
+        ]),
+      ),
+    );
+  }
+
+  /// Green when done, red when cancelled/refunded, otherwise the brand colour for in-progress.
+  Color _statusColor(BuildContext context, String status) {
+    const Set<String> done = {'delivered', 'completed'};
+    const Set<String> bad = {'canceled', 'cancelled', 'failed', 'refunded', 'refund_requested', 'refund_request_canceled'};
+    if (done.contains(status)) return const Color(0xFF2E7D32);
+    if (bad.contains(status)) return const Color(0xFFD32F2F);
+    return Theme.of(context).primaryColor;
+  }
+
+  Widget _actionButton(BuildContext context, {required bool filled, String? icon, required String text, required VoidCallback onTap}) {
+    final Color primary = Theme.of(context).primaryColor;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall + 2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+          color: filled ? primary : Colors.transparent,
+          border: Border.all(color: primary, width: 1),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (icon != null) ...[
+            Image.asset(icon, height: 14, width: 14, color: filled ? Colors.white : primary),
+            const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+          ],
+          Text(text, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: filled ? Colors.white : primary)),
+        ]),
+      ),
+    );
+  }
+
+  /// A finished order the customer can rate — delivered goods or a completed service booking.
+  bool _isCompleted(String status) => status == 'delivered' || status == 'completed';
+
+  /// The order list doesn't carry the item details the review screen needs, so fetch them
+  /// first (with a loader), then open the same rate-and-review flow the details screen uses.
+  Future<void> _openReview(OrderModel order) async {
+    Get.dialog(const CustomLoaderWidget(), barrierDismissible: false);
+    await Get.find<OrderController>().getOrderDetails(order.id.toString());
+    final List<OrderDetailsModel> details = Get.find<OrderController>().orderDetails ?? <OrderDetailsModel>[];
+
+    // De-duplicate by item so each service/product is rated once.
+    final List<OrderDetailsModel> uniqueDetails = <OrderDetailsModel>[];
+    final List<int?> seenIds = <int?>[];
+    for (final OrderDetailsModel detail in details) {
+      if (!seenIds.contains(detail.itemDetails?.id)) {
+        uniqueDetails.add(detail);
+        seenIds.add(detail.itemDetails?.id);
+      }
+    }
+
+    if (Get.isDialogOpen ?? false) Get.back(); // close loader
+
+    Get.toNamed(RouteHelper.getReviewRoute(), arguments: RateReviewScreen(
+      orderDetailsList: uniqueDetails,
+      deliveryMan: order.deliveryMan,
+      orderID: order.id,
+      reviews: order.reviews,
+    ));
   }
 }

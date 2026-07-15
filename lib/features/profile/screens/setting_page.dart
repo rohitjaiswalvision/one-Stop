@@ -65,7 +65,8 @@ class SettingPage extends StatelessWidget {
   }
 
   void _manageLanguageFunctionality() {
-    Get.find<LocalizationController>().saveCacheLanguage(null);
+    // Show the current language as pre-selected. The language is applied only when the user
+    // taps "Update" inside the sheet — closing/cancelling the sheet leaves it unchanged.
     Get.find<LocalizationController>().searchSelectedLanguage();
 
     showModalBottomSheet(
@@ -80,6 +81,6 @@ class SettingPage extends StatelessWidget {
           child: const LanguageBottomSheetWidget(),
         );
       },
-    ).then((value) => Get.find<LocalizationController>().setLanguage(Get.find<LocalizationController>().getCacheLocaleFromSharedPref()));
+    );
   }
 }

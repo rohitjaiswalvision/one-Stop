@@ -20,6 +20,17 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/features/home/widgets/banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/popular_store_view.dart';
 
+/// Soft two-stop gradients cycled across the module tiles. Kept intentionally light so the
+/// white icon chip and dark label read well on top in both light and dark themes.
+const List<List<Color>> _moduleTilePalette = <List<Color>>[
+  <Color>[Color(0xFFFFE9E0), Color(0xFFFFC9B3)], // peach
+  <Color>[Color(0xFFE3F0FF), Color(0xFFBBD9FF)], // blue
+  <Color>[Color(0xFFE6F9E9), Color(0xFFBEEFC6)], // green
+  <Color>[Color(0xFFF2E9FF), Color(0xFFD8C2FF)], // purple
+  <Color>[Color(0xFFFFF5DF), Color(0xFFFFE1A6)], // amber
+  <Color>[Color(0xFFE0F7F7), Color(0xFFB6ECEC)], // teal
+];
+
 class ModuleView extends StatelessWidget {
   final SplashController splashController;
   const ModuleView({super.key, required this.splashController});
@@ -45,42 +56,75 @@ class ModuleView extends StatelessWidget {
 
       splashController.moduleList != null ? moduleIndices.isNotEmpty ? GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, mainAxisSpacing: Dimensions.paddingSizeSmall,
-          crossAxisSpacing: Dimensions.paddingSizeSmall, childAspectRatio: (1/1),
+          crossAxisCount: 2, mainAxisSpacing: Dimensions.paddingSizeDefault,
+          crossAxisSpacing: Dimensions.paddingSizeDefault, childAspectRatio: (1.35),
         ),
-        padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
         itemCount: moduleIndices.length,
         shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
           int originalIndex = moduleIndices[index];
+          // Cycle a soft, deliberately light palette so the tiles stay colourful in both
+          // themes; the icon sits in a white chip and the label is dark on top of the pastel.
+          final List<Color> gradient = _moduleTilePalette[index % _moduleTilePalette.length];
           return Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              color: Theme.of(context).cardColor,
-              border: Border.all(color: Theme.of(context).disabledColor, width: 0.05),
-              boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.2), spreadRadius: 1, blurRadius: 3)],
+              borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+                colors: gradient,
+              ),
+              boxShadow: [BoxShadow(
+                color: gradient.last.withValues(alpha: 0.5), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 4),
+              )],
             ),
             child: CustomInkWell(
               onTap: () => splashController.switchModule(originalIndex, true),
-              radius: Dimensions.radiusDefault,
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              radius: Dimensions.radiusExtraLarge,
+              child: Padding(
+                padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                child: Row(children: [
 
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                  child: CustomImage(
-                    image: '${splashController.moduleList![originalIndex].iconFullUrl}',
-                    height: 50, width: 50,
+                  Container(
+                    height: 56, width: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))],
+                    ),
+                    padding: const EdgeInsets.all(6),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                      child: CustomImage(
+                        image: '${splashController.moduleList![originalIndex].iconFullUrl}',
+                        height: 44, width: 44,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: Dimensions.paddingSizeSmall),
+                  const SizedBox(width: Dimensions.paddingSizeSmall),
 
-                Center(child: Text(
-                  splashController.moduleList![originalIndex].moduleName!,
-                  textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall),
-                )),
+                  Expanded(child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        splashController.moduleList![originalIndex].moduleName!,
+                        maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall, color: const Color(0xFF2B2B2B)),
+                      ),
+                      const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                      Row(children: [
+                        Text(
+                          'view'.tr,
+                          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: const Color(0xFF2B2B2B).withValues(alpha: 0.6)),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF2B2B2B)),
+                      ]),
+                    ],
+                  )),
 
-              ]),
+                ]),
+              ),
             ),
           );
         },

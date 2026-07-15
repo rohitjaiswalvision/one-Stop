@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
 import 'package:sixam_mart/features/language/domain/models/language_model.dart';
-import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
@@ -17,12 +16,9 @@ class LanguageCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        if(fromBottomSheet){
-          localizationController.setLanguage(Locale(
-            AppConstants.languages[index].languageCode!,
-            AppConstants.languages[index].countryCode,
-          ), fromBottomSheet: fromBottomSheet);
-        }
+        // Only mark the choice (shows the checkmark). The language is applied when the user
+        // confirms — the sheet's "Update" button or the screen's "Next" button — never on tap.
+        // This keeps the app language from changing until the user explicitly asks for it.
         localizationController.setSelectLanguageIndex(index);
       },
       child: Container(

@@ -4,8 +4,10 @@ import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/common/models/config_model.dart';
 import 'package:sixam_mart/features/checkout/controllers/checkout_controller.dart';
+import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/features/checkout/widgets/time_slot_bottom_sheet.dart';
@@ -25,8 +27,12 @@ class TimeSlotSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isGuestLoggedIn = AuthHelper.isGuestLoggedIn();
+    // Food does not offer a preference/schedule time on checkout — orders go instantly.
+    final bool isFoodModule = Get.find<SplashController>().module?.moduleType == AppConstants.food;
+    final bool showPreferenceTime = !isGuestLoggedIn && storeId == null && checkoutController.store!.scheduleOrder!
+        && cartList!.isNotEmpty && cartList![0]!.item!.availableDateStarts == null && !isFoodModule;
     return Column(children: [
-      !isGuestLoggedIn && storeId == null && checkoutController.store!.scheduleOrder! && cartList!.isNotEmpty && cartList![0]!.item!.availableDateStarts == null ? Container(
+      showPreferenceTime ? Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.05), blurRadius: 10)],
@@ -99,7 +105,7 @@ class TimeSlotSection extends StatelessWidget {
         ]),
       ) : const SizedBox(),
 
-      SizedBox(height: !isGuestLoggedIn && storeId == null && checkoutController.store!.scheduleOrder! && cartList!.isNotEmpty && cartList![0]!.item!.availableDateStarts == null ? Dimensions.paddingSizeSmall : 0),
+      SizedBox(height: showPreferenceTime ? Dimensions.paddingSizeSmall : 0),
 
     ]);
   }

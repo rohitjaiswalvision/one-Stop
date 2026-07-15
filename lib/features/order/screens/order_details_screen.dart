@@ -50,6 +50,19 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> {
   bool? _isCashOnDeliveryActive = false;
   final ScrollController scrollController = ScrollController();
 
+  /// The status of the first service booking, when this is a services-module order.
+  /// The track model may omit service_bookings, so we fall back to the order model.
+  /// Returns null for non-service orders so the caller keeps the order-level status.
+  String? _serviceBookingStatus(OrderController orderController) {
+    for (final OrderModel? order in [orderController.trackModel, widget.orderModel]) {
+      final List<OrderServiceBooking>? bookings = order?.serviceBookings;
+      if (bookings != null && bookings.isNotEmpty && (bookings.first.status?.isNotEmpty ?? false)) {
+        return bookings.first.status;
+      }
+    }
+    return null;
+  }
+
   void _loadData(BuildContext context, bool reload) async {
     Get.find<OrderController>().getPaymentFailedDetails(widget.orderId.toString());
     await Get.find<OrderController>().trackOrder(widget.orderId.toString(), reload ? null : widget.orderModel, false, contactNumber: widget.contactNumber).then((value) {
@@ -96,6 +109,12 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> {
         }
       },
       child: GetBuilder<OrderController>(builder: (orderController) {
+        // For a services order the meaningful status lives on the booking, not the order.
+        // Prefer the first service_booking's status; fall back to the order status otherwise.
+        final String? bookingStatus = _serviceBookingStatus(orderController);
+        final String headerStatus = bookingStatus
+            ?? orderController.trackModel?.orderStatus
+            ?? widget.orderModel?.orderStatus ?? '';
         return Scaffold(
           appBar: isDesktop ? const WebMenuBar() : AppBar(
             title: Column(
@@ -107,7 +126,7 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> {
               const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
               Text(
-                '${'your_order_is'.tr} ${orderController.trackModel?.orderStatus?.tr ?? (widget.orderModel?.orderStatus?.tr ?? '')}',
+                '${'your_order_is'.tr} ${headerStatus.tr}',
                 style: robotoRegular.copyWith(
                   fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: 0.6),
                 ),
