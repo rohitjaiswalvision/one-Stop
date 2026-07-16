@@ -8,6 +8,7 @@ import 'package:sixam_mart/features/checkout/widgets/extra_discount_view_widget.
 import 'package:sixam_mart/features/checkout/widgets/upload_prescription_widget.dart';
 import 'package:sixam_mart/features/coupon/controllers/coupon_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/features/profile/controllers/profile_controller.dart';
 import 'package:sixam_mart/common/models/config_model.dart';
 import 'package:sixam_mart/features/checkout/controllers/checkout_controller.dart';
@@ -85,15 +86,17 @@ class BottomSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault, horizontal: Dimensions.paddingSizeLarge),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-            ///Additional Note & prescription..
-            NoteAndPrescriptionSection(checkoutController: checkoutController, storeId: storeId),
+            ///Additional Note & prescription.. (services don't take an order note here — the
+            /// per-service "additional instruction" is captured on the cart line instead)
+            ModuleHelper.isService() ? const SizedBox() : NoteAndPrescriptionSection(checkoutController: checkoutController, storeId: storeId),
 
             // isDesktop && !isGuestLoggedIn ? PartialPayView(totalPrice: total, isPrescription: storeId != null) : const SizedBox(),
 
             !isDesktop ? pricingView(context: context, takeAway: takeAway) : const SizedBox(),
             const SizedBox(height: Dimensions.paddingSizeLarge),
 
-            storeId == null ? UploadPrescriptionWidget(
+            // No prescription upload for services.
+            (storeId == null && !ModuleHelper.isService()) ? UploadPrescriptionWidget(
               checkoutController: checkoutController,
               storeId: storeId,
               isPrescriptionRequired: isPrescriptionRequired,
@@ -112,7 +115,7 @@ class BottomSection extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text( 'total_amount'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor)),
+                      Text( ModuleHelper.isService() ? 'estimate_amount'.tr : 'total_amount'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor)),
                       storeId == null ? const SizedBox() : Text(
                         'Once_your_order_is_confirmed_you_will_receive'.tr,
                         style: robotoRegular.copyWith(
@@ -168,7 +171,7 @@ class BottomSection extends StatelessWidget {
               children: [
                 Row( children: [
                   ShaderIcon(icon: Icons.shopping_cart_outlined),wSpace,
-                  Text(module.addOn! ? 'subtotal'.tr : 'item_price'.tr, style: robotoRegular),
+                  Text(ModuleHelper.isService() ? 'estimate_price'.tr : module.addOn! ? 'subtotal'.tr : 'item_price'.tr, style: robotoRegular),
                 ]),
                                   Text(PriceConverter.convertPrice(subTotal), style: robotoMedium, textDirection: TextDirection.ltr),
 
@@ -247,7 +250,8 @@ class BottomSection extends StatelessWidget {
             ) : const SizedBox.shrink() : const SizedBox(),
             SizedBox(height: storeId == null ? (checkoutController.store!.extraPackagingStatus! && Get.find<CartController>().needExtraPackage) ? Dimensions.paddingSizeSmall : 0.0 : 0.0),
 
-            (AuthHelper.isGuestLoggedIn() && checkoutController.guestAddress == null) ? const SizedBox() : Row( children: [
+            // No delivery fee line for services (customer pays the provider after the service).
+            (ModuleHelper.isService() || (AuthHelper.isGuestLoggedIn() && checkoutController.guestAddress == null)) ? const SizedBox() : Row( children: [
 ShaderIcon(icon:  Icons.local_shipping_outlined),   wSpace,       Text('delivery_fee'.tr, style: robotoRegular),
               const SizedBox(width: 5),
 

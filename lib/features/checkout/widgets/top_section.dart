@@ -95,7 +95,8 @@ class TopSection extends StatelessWidget {
       ) : null,
       child: Column(children: [
 
-        !AuthHelper.isGuestLoggedIn() && storeId != null ? Padding(
+        // No prescription upload for services.
+        !AuthHelper.isGuestLoggedIn() && storeId != null && !ModuleHelper.isService() ? Padding(
           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeSmall),
           child: UploadPrescriptionWidget(
             checkoutController: checkoutController, storeId: storeId, isPrescriptionRequired: storeId != null,

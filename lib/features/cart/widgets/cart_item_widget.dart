@@ -11,6 +11,7 @@ import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/html_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/square_feet_helper.dart';
+import 'package:sixam_mart/helper/service_note_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
@@ -231,6 +232,33 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                           ),
                         ) : const SizedBox(),
                       ]),
+
+                      // Optional "what work do you want" note the customer added when the
+                      // service went into the cart. Tap to add or edit it; rebuilds via
+                      // GetBuilder so a change from the sheet reflects immediately.
+                      isService ? GetBuilder<CartController>(builder: (cartController) {
+                        final String? note = cartController.serviceNoteOf(widget.cart.item?.id);
+                        final bool hasNote = note != null && note.isNotEmpty;
+                        return Padding(
+                          padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
+                          child: InkWell(
+                            onTap: () => ServiceNoteHelper.openNoteSheet(widget.cart.item!),
+                            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Icon(hasNote ? Icons.sticky_note_2_outlined : Icons.add,
+                                  size: 14, color: Theme.of(context).primaryColor),
+                              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                              Expanded(child: Text(
+                                hasNote ? note : 'add_additional_instruction'.tr,
+                                style: robotoRegular.copyWith(
+                                  fontSize: Dimensions.fontSizeExtraSmall,
+                                  color: hasNote ? Theme.of(context).textTheme.bodyMedium?.color : Theme.of(context).primaryColor,
+                                ),
+                                maxLines: 2, overflow: TextOverflow.ellipsis,
+                              )),
+                            ]),
+                          ),
+                        );
+                      }) : const SizedBox(),
 
                       widget.cart.item!.isPrescriptionRequired! ? Padding(
                         padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeExtraSmall : 2),

@@ -474,7 +474,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                       ShaderIcon(icon: Icons.account_balance_wallet_outlined,),
                       SizedBox(width: 5,),
                       Text(
-                        checkoutController.isPartialPay ? 'due_payment'.tr : 'total_amount'.tr,
+                        checkoutController.isPartialPay ? 'due_payment'.tr : ModuleHelper.isService() ? 'estimate_amount'.tr : 'total_amount'.tr,
                         style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor),
                       ),
 

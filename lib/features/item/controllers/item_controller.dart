@@ -12,6 +12,7 @@ import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/square_feet_helper.dart';
+import 'package:sixam_mart/helper/service_note_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
@@ -867,8 +868,16 @@ class ItemController extends GetxController implements GetxService {
             },
           ), barrierDismissible: false);
         } else {
-          Get.find<CartController>().addToCartOnline(onlineCart);
-          showCartSnackBar();
+          void doAdd() {
+            Get.find<CartController>().addToCartOnline(onlineCart);
+            showCartSnackBar();
+          }
+          // Adding a service straight from the "+" — offer the optional work note first.
+          if(ModuleHelper.isService(moduleType: _item?.moduleType)) {
+            ServiceNoteHelper.openNoteSheet(_item!, onProceed: doAdd);
+          } else {
+            doAdd();
+          }
         }
       } else if(Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! || _item?.moduleType == AppConstants.food){
         if(ResponsiveHelper.isMobile(Get.context)) {

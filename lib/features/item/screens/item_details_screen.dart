@@ -12,6 +12,8 @@ import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/square_feet_helper.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
+import 'package:sixam_mart/helper/service_note_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -334,7 +336,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         const SizedBox(height: Dimensions.paddingSizeSmall),
 
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          Text('total_amount'.tr, style:robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor)),
+                          // Services: a fixed-price service shows as "Price"; an area/sq-ft one
+                          // is an estimate until measured, so it shows as "Estimated Amount".
+                          Text((ModuleHelper.isService(moduleType: item.moduleType)
+                              ? (SquareFeetHelper.isSquareFeetItem(item) ? 'estimated_amount' : 'price')
+                              : 'total_amount').tr, style:robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor)),
 
                           Text(
                             PriceConverter.convertPrice(itemController.cartIndex != -1
@@ -444,13 +450,22 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                           ), barrierDismissible: false);
                                         } else {
                                           if(itemController.cartIndex == -1) {
-                                            await cartController.addToCartOnline(cart!).then((success) {
-                                              if(success){
-                                                itemController.setExistInCart(item, null);
-                                                showCartSnackBar();
-                                                _key.currentState!.shake();
-                                              }
-                                            });
+                                            Future<void> doAdd() async {
+                                              await cartController.addToCartOnline(cart!).then((success) {
+                                                if(success){
+                                                  itemController.setExistInCart(item, null);
+                                                  showCartSnackBar();
+                                                  _key.currentState!.shake();
+                                                }
+                                              });
+                                            }
+                                            // For a service, first offer the optional "what work do you want" note,
+                                            // then add. Its Skip/Add both call doAdd(). Other modules add directly.
+                                            if(ModuleHelper.isService(moduleType: item.moduleType)) {
+                                              ServiceNoteHelper.openNoteSheet(item, onProceed: doAdd);
+                                            } else {
+                                              await doAdd();
+                                            }
                                           } else {
                                             await cartController.updateCartOnline(cart!).then((success) {
                                               if(success) {

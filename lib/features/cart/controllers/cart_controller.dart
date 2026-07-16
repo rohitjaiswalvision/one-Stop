@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/common/models/module_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
@@ -16,7 +18,47 @@ import 'package:sixam_mart/helper/price_converter.dart';
 class CartController extends GetxController implements GetxService {
   final CartServiceInterface cartServiceInterface;
 
-  CartController({required this.cartServiceInterface});
+  CartController({required this.cartServiceInterface}) {
+    _loadServiceNotes();
+  }
+
+  // Optional per-service "what work do you want" note. The server cart has no note field
+  // and getCartDataOnline rebuilds the list from the server, so notes are kept here keyed
+  // by item id (a service is added at most once) and persisted so they survive a refetch/restart.
+  static const String _serviceNotesKey = 'service_cart_notes';
+  Map<int, String> _serviceNotes = <int, String>{};
+
+  String? serviceNoteOf(int? itemId) => itemId == null ? null : _serviceNotes[itemId];
+
+  void setServiceNote(int? itemId, String note) {
+    if (itemId == null) return;
+    if (note.trim().isEmpty) {
+      _serviceNotes.remove(itemId);
+    } else {
+      _serviceNotes[itemId] = note.trim();
+    }
+    _saveServiceNotes();
+    update();
+  }
+
+  void _loadServiceNotes() {
+    try {
+      final String? raw = Get.find<SharedPreferences>().getString(_serviceNotesKey);
+      if (raw != null && raw.isNotEmpty) {
+        final Map<String, dynamic> decoded = jsonDecode(raw);
+        _serviceNotes = decoded.map((String k, dynamic v) => MapEntry(int.parse(k), v.toString()));
+      }
+    } catch (_) {
+      _serviceNotes = <int, String>{};
+    }
+  }
+
+  void _saveServiceNotes() {
+    Get.find<SharedPreferences>().setString(
+      _serviceNotesKey,
+      jsonEncode(_serviceNotes.map((int k, String v) => MapEntry(k.toString(), v))),
+    );
+  }
 
  RxList<CartModel> cartList = <CartModel>[].obs;
   // RxList<CartModel> get cartList => <CartModel>[].obs;
@@ -183,6 +225,7 @@ class CartController extends GetxController implements GetxService {
 
   Future<void> removeFromCart(int index, {Item? item}) async {
     int cartId =cartList[index].id!;
+    setServiceNote(cartList[index].item?.id, ''); // drop any note tied to this service
    cartList.removeAt(index);
     update();
     Get.find<ItemController>().cartIndexSet();
@@ -221,7 +264,9 @@ class CartController extends GetxController implements GetxService {
     update();
     List<OnlineCartModel>? onlineCartList = await cartServiceInterface.addToCartOnline(cart);
     if(onlineCartList != null) {
-     cartList.addAll([]);
+     // The add endpoint returns the FULL cart, so replace the local list — appending it
+     // (the old behaviour) duplicated every item already in the cart.
+     cartList.assignAll([]);
      cartList.addAll(cartServiceInterface.formatOnlineCartToLocalCart(onlineCartModel: onlineCartList));
       calculationCart();
       success = true;
@@ -238,7 +283,8 @@ class CartController extends GetxController implements GetxService {
     update();
     List<OnlineCartModel>? onlineCartList = await cartServiceInterface.updateCartOnline(cart);
     if(onlineCartList != null) {
-     cartList.canUpdate;
+     // Same as add: replace with the full server cart instead of appending (which duplicated items).
+     cartList.assignAll([]);
      cartList.addAll(cartServiceInterface.formatOnlineCartToLocalCart(onlineCartModel: onlineCartList));
       calculationCart();
       success = true;

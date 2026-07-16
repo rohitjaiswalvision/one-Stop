@@ -334,7 +334,9 @@ children: [
                         borderRadius: const BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
                       ),
                       child: Column(children: [
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        // Services are estimate-priced, so the fixed item-price / discount
+                        // breakdown is hidden — only the estimate subtotal is shown.
+                        ModuleHelper.isService() ? const SizedBox() : Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                           Text('item_price'.tr, style: robotoRegular),
                           PriceConverter.convertAnimationPrice(cartController.itemPrice, textStyle: robotoRegular),
                         ]),
@@ -353,7 +355,7 @@ children: [
                         ) : const SizedBox(),
                         const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        ModuleHelper.isService() ? const SizedBox() : Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                           Text('discount'.tr, style: robotoRegular),
                           storeController.store != null ? Row(children: [
                             Text('(-)', style: robotoRegular),
@@ -494,7 +496,7 @@ children: [
             isDesktop ? Padding(
               padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
               child: Column(children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                ModuleHelper.isService() ? const SizedBox() : Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Text('item_price'.tr, style: robotoRegular),
                   PriceConverter.convertAnimationPrice(cartController.itemPrice, textStyle: robotoRegular),
                 ]),
@@ -509,7 +511,7 @@ children: [
                 ) : const SizedBox(),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                ModuleHelper.isService() ? const SizedBox() : Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Text('discount'.tr, style: robotoRegular),
                   storeController.store != null ? Row(children: [
                     Text('(-)', style: robotoRegular),
@@ -679,7 +681,7 @@ class CheckoutButton extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('subtotal'.tr, style: robotoMedium.copyWith(color: Theme.of(context).textTheme.bodyLarge!.color)),
+                    Text(ModuleHelper.isService() ? 'estimate_subtotal'.tr : 'subtotal'.tr, style: robotoMedium.copyWith(color: Theme.of(context).textTheme.bodyLarge!.color)),
                     PriceConverter.convertAnimationPrice(subTotal, textStyle: robotoBold.copyWith()),
                   ],
                 ),
@@ -813,7 +815,7 @@ class CheckoutButton extends StatelessWidget {
 
               SafeArea(
                 child: CustomButton(
-                  buttonText: 'confirm_delivery_details'.tr,
+                  buttonText: ModuleHelper.isService() ? 'select_service_address'.tr : 'confirm_delivery_details'.tr,
                   fontSize: isDesktop ? Dimensions.fontSizeSmall : Dimensions.fontSizeLarge,
                   isBold:  isDesktop ? false : true,
                   radius: isDesktop ? Dimensions.radiusSmall : Dimensions.radiusDefault,
