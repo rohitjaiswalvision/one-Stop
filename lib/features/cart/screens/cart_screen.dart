@@ -148,13 +148,13 @@ class _CartScreenState extends State<CartScreen> {
         centerTitle: Get.find<CartController>().cartList.isEmpty,
         title: Obx((){
           final cartController = Get.find<CartController>();
-          return cartController.cartList.isEmpty? const Text("My Cart"):Column(
+          return cartController.cartList.isEmpty? Text(ModuleHelper.isService() ? 'book_service'.tr : 'my_cart'.tr):Column(
               mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
 children: [
                                         // if (Get.find<CartController>().cartList.isEmpty)
 
-            Text("My Cart",style: TextStyle(color: Colors.black,fontSize: 15,fontWeight: FontWeight.bold),
+            Text(ModuleHelper.isService() ? 'book_service'.tr : 'my_cart'.tr,style: TextStyle(color: Colors.black,fontSize: 15,fontWeight: FontWeight.bold),
             ),
             Text.rich(TextSpan(children: [
                             if (Get.find<CartController>().cartList.isNotEmpty)
@@ -213,7 +213,8 @@ children: [
                       });
                     }
                   },
-                  child: Container(
+                  // The drag-handle bar is hidden for services (booking sheet has no drag affordance).
+                  child: ModuleHelper.isService() ? const SizedBox.shrink() : Container(
                     color: Theme.of(context).cardColor,
                     child: Container(
                       constraints: const BoxConstraints.expand(height: 30),

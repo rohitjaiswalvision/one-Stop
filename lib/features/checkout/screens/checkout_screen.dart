@@ -18,6 +18,7 @@ import 'package:sixam_mart/features/location/domain/models/zone_response_model.d
 import 'package:sixam_mart/features/checkout/controllers/checkout_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
+import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/custom_validator.dart';
@@ -305,6 +306,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                     Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? null : cart.variation,
                     Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? variations : null,
                     cart.quantity, addOnIdList, cart.addOns, addOnQtyList, 'Item', itemType: !widget.fromCart ? "AppModelsItemCampaign" : null,
+                    // Area-priced services carry their measured area (sq ft) so the backend
+                    // can compute tax/total on the real area rather than the unit price.
+                    area: SquareFeetHelper.isSquareFeetItem(cart.item) ? cart.quantity : null,
                   ));
                 }
               }
@@ -882,6 +886,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? null : cart.variation,
         Get.find<SplashController>().getModuleConfig(cart.item!.moduleType).newVariation! ? variations : null,
         cart.quantity, addOnIdList, cart.addOns, addOnQtyList, 'Item', itemType: !widget.fromCart ? "AppModelsItemCampaign" : null,
+        // Area-priced services carry their measured area (sq ft) for the order payload too.
+        area: SquareFeetHelper.isSquareFeetItem(cart.item) ? cart.quantity : null,
       ));
     }
     return carts;

@@ -53,6 +53,10 @@ class OrderInfoWidget extends StatelessWidget {
     bool isDesktop = ResponsiveHelper.isDesktop(context);
     bool isGuestLoggedIn = AuthHelper.isGuestLoggedIn();
 
+    // The details are fetched after the order, so they are null on the first build(s).
+    // Force-unwrapping them crashed the screen; fall back to an empty list instead.
+    final orderDetails = orderController.orderDetails ?? [];
+
     // Services orders show the real slot in ServiceBookingDetailsWidget instead;
     // their schedule_at just mirrors created_at.
     bool showScheduleAt = order.scheduleAt != null && order.scheduled == 1;
@@ -74,7 +78,7 @@ class OrderInfoWidget extends StatelessWidget {
       final bool atCustomer = order.serviceBookings?.any((b) => b.locationType == 'home') ?? true;
       orderTypeLabel = atCustomer ? 'home_service'.tr : 'at_store'.tr;
     } else {
-      orderTypeLabel = order.orderType == 'delivery' ? 'home_delivery'.tr : order.orderType!.tr;
+      orderTypeLabel = order.orderType == 'delivery' ? 'home_delivery'.tr : (order.orderType?.tr ?? '');
     }
 
     return Stack(children: [
@@ -85,14 +89,14 @@ class OrderInfoWidget extends StatelessWidget {
       ) : const SizedBox(),
 
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        !isDesktop && (orderController.orderDetails!.isNotEmpty && orderController.orderDetails![0].itemDetails!.moduleType == 'food')
+        !isDesktop && (orderDetails.isNotEmpty && orderDetails[0].itemDetails?.moduleType == 'food')
             && order.orderStatus != 'pending' ? SizedBox(height: Dimensions.paddingSizeExtraLarge) :SizedBox.shrink(),
 
         !isDesktop ? SizedBox(height: DateConverter.isBeforeTime(order.scheduleAt) && Get.find<SplashController>().getModuleConfig(order.moduleType).newVariation!
           ? order.orderStatus == 'pending' ? 100 : 140 :
-          parcel || prescriptionOrder || (orderController.orderDetails!.isNotEmpty && orderController.orderDetails![0].itemDetails!.moduleType == 'grocery')
-          || (orderController.orderDetails!.isNotEmpty && orderController.orderDetails![0].itemDetails!.moduleType == 'ecommerce')
-          || (orderController.orderDetails!.isNotEmpty && orderController.orderDetails![0].itemDetails!.moduleType == 'pharmacy')
+          parcel || prescriptionOrder || (orderDetails.isNotEmpty && orderDetails[0].itemDetails?.moduleType == 'grocery')
+          || (orderDetails.isNotEmpty && orderDetails[0].itemDetails?.moduleType == 'ecommerce')
+          || (orderDetails.isNotEmpty && orderDetails[0].itemDetails?.moduleType == 'pharmacy')
           ? 140 : 0) : const SizedBox(),
 
         CustomCard(
@@ -194,7 +198,10 @@ class OrderInfoWidget extends StatelessWidget {
             ) : const SizedBox(),
             order.orderStatus == 'delivered' ? Divider(height: Dimensions.paddingSizeLarge, color: Theme.of(context).disabledColor.withValues(alpha: 0.5)) : const SizedBox(),
 
-            order.orderStatus == 'delivered' ? Padding(
+            // An order can be marked 'delivered' while the `delivered` timestamp is still null
+            // (seen on service bookings completed from the provider side), so check both —
+            // without the timestamp there is simply nothing to show here.
+            (order.orderStatus == 'delivered' && order.delivered != null) ? Padding(
               padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraSmall),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text('delivered_at'.tr, style: robotoRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.6))),
@@ -454,8 +461,8 @@ class OrderInfoWidget extends StatelessWidget {
 
 
         // Item - info
-        // SizedBox(height: !isDesktop ? (parcel || orderController.orderDetails!.isNotEmpty) ? Dimensions.paddingSizeSmall : 0 : 0),
-        !isDesktop ? (parcel || orderController.orderDetails!.isNotEmpty) ? CustomCard(
+        // SizedBox(height: !isDesktop ? (parcel || orderDetails.isNotEmpty) ? Dimensions.paddingSizeSmall : 0 : 0),
+        !isDesktop ? (parcel || orderDetails.isNotEmpty) ? CustomCard(
           borderRadius: isDesktop ? Dimensions.radiusDefault : 0, isBorder: false,
           padding: EdgeInsets.all(Dimensions.paddingSizeDefault),
           child: parcel ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -480,7 +487,7 @@ class OrderInfoWidget extends StatelessWidget {
                     color: Theme.of(context).disabledColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Text('${orderController.orderDetails!.length}',
+                  child: Text('${orderDetails.length}',
                     style: robotoBold.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: Dimensions.fontSizeSmall),
                   ),
                 ),
@@ -490,11 +497,11 @@ class OrderInfoWidget extends StatelessWidget {
                   shrinkWrap: true,
                   padding: EdgeInsets.zero,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: orderController.orderDetails!.length,
+                  itemCount: orderDetails.length,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: EdgeInsets.only(bottom: index == orderController.orderDetails!.length - 1 ? 0 : Dimensions.paddingSizeSmall),
-                      child: OrderItemWidget(order: order, orderDetails: orderController.orderDetails![index]),
+                      padding: EdgeInsets.only(bottom: index == orderDetails.length - 1 ? 0 : Dimensions.paddingSizeSmall),
+                      child: OrderItemWidget(order: order, orderDetails: orderDetails[index]),
                     );
                   },
                  ),
@@ -750,7 +757,7 @@ class OrderInfoWidget extends StatelessWidget {
               ) : const SizedBox(),
 
               !isGuestLoggedIn && (Get.find<SplashController>().configModel!.refundActiveStatus! && order.orderStatus == 'delivered' && !parcel
-                  && (parcel || (orderController.orderDetails!.isNotEmpty && orderController.orderDetails![0].itemCampaignId == null))) ? InkWell(
+                  && (parcel || (orderDetails.isNotEmpty && orderDetails[0].itemCampaignId == null))) ? InkWell(
                 onTap: () => Get.toNamed(RouteHelper.getRefundRequestRoute(order.id.toString())),
                 child: Container(
                   decoration: BoxDecoration(

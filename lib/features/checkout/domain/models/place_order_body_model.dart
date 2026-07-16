@@ -318,6 +318,9 @@ class OnlineCart {
   List<int?>? _addOnQtys;
   String? _model;
   String? _itemType;
+  /// Measured area (e.g. square feet) for an area-priced service. Null for everything else,
+  /// and omitted from the payload when null so other modules send an unchanged body.
+  int? _area;
 
   OnlineCart(
     int? cartId,
@@ -332,7 +335,7 @@ class OnlineCart {
     List<AddOns>? addOns,
     List<int?> addOnQtys,
     String model,
-    {String? itemType}){
+    {String? itemType, int? area}){
     _cartId = cartId;
     _itemId = itemId;
     _itemCampaignId = itemCampaignId;
@@ -346,6 +349,7 @@ class OnlineCart {
     _addOnQtys = addOnQtys;
     _model = model;
     _itemType = itemType;
+    _area = area;
   }
 
   int? get cartId => _cartId;
@@ -360,6 +364,7 @@ class OnlineCart {
   List<int?>? get addOnQtys => _addOnQtys;
   String? get model => _model;
   String? get itemType => _itemType;
+  int? get area => _area;
 
   OnlineCart.fromJson(Map<String, dynamic> json) {
     _cartId = json['cart_id'];
@@ -391,6 +396,7 @@ class OnlineCart {
     if (json['item_type'] != null && json['item_type'] != 'null') {
       _itemType = json['item_type'];
     }
+    _area = json['area'] != null ? int.tryParse(json['area'].toString()) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -414,6 +420,9 @@ class OnlineCart {
     data['model'] = _model;
     if (_itemType != null) {
       data['item_type'] = _itemType;
+    }
+    if (_area != null) {
+      data['area'] = _area;
     }
     return data;
   }

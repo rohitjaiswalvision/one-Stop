@@ -355,16 +355,33 @@ class OrderViewWidget extends StatelessWidget {
               if(isRunning)
                 _actionButton(context, filled: true, icon: Images.tracking, text: isParcel ? 'track_delivery'.tr : 'track_order'.tr,
                     onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(order.id, null)))
-              else ...[
-                // Completed order → let the customer rate the store/service (and the delivery man).
-                if(_isCompleted(status)) _actionButton(context, filled: true, text: 'rate'.tr,
-                    onTap: () => _openReview(order)),
-                if(_isCompleted(status) && order.store != null && !isParcel) const SizedBox(width: Dimensions.paddingSizeSmall),
-                if(order.store != null && !isParcel) _actionButton(context, filled: false, text: 're_order'.tr,
+              else if(order.store != null && !isParcel)
+                _actionButton(context, filled: false, text: 're_order'.tr,
                     onTap: () => Get.toNamed(RouteHelper.getStoreRoute(id: order.store!.id, page: 'store', slug: order.store!.slug ?? ''))),
-              ],
             ]),
           ),
+
+          // A completed order gets two rating entries side by side: the store on one half,
+          // the delivery on the other. Delivery only shows when a delivery man was assigned
+          // (service bookings have none), otherwise the store rating spans the row.
+          if(_isCompleted(status)) ...[
+            Divider(height: 1, thickness: 1, color: Theme.of(context).disabledColor.withValues(alpha: 0.12)),
+            IntrinsicHeight(child: Row(children: [
+              if(order.store != null) Expanded(child: _rateHalf(
+                context, icon: Icons.storefront_outlined, label: 'rate_store'.tr,
+                onTap: () => _openStoreReview(order),
+              )),
+
+              if(order.store != null && order.deliveryMan != null) VerticalDivider(
+                width: 1, thickness: 1, color: Theme.of(context).disabledColor.withValues(alpha: 0.12),
+              ),
+
+              if(order.deliveryMan != null) Expanded(child: _rateHalf(
+                context, icon: Icons.delivery_dining_outlined, label: 'rate_delivery'.tr,
+                onTap: () => _openReview(order),
+              )),
+            ])),
+          ],
 
         ]),
       ),
@@ -405,6 +422,34 @@ class OrderViewWidget extends StatelessWidget {
 
   /// A finished order the customer can rate — delivered goods or a completed service booking.
   bool _isCompleted(String status) => status == 'delivered' || status == 'completed';
+
+  /// One half of the completed-order rating strip: an icon, a label and a star.
+  Widget _rateHalf(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeExtraSmall),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, size: 16, color: Theme.of(context).primaryColor),
+          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+          Flexible(child: Text(
+            label, maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
+          )),
+          const SizedBox(width: 2),
+          Icon(Icons.star_border, size: 16, color: Theme.of(context).primaryColor),
+        ]),
+      ),
+    );
+  }
+
+  /// Opens the store's own review screen (separate from the item/delivery-man review).
+  void _openStoreReview(OrderModel order) {
+    if (order.store == null) return;
+    Get.toNamed(RouteHelper.getStoreReviewRoute(
+      order.store!.id, order.store!.name, order.store!, slug: order.store!.slug ?? '',
+    ));
+  }
 
   /// The order list doesn't carry the item details the review screen needs, so fetch them
   /// first (with a loader), then open the same rate-and-review flow the details screen uses.

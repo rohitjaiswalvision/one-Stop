@@ -294,11 +294,14 @@ class CheckoutShimmerView extends StatelessWidget {
           ),
 
           const SizedBox(height: Dimensions.paddingSizeSmall),
+          // The two placeholders each wrap a Radio + a fixed 100px bar, which together
+          // exceeded the screen width. Expanded lets them share the row instead, and the
+          // inner bar flexes so nothing overflows on narrow devices.
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
 
-              ClipRRect(
+              Expanded(child: ClipRRect(
                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                 child: Shimmer(
                   child: Container(
@@ -310,21 +313,21 @@ class CheckoutShimmerView extends StatelessWidget {
                     child: Row(children: [
                       RadioGroup(groupValue: 0, onChanged: (value) {}, child: Radio(activeColor: Theme.of(context).cardColor, value: 0)),
 
-                      Container(
-                        height: 20, width: 100,
+                      Expanded(child: Container(
+                        height: 20,
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                         ),
-                      ),
+                      )),
                       const SizedBox(width: Dimensions.paddingSizeDefault),
                     ]),
                   ),
                 ),
-              ),
+              )),
               const SizedBox(width: Dimensions.paddingSizeDefault),
 
-              ClipRRect(
+              Expanded(child: ClipRRect(
                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                 child: Shimmer(
                   child: Container(
@@ -336,18 +339,18 @@ class CheckoutShimmerView extends StatelessWidget {
                     child: Row(children: [
                       RadioGroup(groupValue: 0, onChanged: (value) {}, child: Radio(activeColor: Theme.of(context).cardColor, value: 0)),
 
-                      Container(
-                        height: 20, width: 100,
+                      Expanded(child: Container(
+                        height: 20,
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                         ),
-                      ),
+                      )),
                       const SizedBox(width: Dimensions.paddingSizeDefault),
                     ]),
                   ),
                 ),
-              ),
+              )),
             ],
           ),
         ]),
