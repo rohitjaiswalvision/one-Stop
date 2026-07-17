@@ -4,7 +4,9 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/api/local_client.dart';
 import 'package:sixam_mart/common/enums/data_source_enum.dart';
 import 'package:sixam_mart/features/category/domain/models/category_model.dart';
+import 'package:sixam_mart/features/category/domain/models/service_catalog_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
@@ -43,8 +45,19 @@ class CategoryRepository implements CategoryRepositoryInterface {
 
     switch(source) {
       case DataSourceEnum.client:
-        Response response = await apiClient.getData(AppConstants.categoryUri, headers: header);
-        if (response.statusCode == 200) {
+        // Service module browses the dedicated catalog: its top-level cards are catalog
+        // *services* (GET /services/catalog/services), not module categories. The response
+        // shape (id / name / image_full_url) parses as a CategoryModel, so the same cards,
+        // cache and listeners serve both. Falls back to the legacy tree while the catalog
+        // endpoints are not deployed.
+        Response response = await apiClient.getData(
+          ModuleHelper.isService() ? AppConstants.serviceCatalogServicesUri : AppConstants.categoryUri,
+          headers: header, handleError: false,
+        );
+        if (response.statusCode != 200 && ModuleHelper.isService()) {
+          response = await apiClient.getData(AppConstants.categoryUri, headers: header);
+        }
+        if (response.statusCode == 200 && response.body is List) {
           categoryList = [];
           response.body.forEach((category) {
             categoryList!.add(CategoryModel.fromJson(category));
@@ -64,6 +77,53 @@ class CategoryRepository implements CategoryRepositoryInterface {
     }
 
     return categoryList;
+  }
+
+  /// Categories of one catalog service — GET /services/catalog/services/{id}/categories.
+  /// Null (not empty) when the endpoint is missing or errors, so the caller can fall back.
+  @override
+  Future<List<CategoryModel>?> getCatalogServiceCategories(String? serviceId) async {
+    if (serviceId == null || serviceId.isEmpty) return null;
+    Response response = await apiClient.getData(
+      '${AppConstants.serviceCatalogServicesUri}/$serviceId/categories', handleError: false,
+    );
+    if (response.statusCode == 200 && response.body is Map<String, dynamic>) {
+      final CatalogCategoriesResponse parsed = CatalogCategoriesResponse.fromJson(response.body);
+      return parsed.categories?.map((CatalogCategoryModel c) => c.toCategory()).toList();
+    }
+    return null;
+  }
+
+  /// Bookable sub-categories of a catalog category —
+  /// GET /services/catalog/categories/{id}/sub-categories?service_id=&limit=&offset=.
+  /// Each entry's id is an item id, so the result is delivered as the app's ItemModel.
+  @override
+  Future<ItemModel?> getCatalogSubCategories({required String categoryId, required String serviceId, int offset = 1, int limit = 10}) async {
+    Response response = await apiClient.getData(
+      '${AppConstants.serviceCatalogCategoriesUri}/$categoryId/sub-categories?service_id=$serviceId&limit=$limit&offset=$offset',
+      handleError: false,
+    );
+    if (response.statusCode == 200 && response.body is Map<String, dynamic>) {
+      return CatalogSubCategoriesResponse.fromJson(response.body).toItemModel();
+    }
+    return null;
+  }
+
+  /// Full sub-category detail — GET /services/catalog/sub-categories/{itemId}.
+  /// Everything the listing carries plus requirements, image gallery and buffer time.
+  @override
+  Future<CatalogSubCategoryModel?> getCatalogSubCategoryDetail(int itemId) async {
+    Response response = await apiClient.getData(
+      '${AppConstants.serviceCatalogSubCategoriesUri}/$itemId', handleError: false,
+    );
+    if (response.statusCode == 200 && response.body is Map<String, dynamic>) {
+      // Detail may come bare or wrapped in a `sub_category`-style envelope.
+      final Map<String, dynamic> body = response.body;
+      return CatalogSubCategoryModel.fromJson(
+        body['id'] != null ? body : (body['sub_category'] is Map<String, dynamic> ? body['sub_category'] : body),
+      );
+    }
+    return null;
   }
 
   Future<List<CategoryModel>?> _getSubCategoryList(String? parentID) async {

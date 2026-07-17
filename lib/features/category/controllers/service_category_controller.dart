@@ -26,6 +26,13 @@ class ServiceCategoryController extends GetxController implements GetxService {
   String? get parentId => _parentId;
   String? get parentName => _parentName;
 
+  /// True when this page is fed by the service catalog (`/services/catalog/...`), where
+  /// [_parentId] is a catalog *service* id, the sections are its categories, and each
+  /// tile is a bookable sub-category. False on the legacy category tree — kept as a
+  /// fallback until the catalog endpoints are live everywhere.
+  bool _usesCatalog = false;
+  bool get usesCatalog => _usesCatalog;
+
   /// The sections down the page. Null while loading; one synthetic entry pointing at the
   /// parent when the category has no subcategories.
   List<CategoryModel>? _sections;
@@ -70,10 +77,19 @@ class ServiceCategoryController extends GetxController implements GetxService {
     _isLoading = true;
     update();
 
-    final List<CategoryModel>? children = await categoryServiceInterface.getSubCategoryList(categoryId);
+    // Catalog first: on the new backend the id opening this page is a catalog service id
+    // and its categories are the sections. Null means the catalog endpoint is not there
+    // (or the id predates it) — fall back to the legacy subcategory tree.
+    List<CategoryModel>? children = await categoryServiceInterface.getCatalogServiceCategories(categoryId);
+    _usesCatalog = children != null;
+    if (!_usesCatalog) {
+      children = await categoryServiceInterface.getSubCategoryList(categoryId);
+    }
 
     if (children == null || children.isEmpty) {
-      _sections = [CategoryModel(id: int.tryParse(categoryId), name: categoryName)];
+      // Only the legacy tree can treat the parent as a section of its own — the catalog's
+      // sub-category listing requires a real category id, which we don't have here.
+      _sections = _usesCatalog ? <CategoryModel>[] : [CategoryModel(id: int.tryParse(categoryId), name: categoryName)];
     } else {
       _sections = children;
     }
@@ -85,8 +101,9 @@ class ServiceCategoryController extends GetxController implements GetxService {
     // Guard: services may be tagged against the parent category only, in which case every
     // child section comes back empty and the page would render as a wall of "no services".
     // Fall back to a single section over the parent so the customer still sees them.
+    // Legacy tree only — the catalog has no parent-as-category to fall back onto.
     final bool everySectionEmpty = _sections!.every((CategoryModel s) => totalOf(s.id ?? -1) == 0);
-    if (everySectionEmpty && _sections!.length > 1) {
+    if (!_usesCatalog && everySectionEmpty && _sections!.length > 1) {
       if (kDebugMode) {
         print('[ServiceCategory] all subcategories empty — falling back to parent $categoryId');
       }
@@ -102,12 +119,37 @@ class ServiceCategoryController extends GetxController implements GetxService {
     update();
   }
 
+  /// Backs the category landing page (services → sheet → *this*): one catalog category
+  /// whose sub-categories are the "Select a service" list. Reuses the section machinery
+  /// with a single section, so paging, totals and the derived header all keep working.
+  Future<void> initCatalogCategory({required String serviceId, required String categoryId, required String categoryName}) async {
+    reset();
+    _usesCatalog = true;
+    _parentId = serviceId;
+    _parentName = categoryName;
+    _isLoading = true;
+    update();
+
+    final int sectionId = int.tryParse(categoryId) ?? -1;
+    _sections = [CategoryModel(id: sectionId, name: categoryName)];
+    await _loadPage(sectionId, 1);
+
+    _recomputeDerived();
+    _isLoading = false;
+    update();
+  }
+
   Future<void> _loadPage(int sectionId, int offset) async {
     _sectionBusy[sectionId] = true;
 
-    final ItemModel? result = await categoryServiceInterface.getCategoryItemList(
-      sectionId.toString(), offset, 'all', limit: sectionPageSize,
-    );
+    final ItemModel? result = _usesCatalog
+        ? await categoryServiceInterface.getCatalogSubCategories(
+            categoryId: sectionId.toString(), serviceId: _parentId ?? '',
+            offset: offset, limit: sectionPageSize,
+          )
+        : await categoryServiceInterface.getCategoryItemList(
+            sectionId.toString(), offset, 'all', limit: sectionPageSize,
+          );
 
     if (result != null) {
       final List<Item> loaded = result.items ?? [];
@@ -187,6 +229,7 @@ class ServiceCategoryController extends GetxController implements GetxService {
   }
 
   void reset() {
+    _usesCatalog = false;
     _sections = null;
     _sectionItems.clear();
     _sectionTotal.clear();

@@ -45,8 +45,9 @@ class PlaceOrderBodyModel {
   // Service module only
   List<ServiceBooking>? _serviceBookings;
   int? _customerAddressId;
-
+ String? _description;
   PlaceOrderBodyModel({
+    String ? description,
     required List<OnlineCart> cart,
     required double? couponDiscountAmount,
     required String? couponCode,
@@ -88,6 +89,7 @@ class PlaceOrderBodyModel {
     List<ServiceBooking>? serviceBookings,
     int? customerAddressId,
   }) {
+    _description =description;
     _cart = cart;
     _couponDiscountAmount = couponDiscountAmount;
     _orderAmount = orderAmount;
@@ -178,6 +180,7 @@ class PlaceOrderBodyModel {
         _cart!.add(OnlineCart.fromJson(v));
       });
     }
+    _description  =json['item_description'];
     _couponDiscountAmount = double.parse(json['coupon_discount_amount'] ?? 0.toString());
     _orderAmount = double.parse(json['order_amount'].toString());
     _orderType = json['order_type'];
@@ -299,6 +302,9 @@ class PlaceOrderBodyModel {
     }
     if(_customerAddressId != null) {
       data['customer_address_id'] = _customerAddressId;
+    }
+    if(_description  != null){
+      data['item_description'] = _description;
     }
     return data;
   }

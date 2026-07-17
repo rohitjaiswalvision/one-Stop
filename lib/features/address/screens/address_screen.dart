@@ -1,7 +1,7 @@
 import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
 import 'package:sixam_mart/features/address/controllers/address_controller.dart';
 import 'package:sixam_mart/features/address/widgets/address_confirmation_dialogue.dart';
-import 'package:sixam_mart/common/widgets/address_widget.dart';
+import 'package:sixam_mart/features/address/widgets/saved_address_card_widget.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
@@ -40,6 +40,31 @@ class _AddressScreenState extends State<AddressScreen> {
     if(AuthHelper.isLoggedIn()) {
       Get.find<AddressController>().getAddressList();
     }
+  }
+
+  /// One saved address. Shared by the mobile list and the desktop grid so both stay in sync.
+  Widget _addressCard(BuildContext context, AddressController addressController, int index) {
+    return SavedAddressCardWidget(
+      address: addressController.addressList![index],
+      onTap: () => Get.toNamed(RouteHelper.getMapRoute(addressController.addressList![index], 'address', false, slug: 'address')),
+      onEditPressed: () => Get.toNamed(RouteHelper.getEditAddressRoute(addressController.addressList![index])),
+      onRemovePressed: () {
+        if(Get.isSnackbarOpen) {
+          Get.back();
+        }
+        Get.dialog(AddressConfirmDialogue(
+          icon: Images.locationConfirm,
+          title: 'are_you_sure'.tr,
+          description: 'you_want_to_delete_this_location'.tr,
+          onYesPressed: () {
+            addressController.deleteUserAddressByID(addressController.addressList![index].id, index).then((response) {
+              Get.back();
+              showCustomSnackBar(response.message, isError: !response.isSuccess);
+            });
+          },
+        ));
+      },
+    );
   }
 
   @override
@@ -87,20 +112,25 @@ class _AddressScreenState extends State<AddressScreen> {
                             addressController.addressList != null ? addressController.addressList!.isNotEmpty ?
                             Padding(
                               padding: ResponsiveHelper.isMobile(context) ? const EdgeInsets.all(Dimensions.paddingSizeSmall) : EdgeInsets.zero,
-                              child: GridView.builder(
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              // Mobile uses a list so each card sizes to its own content — the old
+                              // fixed-aspect grid cell clipped longer addresses. Desktop keeps its grid.
+                              child: ResponsiveHelper.isMobile(context) ? ListView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: addressController.addressList!.length,
+                                itemBuilder: (context, index) => _addressCard(context, addressController, index),
+                              ) : GridView.builder(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisSpacing: Dimensions.paddingSizeLarge,
-                                  mainAxisSpacing: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeLarge : 0.01,
-                                  // Mobile cards were a hair too short for the two text lines
-                                  // (a ~0.2px RenderFlex overflow); 4.5 gives them enough height.
-                                  childAspectRatio: ResponsiveHelper.isDesktop(context) ? 4 : 4.5,
-                                  crossAxisCount: ResponsiveHelper.isMobile(context) ? 1 : 3,
+                                  mainAxisSpacing: Dimensions.paddingSizeLarge,
+                                  childAspectRatio: 4,
+                                  crossAxisCount: 3,
                                 ),
                                 physics: const NeverScrollableScrollPhysics(),
                                 shrinkWrap: true,
-                                itemCount: ResponsiveHelper.isDesktop(context) ? (addressController.addressList!.length + 1) : addressController.addressList!.length ,
+                                itemCount: addressController.addressList!.length + 1,
                                 itemBuilder: (context, index) {
-                                  return (ResponsiveHelper.isDesktop(context) && (index == addressController.addressList!.length)) ?
+                                  return (index == addressController.addressList!.length) ?
                                   Container(
                                       margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
                                       decoration:  BoxDecoration(
@@ -121,32 +151,7 @@ class _AddressScreenState extends State<AddressScreen> {
                                           ],
                                         ),
                                       )
-                                  ) :
-                                  AddressWidget(
-                                    address: addressController.addressList![index], fromAddress: true,
-                                    onTap: () {
-                                      Get.toNamed(RouteHelper.getMapRoute(addressController.addressList![index], 'address', false, slug: 'address'));
-                                    },
-                                    onEditPressed: () {
-                                      Get.toNamed(RouteHelper.getEditAddressRoute(addressController.addressList![index]));
-                                    },
-                                    onRemovePressed: () {
-                                      if(Get.isSnackbarOpen) {
-                                        Get.back();
-                                      }
-                                      Get.dialog(AddressConfirmDialogue(
-                                          icon: Images.locationConfirm,
-                                          title: 'are_you_sure'.tr,
-                                          description: 'you_want_to_delete_this_location'.tr,
-                                          onYesPressed: () {
-                                            addressController.deleteUserAddressByID(addressController.addressList![index].id, index).then((response) {
-                                              Get.back();
-                                              showCustomSnackBar(response.message, isError: !response.isSuccess);
-                                            });
-                                          }),
-                                      );
-                                    },
-                                  );
+                                  ) : _addressCard(context, addressController, index);
                                 },
                               ),
                             ) : NoDataScreen(text: 'no_saved_address_found'.tr, fromAddress: true) : const Center(child: CircularProgressIndicator()),

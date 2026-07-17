@@ -16,18 +16,20 @@ class ServiceNoteHelper {
   /// Opens the note sheet for [item], then runs [onProceed] once the user taps Add or Skip.
   /// [onProceed] is where the actual add-to-cart happens (so the note is captured first);
   /// omit it when editing an existing cart line's note.
-  static void openNoteSheet(Item item, {VoidCallback? onProceed}) {
-    final CartController cartController = Get.find<CartController>();
-    final TextEditingController controller = TextEditingController(
-      text: cartController.serviceNoteOf(item.id) ?? '',
-    );
+static void openNoteSheet(Item item, {VoidCallback? onProceed}) {
+  final TextEditingController controller = TextEditingController();
 
-    Get.bottomSheet(
-      _ServiceNoteSheet(item: item, controller: controller, onProceed: onProceed),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
-  }
+  Get.bottomSheet(
+    _ServiceNoteSheet(
+      item: item,
+      controller: controller,
+      onProceed: onProceed,
+    ),
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+  );
+}
+
 }
 
 class _ServiceNoteSheet extends StatelessWidget {

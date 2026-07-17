@@ -273,6 +273,12 @@ class AppConstants {
   static const String rebookApi = '/api/v1/service/customer/rebook/cart-add';
   static const String getPostDetails = '/api/v1/service/customer/post/details';
 
+  /// service catalog (customer browse flow: services -> categories -> sub-categories)
+  static const String serviceCatalogServicesUri = '/api/v1/services/catalog/services';
+  static const String serviceCatalogCategoriesUri = '/api/v1/services/catalog/categories';
+  static const String serviceCatalogSubCategoriesUri = '/api/v1/services/catalog/sub-categories';
+  static const String serviceCatalogCalculatePriceUri = '/api/v1/services/catalog/calculate-price';
+
   /// service booking / appointments (new services vertical)
   static const String serviceAvailableSlotsUri = '/api/v1/services/available-slots';
   static const String serviceStaffUri = '/api/v1/services/staff';

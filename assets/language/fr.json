@@ -2340,5 +2340,10 @@
   "you_will_pay_the_provider_after_the_work_is_done": "Aucun paiement maintenant. Vous paierez le prestataire directement une fois le travail terminé.",
   "booking_failed_for": "La réservation n'a pas pu être effectuée pour",
   "up_to": "Jusqu'à",
-  "category_url_copied": "Lien de la catégorie copié"
+  "category_url_copied": "Lien de la catégorie copié",
+  "select_a_service": "Select a service",
+  "starts_at": "Starts at",
+  "about_this_service": "About this service",
+  "no_services_in_this_category": "No services in this category",
+  "requirements": "Requirements"
 }

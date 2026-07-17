@@ -53,6 +53,7 @@ import 'package:sixam_mart/common/widgets/image_viewer_screen.dart';
 import 'package:sixam_mart/common/widgets/not_found.dart';
 import 'package:sixam_mart/features/cart/screens/cart_screen.dart';
 import 'package:sixam_mart/features/category/screens/category_item_dispatcher_screen.dart';
+import 'package:sixam_mart/features/category/screens/service_category_landing_screen.dart';
 import 'package:sixam_mart/features/chat/screens/chat_screen.dart';
 import 'package:sixam_mart/features/chat/screens/conversation_screen.dart';
 import 'package:sixam_mart/features/checkout/screens/checkout_screen.dart';
@@ -138,6 +139,7 @@ class RouteHelper {
   static const String shippingPolicy = '/shipping-policy';
   static const String categories = '/categories';
   static const String categoryItem = '/category-item';
+  static const String serviceCategory = '/service-category';
   static const String popularItems = '/most-popular-items';
   static const String specialItems = '/special-offer';
   static const String bestReviewed = '/best-reviewed-items';
@@ -283,6 +285,11 @@ class RouteHelper {
       categorySlug = slug;
     }
     return '$categoryItem/$categorySlug?id=$id&name=$data&module=${moduleId ?? ModuleHelper.getModule()?.slug ?? ModuleHelper.getModule()?.id}';
+  }
+  /// Landing page of one service-catalog category (service module only).
+  static String getServiceCategoryRoute({required int? categoryId, required int? serviceId, required String name}) {
+    String data = base64Encode(utf8.encode(name));
+    return '$serviceCategory?category_id=$categoryId&service_id=$serviceId&name=$data&module=${ModuleHelper.getModule()?.slug ?? ModuleHelper.getModule()?.id}';
   }
   static String getPopularItemRoute(bool isPopular, bool isSpecial) => '$popularItems?page=${isPopular ? 'popular' : 'reviewed'}&special=${isSpecial.toString()}&module=${ModuleHelper.getModule()?.slug ?? ModuleHelper.getModule()?.id}';
   static String getSpecialOfferItemRoute() => '$specialItems?module=${ModuleHelper.getModule()?.slug ?? ModuleHelper.getModule()?.id}';
@@ -622,6 +629,19 @@ class RouteHelper {
           Get.parameters['module'],
           CategoryItemDispatcherScreen(
             categoryID: Get.parameters['id'], categoryName: data, slug: Get.parameters['slug'] ?? '',
+          ),
+        ),
+      );
+    }),
+    GetPage(name: serviceCategory, page: () {
+      List<int> decode = base64Decode(Get.parameters['name']!.replaceAll(' ', '+'));
+      String data = utf8.decode(decode);
+      return getRoute(
+        byPuss: (Get.parameters['module'] != null && Get.parameters['module']!.isNotEmpty && Get.parameters['module'] != 'null'),
+        _waitForModule(
+          Get.parameters['module'],
+          ServiceCategoryLandingScreen(
+            categoryId: Get.parameters['category_id'], serviceId: Get.parameters['service_id'], categoryName: data,
           ),
         ),
       );

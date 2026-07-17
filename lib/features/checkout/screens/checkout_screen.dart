@@ -329,6 +329,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                   deliveryInstruction: checkoutController.selectedInstruction != -1 ? AppConstants.deliveryInstructionList[checkoutController.selectedInstruction] : '',
                   partialPayment: checkoutController.isPartialPay ? 1 : 0, guestId: isGuestLogIn ? int.parse(AuthHelper.getGuestId()) : 0,
                   isBuyNow: widget.fromCart ? 0 : 1,
+                  // description: ,
                   extraPackagingAmount: Get.find<CartController>().needExtraPackage ? checkoutController.store!.extraPackagingAmount : 0,
                   createNewUser: checkoutController.isCreateAccount ? 1 : 0, password: guestPasswordController.text,
                   isPrescriptionOrder: widget.storeId == null ? false : true,
@@ -740,6 +741,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
               }
 
               PlaceOrderBodyModel placeOrderBody = PlaceOrderBodyModel(
+                  description: Get.find<CartController>()
+      .serviceNoteOf(_cartList![0]!.item!.id) ?? '',
                 cart: carts, couponDiscountAmount: Get.find<CouponController>().discount, distance: checkoutController.distance,
                 serviceBookings: serviceBookings, customerAddressId: serviceCustomerAddressId,
                 scheduleAt: !checkoutController.store!.scheduleOrder! ? null : (checkoutController.selectedDateSlot == 0
@@ -770,7 +773,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 createNewUser: checkoutController.isCreateAccount ? 1 : 0, password: guestPasswordController.text,
                 bringChangeAmount: checkoutController.paymentMethodIndex == 0 && checkoutController.exchangeAmount > 0 ? checkoutController.exchangeAmount : null,
               );
-
+print("Service Note: ${Get.find<CartController>().serviceNoteOf(_cartList![0]!.item!.id)}");
+print("Request: ${placeOrderBody.toJson()}");
               checkoutController.placeOrder(
                 placeOrderBody, checkoutController.store!.zoneId, total, maxCodOrderAmount, widget.fromCart,
                 _isCashOnDeliveryActive!, checkoutController.pickedPrescriptions, isOfflinePay: checkoutController.paymentMethodIndex == 3,
@@ -937,7 +941,16 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           : 1 / byProvider.length;
       final List<int> itemIds = providerItems.map((c) => c.item!.id!).toList();
 
+      // One order per provider, so the description joins the notes of every
+      // service that provider is booked for.
+      final String serviceNote = providerItems
+          .map((c) => Get.find<CartController>().serviceNoteOf(c.item!.id))
+          .whereType<String>()
+          .where((n) => n.trim().isNotEmpty)
+          .join('\n');
+
       bodies.add(PlaceOrderBodyModel(
+        description: serviceNote,
         cart: _buildOnlineCarts(providerItems),
         serviceBookings: serviceBookingController.buildServiceBookings(itemIds),
         customerAddressId: customerAddressId,

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:sixam_mart/common/enums/data_source_enum.dart';
 import 'package:sixam_mart/features/category/domain/models/category_model.dart';
+import 'package:sixam_mart/features/category/domain/models/service_catalog_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/category/domain/reposotories/category_repository_interface.dart';
@@ -38,6 +39,23 @@ class CategoryService implements CategoryServiceInterface {
   @override
   Future<bool> saveUserInterests(List<int?> interests) async {
     return await categoryRepositoryInterface.saveUserInterests(interests);
+  }
+
+  @override
+  Future<List<CategoryModel>?> getCatalogServiceCategories(String? serviceId) async {
+    return await categoryRepositoryInterface.getCatalogServiceCategories(serviceId);
+  }
+
+  @override
+  Future<ItemModel?> getCatalogSubCategories({required String categoryId, required String serviceId, int offset = 1, int limit = 10}) async {
+    return await categoryRepositoryInterface.getCatalogSubCategories(
+      categoryId: categoryId, serviceId: serviceId, offset: offset, limit: limit,
+    );
+  }
+
+  @override
+  Future<CatalogSubCategoryModel?> getCatalogSubCategoryDetail(int itemId) async {
+    return await categoryRepositoryInterface.getCatalogSubCategoryDetail(itemId);
   }
 
 }
