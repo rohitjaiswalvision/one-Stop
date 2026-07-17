@@ -2346,5 +2346,6 @@
   "about_this_service": "About this service",
   "no_services_in_this_category": "No services in this category",
   "requirements": "Requirements",
-  "service_address_information": "Service Address Information"
+  "service_address_information": "Service Address Information",
+  "add_more_services": "Add more services"
 }

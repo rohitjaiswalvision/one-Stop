@@ -281,7 +281,7 @@ children: [
                                             Get.offNamed(RouteHelper.getStoreRoute(id: cartController.cartList[0].item!.storeId, page: 'item', slug: Get.find<StoreController>().store?.slug??''));
                                           },
                                           icon: Icon(Icons.add_circle_outline_sharp, color: Theme.of(context).primaryColor),
-                                          label: Text('add_more_items'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)),
+                                          label: Text(ModuleHelper.isService() ? 'add_more_services'.tr : 'add_more_items'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)),
                                         ),
                                       ),
 
@@ -301,10 +301,8 @@ children: [
 
                               isDesktop ? Expanded(flex: 4, child: pricingView(cartController, cartController.cartList[0].item!)) : const SizedBox(),
                             ]),
-
                             // isDesktop ? WebSuggestedItemViewWidget(cartList: cartController.cartList) : const SizedBox(),
                             // const SizedBox(height: Dimensions.paddingSizeExtraOverLarge),
-
                           ]),
                         ),
                       ),
