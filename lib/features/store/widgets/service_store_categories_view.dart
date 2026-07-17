@@ -4,7 +4,6 @@ import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/features/category/controllers/service_category_controller.dart';
 import 'package:sixam_mart/features/category/domain/models/category_model.dart';
 import 'package:sixam_mart/features/category/widgets/service_categories_bottom_sheet.dart';
-import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -20,8 +19,14 @@ import 'package:shimmer_animation/shimmer_animation.dart';
 /// no provider-picker step. Falls back to the store's category-id filter over the
 /// module categories while the endpoint is not deployed.
 class ServiceStoreCategoriesView extends StatefulWidget {
-  final StoreController storeController;
-  const ServiceStoreCategoriesView({super.key, required this.storeController});
+  /// Provider to scope the catalog to. Null shows the whole catalog, same as home.
+  final int? storeId;
+
+  /// Shown instead when the catalog endpoint is unavailable (pre-deploy fallback).
+  /// A synthetic id-0 "All" entry, if present, is filtered out.
+  final List<CategoryModel>? fallbackCategories;
+
+  const ServiceStoreCategoriesView({super.key, this.storeId, this.fallbackCategories});
 
   @override
   State<ServiceStoreCategoriesView> createState() => _ServiceStoreCategoriesViewState();
@@ -40,9 +45,8 @@ class _ServiceStoreCategoriesViewState extends State<ServiceStoreCategoriesView>
       return;
     }
 
-    final int? storeId = widget.storeController.store?.id;
     Get.find<ServiceCategoryController>().categoryServiceInterface
-        .getCatalogServices(storeId: storeId)
+        .getCatalogServices(storeId: widget.storeId)
         .then((List<CategoryModel>? services) {
       if (!mounted) return;
       setState(() {
@@ -52,9 +56,8 @@ class _ServiceStoreCategoriesViewState extends State<ServiceStoreCategoriesView>
     });
   }
 
-  /// Pre-catalog behaviour: the module categories the store's items are tagged with.
   List<CategoryModel> _legacyCategories() {
-    return (widget.storeController.categoryList ?? <CategoryModel>[])
+    return (widget.fallbackCategories ?? <CategoryModel>[])
         .where((CategoryModel c) => c.id != null && c.id != 0)
         .toList();
   }

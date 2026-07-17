@@ -40,87 +40,87 @@ class ServiceItemsListView extends StatelessWidget {
         height: Dimensions.paddingSizeLarge * 2,
         color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
       ),
-      itemBuilder: (BuildContext context, int index) => Container(),
+      itemBuilder: (BuildContext context, int index) => ServiceSubCategoryCard(item: items![index]),
     );
   }
 }
 
 /// One "Select a service" row: name, starting price, short description and
 /// View details on the left; image with the Add button pinned under it on the right.
-// class ServiceSubCategoryCard extends StatelessWidget {
-//   final Item item;
-//   const ServiceSubCategoryCard({super.key, required this.item});
+class ServiceSubCategoryCard extends StatelessWidget {
+  final Item item;
+  const ServiceSubCategoryCard({super.key, required this.item});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final String description = HtmlHelper.toPlainText(item.description);
+  @override
+  Widget build(BuildContext context) {
+    final String description = HtmlHelper.toPlainText(item.description);
 
-//     // The whole row opens the detail sheet — same as View details — so tapping a
-//     // service behaves the same wherever the card appears.
-//     return InkWell(
-//       borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-//       onTap: () => ServiceDetailBottomSheet.show(item),
-//       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    // The whole row opens the detail sheet — same as View details — so tapping a
+    // service behaves the same wherever the card appears.
+    return InkWell(
+      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+      onTap: () => ServiceDetailBottomSheet.show(item),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-//       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-//         Text(
-//           item.name ?? '',
-//           style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
-//           maxLines: 2, overflow: TextOverflow.ellipsis,
-//         ),
-//         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          item.name ?? '',
+          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
+          maxLines: 2, overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
-//         Text(
-//           '${'starts_at'.tr} ${PriceConverter.convertPrice(item.price)}${SquareFeetHelper.perUnitSuffix(item)}',
-//           style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
-//         ),
+        Text(
+          '${'starts_at'.tr} ${PriceConverter.convertPrice(item.price)}${SquareFeetHelper.perUnitSuffix(item)}',
+          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+        ),
 
-//         if (description.isNotEmpty) Padding(
-//           padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
-//           child: Text(
-//             description,
-//             style: robotoRegular.copyWith(
-//               fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor,
-//             ),
-//             maxLines: 3, overflow: TextOverflow.ellipsis,
-//           ),
-//         ),
-//         const SizedBox(height: Dimensions.paddingSizeSmall),
+        if (description.isNotEmpty) Padding(
+          padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
+          child: Text(
+            description,
+            style: robotoRegular.copyWith(
+              fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor,
+            ),
+            maxLines: 3, overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(height: Dimensions.paddingSizeSmall),
 
-//         InkWell(
-//           onTap: () => ServiceDetailBottomSheet.show(item),
-//           child: Text('view_details'.tr, style: robotoMedium.copyWith(
-//             fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor,
-//           )),
-//         ),
-//       ])),
-//       const SizedBox(width: Dimensions.paddingSizeDefault),
+        InkWell(
+          onTap: () => ServiceDetailBottomSheet.show(item),
+          child: Text('view_details'.tr, style: robotoMedium.copyWith(
+            fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor,
+          )),
+        ),
+      ])),
+      const SizedBox(width: Dimensions.paddingSizeDefault),
 
-//       SizedBox(width: 110, child: Column(children: [
-//         ClipRRect(
-//           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-//           child: CustomImage(image: '${item.imageFullUrl}', height: 90, width: 110, fit: BoxFit.cover),
-//         ),
+      SizedBox(width: 110, child: Column(children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          child: CustomImage(image: '${item.imageFullUrl}', height: 90, width: 110, fit: BoxFit.cover),
+        ),
 
-//         Transform.translate(
-//           offset: const Offset(0, -16),
-//           child: SizedBox(height: 32, width: 76, child: ElevatedButton(
-//             style: ElevatedButton.styleFrom(
-//               backgroundColor: Theme.of(context).cardColor,
-//               foregroundColor: Theme.of(context).primaryColor,
-//               side: BorderSide(color: Theme.of(context).primaryColor),
-//               padding: EdgeInsets.zero,
-//               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
-//             ),
-//             onPressed: () => Get.find<ItemController>().itemDirectlyAddToCart(item, context),
-//             child: Text('add'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall)),
-//           )),
-//         ),
-//       ])),
-//       ]),
-//     );
-//   }
-// }
+        Transform.translate(
+          offset: const Offset(0, -16),
+          child: SizedBox(height: 32, width: 76, child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).cardColor,
+              foregroundColor: Theme.of(context).primaryColor,
+              side: BorderSide(color: Theme.of(context).primaryColor),
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
+            ),
+            onPressed: () => Get.find<ItemController>().itemDirectlyAddToCart(item, context),
+            child: Text('add'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall)),
+          )),
+        ),
+      ])),
+      ]),
+    );
+  }
+}
 
 class ServiceCardShimmer extends StatelessWidget {
   final EdgeInsetsGeometry padding;

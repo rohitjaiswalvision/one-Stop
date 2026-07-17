@@ -712,7 +712,10 @@ class _StoreScreenState extends State<StoreScreen> {
                     // Service module: this provider's service groups, rendered as the SAME
                     // 3-column grid the home "All Services" section uses. Tapping a tile
                     // opens the categories sheet -> landing flow, scoped to this store.
-                    ServiceStoreCategoriesView(storeController: storeController),
+                    ServiceStoreCategoriesView(
+                      storeId: storeController.store?.id,
+                      fallbackCategories: storeController.categoryList,
+                    ),
 
                     (!ResponsiveHelper.isDesktop(context) && storeController.recommendedItemModel != null && storeController.recommendedItemModel!.items!.isNotEmpty) ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -747,7 +750,9 @@ class _StoreScreenState extends State<StoreScreen> {
                   ]),
                 ))),
 
-                ResponsiveHelper.isDesktop(context) ? const SliverToBoxAdapter(child:SizedBox()) :
+                // Service module: browsing goes through the service-groups grid above
+                // (same as home), so the flat list and its pinned header are not shown.
+                ResponsiveHelper.isDesktop(context) || ModuleHelper.isService() ? const SliverToBoxAdapter(child:SizedBox()) :
                 (storeController.categoryList!.isNotEmpty) ? SliverPersistentHeader(
                   pinned: true,
                   delegate: SliverDelegate(height: 90, child: Center(child: Container(
@@ -849,7 +854,7 @@ class _StoreScreenState extends State<StoreScreen> {
                   ))),
                 ) : const SliverToBoxAdapter(child: SizedBox()),
 
-                ResponsiveHelper.isDesktop(context) ? const SliverToBoxAdapter(child:SizedBox()) :
+                ResponsiveHelper.isDesktop(context) || ModuleHelper.isService() ? const SliverToBoxAdapter(child:SizedBox()) :
                 SliverToBoxAdapter(
                   child: Container(
                   width: Dimensions.webMaxWidth,
@@ -861,14 +866,7 @@ class _StoreScreenState extends State<StoreScreen> {
                     onPaginate: (int? offset) async => await storeController.getStoreItemList(widget.store!.id ?? storeController.store!.id, offset!, storeController.type, false),
                     totalSize: storeController.storeItemModel?.totalSize,
                     offset: storeController.storeItemModel?.offset,
-                    // The service module lists a provider's services the same way the
-                    // category landing page does — "Select a service" cards, not the
-                    // generic product grid every other module uses.
-                    itemView: ModuleHelper.isService() ? ServiceItemsListView(
-                      items: (storeController.categoryList!.isNotEmpty && storeController.storeItemModel != null)
-                          ? storeController.storeItemModel!.items : null,
-                      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                    ) : ItemsView(
+                    itemView: ItemsView(
                       isStore: false, stores: null,
                       items: (storeController.categoryList!.isNotEmpty && storeController.storeItemModel != null)
                           ? storeController.storeItemModel!.items : null,
