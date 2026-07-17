@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/store/controllers/store_controller.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
@@ -10,6 +11,12 @@ class FilterView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A service is booked, not delivered/taken away, so the delivery-type filter
+    // has no meaning in the service module and is hidden there.
+    if (ModuleHelper.isService()) {
+      return const SizedBox();
+    }
+
     return storeController.storeModel != null ? PopupMenuButton(
       padding: EdgeInsets.zero,
       itemBuilder: (context) {

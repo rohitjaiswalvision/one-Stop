@@ -14,6 +14,7 @@ import 'package:sixam_mart/features/location/controllers/location_controller.dar
 import 'package:sixam_mart/features/location/domain/models/prediction_model.dart';
 import 'package:sixam_mart/features/location/domain/models/zone_response_model.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -68,7 +69,12 @@ class _DeliverySectionState extends State<DeliverySection> {
         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('delivery_information'.tr, style: robotoMedium),
+            // A service is performed at the customer's address, so the section is
+            // labelled as the service address rather than a delivery address.
+            Flexible(child: Text(
+              ModuleHelper.isService() ? 'service_address_information'.tr : 'delivery_information'.tr,
+              style: robotoMedium, maxLines: 1, overflow: TextOverflow.ellipsis,
+            )),
 
             TextButton.icon(
               onPressed: () async {
@@ -219,7 +225,7 @@ class _DeliverySectionState extends State<DeliverySection> {
                   textCapitalization: TextCapitalization.words,
                   keyboardType: TextInputType.streetAddress,
                   decoration: InputDecoration(
-                    hintText: 'delivery_address'.tr,
+                    hintText: ModuleHelper.isService() ? 'service_address'.tr : 'delivery_address'.tr,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                       borderSide: BorderSide(style: BorderStyle.solid, width: ResponsiveHelper.isDesktop(context) ? 0.7 : 0.3, color: Theme.of(context).disabledColor),

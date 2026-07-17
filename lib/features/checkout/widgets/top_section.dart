@@ -105,8 +105,9 @@ class TopSection extends StatelessWidget {
         ) : const SizedBox(),
         const SizedBox(height: Dimensions.paddingSizeSmall),
 
-        // delivery option
-        Container(
+        // delivery option — a service is booked at the provider or at the customer's
+        // address, never "delivered" or "taken away", so this picker is hidden for it.
+        !ModuleHelper.isService() ? Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.05), blurRadius: 10)],
@@ -138,8 +139,8 @@ class TopSection extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        const SizedBox(height: Dimensions.paddingSizeLarge),
+        ) : const SizedBox(),
+        SizedBox(height: !ModuleHelper.isService() ? Dimensions.paddingSizeLarge : 0),
 
         ///delivery section
         DeliverySection(checkoutController: checkoutController, address: address, addressList: addressList,

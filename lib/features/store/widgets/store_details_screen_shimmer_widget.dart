@@ -50,7 +50,7 @@ class StoreDetailsScreenShimmerWidget extends StatelessWidget {
               ),
               const SizedBox(width: Dimensions.paddingSizeLarge),
 
-              Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const SizedBox(),
 
                 ClipRRect(
@@ -94,9 +94,7 @@ class StoreDetailsScreenShimmerWidget extends StatelessWidget {
 
                 const SizedBox(),
 
-              ]),
-
-              const Spacer(),
+              ])),
 
               Icon(Icons.favorite_border, size: 25, color: Theme.of(context).shadowColor),
               const SizedBox(width: Dimensions.paddingSizeSmall),
@@ -204,8 +202,9 @@ class StoreDetailsScreenShimmerWidget extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: Dimensions.paddingSizeSmall),
 
-                    Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const SizedBox(),
 
                       ClipRRect(
@@ -248,7 +247,8 @@ class StoreDetailsScreenShimmerWidget extends StatelessWidget {
                       ),
                       const SizedBox(),
 
-                    ]),
+                    ])),
+                    const SizedBox(width: Dimensions.paddingSizeSmall),
 
                     Icon(Icons.favorite_border, size: 25, color: Theme.of(context).shadowColor),
                   ],

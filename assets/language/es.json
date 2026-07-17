@@ -1746,5 +1746,6 @@
   "starts_at": "Starts at",
   "about_this_service": "About this service",
   "no_services_in_this_category": "No services in this category",
-  "requirements": "Requirements"
+  "requirements": "Requirements",
+  "service_address_information": "Service Address Information"
 }
