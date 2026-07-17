@@ -15,6 +15,7 @@ abstract class CategoryServiceInterface {
 
   /// Service module catalog browse flow. Null results mean the catalog endpoints are
   /// unavailable and the caller should fall back to the legacy category tree.
+  Future<List<CategoryModel>?> getCatalogServices({int? storeId});
   Future<List<CategoryModel>?> getCatalogServiceCategories(String? serviceId);
   Future<ItemModel?> getCatalogSubCategories({required String categoryId, required String serviceId, int offset = 1, int limit = 10});
   Future<CatalogSubCategoryModel?> getCatalogSubCategoryDetail(int itemId);

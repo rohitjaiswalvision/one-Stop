@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
-import 'package:sixam_mart/common/widgets/no_data_screen.dart';
 import 'package:sixam_mart/common/widgets/web_menu_bar.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/category/controllers/service_category_controller.dart';
-import 'package:sixam_mart/features/category/widgets/service_detail_bottom_sheet.dart';
-import 'package:sixam_mart/features/item/controllers/item_controller.dart';
+import 'package:sixam_mart/features/category/widgets/service_sub_category_card.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
-import 'package:sixam_mart/helper/html_helper.dart';
-import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
-import 'package:sixam_mart/helper/square_feet_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
-import 'package:shimmer_animation/shimmer_animation.dart';
 
 /// Landing page of one catalog category (services → categories sheet → *here*).
 ///
@@ -138,21 +131,7 @@ class _ServiceCategoryLandingScreenState extends State<ServiceCategoryLandingScr
               ),
               const SizedBox(height: Dimensions.paddingSizeSmall),
 
-              items == null
-                  ? const _ServiceCardShimmer()
-                  : items.isEmpty
-                      ? NoDataScreen(text: 'no_services_in_this_category'.tr)
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                          itemCount: items.length,
-                          separatorBuilder: (_, _) => Divider(
-                            height: Dimensions.paddingSizeLarge * 2,
-                            color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
-                          ),
-                          itemBuilder: (BuildContext context, int index) => ServiceSubCategoryCard(item: items[index]),
-                        ),
+              ServiceItemsListView(items: items),
 
               if (controller.isSectionBusy(_sectionId)) Center(child: Padding(
                 padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
@@ -167,110 +146,5 @@ class _ServiceCategoryLandingScreenState extends State<ServiceCategoryLandingScr
         ),
       );
     });
-  }
-}
-
-/// One "Select a service" row: name, starting price, short description and
-/// View details on the left; image with the Add button pinned under it on the right.
-class ServiceSubCategoryCard extends StatelessWidget {
-  final Item item;
-  const ServiceSubCategoryCard({super.key, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final String description = HtmlHelper.toPlainText(item.description);
-
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          item.name ?? '',
-          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
-          maxLines: 2, overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-
-        Text(
-          '${'starts_at'.tr} ${PriceConverter.convertPrice(item.price)}${SquareFeetHelper.perUnitSuffix(item)}',
-          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
-        ),
-
-        if (description.isNotEmpty) Padding(
-          padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
-          child: Text(
-            description,
-            style: robotoRegular.copyWith(
-              fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor,
-            ),
-            maxLines: 3, overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(height: Dimensions.paddingSizeSmall),
-
-        InkWell(
-          onTap: () => ServiceDetailBottomSheet.show(item),
-          child: Text('view_details'.tr, style: robotoMedium.copyWith(
-            fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor,
-          )),
-        ),
-      ])),
-      const SizedBox(width: Dimensions.paddingSizeDefault),
-
-      SizedBox(width: 110, child: Column(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-          child: CustomImage(image: '${item.imageFullUrl}', height: 90, width: 110, fit: BoxFit.cover),
-        ),
-
-        Transform.translate(
-          offset: const Offset(0, -16),
-          child: SizedBox(height: 32, width: 76, child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).cardColor,
-              foregroundColor: Theme.of(context).primaryColor,
-              side: BorderSide(color: Theme.of(context).primaryColor),
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
-            ),
-            onPressed: () => Get.find<ItemController>().itemDirectlyAddToCart(item, context),
-            child: Text('add'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall)),
-          )),
-        ),
-      ])),
-    ]);
-  }
-}
-
-class _ServiceCardShimmer extends StatelessWidget {
-  const _ServiceCardShimmer();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-      itemCount: 5,
-      itemBuilder: (_, _) => Padding(
-        padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeLarge),
-        child: Shimmer(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(height: 16, width: 180, color: Theme.of(context).shadowColor),
-            const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-            Container(height: 12, width: 100, color: Theme.of(context).shadowColor),
-            const SizedBox(height: Dimensions.paddingSizeSmall),
-            Container(height: 30, width: double.infinity, color: Theme.of(context).shadowColor),
-          ])),
-          const SizedBox(width: Dimensions.paddingSizeDefault),
-          Container(
-            height: 90, width: 110,
-            decoration: BoxDecoration(
-              color: Theme.of(context).shadowColor,
-              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            ),
-          ),
-        ])),
-      ),
-    );
   }
 }

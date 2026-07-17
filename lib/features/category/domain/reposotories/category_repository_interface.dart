@@ -8,6 +8,10 @@ abstract class CategoryRepositoryInterface implements RepositoryInterface {
   Future<dynamic> getSearchData(String? query, String? categoryID, bool isStore, String type);
   Future<dynamic> saveUserInterests(List<int?> interests);
 
+  /// Service module catalog: the service groups (`/services/catalog/services`), optionally
+  /// scoped to one provider via `?store_id=`.
+  Future<dynamic> getCatalogServices({int? storeId});
+
   /// Service module catalog: categories of a catalog service (`/services/catalog/services/{id}/categories`).
   /// Null when the endpoint is unavailable — callers fall back to the legacy category tree.
   Future<dynamic> getCatalogServiceCategories(String? serviceId);

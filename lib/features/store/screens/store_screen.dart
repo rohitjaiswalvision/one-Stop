@@ -7,6 +7,9 @@ import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/favourite/controllers/favourite_controller.dart';
 import 'package:sixam_mart/features/category/domain/models/category_model.dart';
+import 'package:sixam_mart/features/category/widgets/service_categories_bottom_sheet.dart';
+import 'package:sixam_mart/features/category/widgets/service_sub_category_card.dart';
+import 'package:sixam_mart/features/store/widgets/service_store_categories_view.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
@@ -38,7 +41,6 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/features/store/widgets/store_details_screen_shimmer_widget.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
 import 'package:sixam_mart/features/store/widgets/filter_widget.dart';
-import 'package:sixam_mart/features/store/screens/service_store_category_screen.dart';
 
 class StoreScreen extends StatefulWidget {
   final Store? store;
@@ -95,11 +97,14 @@ class _StoreScreenState extends State<StoreScreen> {
 
   /// Drills into a category inside this provider: its children become the chips on the
   /// next screen, and the services stay scoped to this store.
+  /// A service chip on the provider page enters the exact same flow as a tile on the
+  /// home "All Services" grid: the group's categories as a bottom sheet, then the
+  /// category landing page with its "Select a service" list.
   void _openServiceCategory(CategoryModel category, int storeId) {
     if(category.id == null) return;
-    Get.to(() => ServiceStoreCategoryScreen(
-      storeId: storeId, categoryId: category.id!, categoryName: category.name ?? '',
-    ));
+    ServiceCategoriesBottomSheet.show(
+      serviceId: category.id!, serviceName: category.name ?? '', slug: category.slug ?? '',
+    );
   }
 
   @override
@@ -642,7 +647,14 @@ class _StoreScreenState extends State<StoreScreen> {
                                     offset: storeController.isSearching
                                         ? storeController.storeSearchItemModel?.offset
                                         : storeController.storeItemModel?.offset,
-                                    itemView: WebItemsView(
+                                    // Same "Select a service" list as the category landing
+                                    // page when the provider belongs to the service module.
+                                    itemView: ModuleHelper.isService() ? ServiceItemsListView(
+                                      items: storeController.isSearching
+                                          ? storeController.storeSearchItemModel?.items
+                                          : (storeController.categoryList!.isNotEmpty && storeController.storeItemModel != null) ? storeController.storeItemModel!.items : null,
+                                      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                                    ) : WebItemsView(
                                       isStore: false, stores: null, fromStore: true,
                                       items: storeController.isSearching
                                           ? storeController.storeSearchItemModel?.items
@@ -696,6 +708,11 @@ class _StoreScreenState extends State<StoreScreen> {
                     StoreBannerWidget(storeController: storeController),
 
                     const SizedBox(height: Dimensions.paddingSizeLarge),
+
+                    // Service module: this provider's service groups, rendered as the SAME
+                    // 3-column grid the home "All Services" section uses. Tapping a tile
+                    // opens the categories sheet -> landing flow, scoped to this store.
+                    ServiceStoreCategoriesView(storeController: storeController),
 
                     (!ResponsiveHelper.isDesktop(context) && storeController.recommendedItemModel != null && storeController.recommendedItemModel!.items!.isNotEmpty) ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,7 +850,8 @@ class _StoreScreenState extends State<StoreScreen> {
                 ) : const SliverToBoxAdapter(child: SizedBox()),
 
                 ResponsiveHelper.isDesktop(context) ? const SliverToBoxAdapter(child:SizedBox()) :
-                SliverToBoxAdapter(child: Container(
+                SliverToBoxAdapter(
+                  child: Container(
                   width: Dimensions.webMaxWidth,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
@@ -843,7 +861,14 @@ class _StoreScreenState extends State<StoreScreen> {
                     onPaginate: (int? offset) async => await storeController.getStoreItemList(widget.store!.id ?? storeController.store!.id, offset!, storeController.type, false),
                     totalSize: storeController.storeItemModel?.totalSize,
                     offset: storeController.storeItemModel?.offset,
-                    itemView: ItemsView(
+                    // The service module lists a provider's services the same way the
+                    // category landing page does — "Select a service" cards, not the
+                    // generic product grid every other module uses.
+                    itemView: ModuleHelper.isService() ? ServiceItemsListView(
+                      items: (storeController.categoryList!.isNotEmpty && storeController.storeItemModel != null)
+                          ? storeController.storeItemModel!.items : null,
+                      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                    ) : ItemsView(
                       isStore: false, stores: null,
                       items: (storeController.categoryList!.isNotEmpty && storeController.storeItemModel != null)
                           ? storeController.storeItemModel!.items : null,
@@ -854,7 +879,8 @@ class _StoreScreenState extends State<StoreScreen> {
                       ),
                     ),
                   ),
-                )),
+                )
+                ),
               ],
             ) : const StoreDetailsScreenShimmerWidget();
           });

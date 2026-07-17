@@ -42,6 +42,11 @@ class CategoryService implements CategoryServiceInterface {
   }
 
   @override
+  Future<List<CategoryModel>?> getCatalogServices({int? storeId}) async {
+    return await categoryRepositoryInterface.getCatalogServices(storeId: storeId);
+  }
+
+  @override
   Future<List<CategoryModel>?> getCatalogServiceCategories(String? serviceId) async {
     return await categoryRepositoryInterface.getCatalogServiceCategories(serviceId);
   }

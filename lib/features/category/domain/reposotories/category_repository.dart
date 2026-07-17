@@ -79,6 +79,23 @@ class CategoryRepository implements CategoryRepositoryInterface {
     return categoryList;
   }
 
+  /// Catalog service groups — GET /services/catalog/services[?store_id=].
+  /// With [storeId] the backend returns only that provider's services, deduplicated by
+  /// name, in the exact shape the home grid consumes. Null when the endpoint is missing.
+  @override
+  Future<List<CategoryModel>?> getCatalogServices({int? storeId}) async {
+    Response response = await apiClient.getData(
+      '${AppConstants.serviceCatalogServicesUri}${storeId != null ? '?store_id=$storeId' : ''}',
+      handleError: false,
+    );
+    if (response.statusCode == 200 && response.body is List) {
+      final List<CategoryModel> services = [];
+      response.body.forEach((service) => services.add(CategoryModel.fromJson(service)));
+      return services;
+    }
+    return null;
+  }
+
   /// Categories of one catalog service — GET /services/catalog/services/{id}/categories.
   /// Null (not empty) when the endpoint is missing or errors, so the caller can fall back.
   @override
