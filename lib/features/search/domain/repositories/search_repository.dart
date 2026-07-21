@@ -62,7 +62,9 @@ class SearchRepository implements SearchRepositoryInterface {
   }
 
   Future<Response> _getSearchData(String? query, bool isStore) async {
-    return await apiClient.getData('${AppConstants.searchUri}${isStore ? 'stores' : 'items'}/search?name=$query&offset=1&limit=50');
+    // Percent-encode: an unescaped "&" (e.g. a category name like "Haircuts & Styling")
+    // would otherwise be read as a new query parameter, truncating the search text.
+    return await apiClient.getData('${AppConstants.searchUri}${isStore ? 'stores' : 'items'}/search?name=${Uri.encodeComponent(query ?? '')}&offset=1&limit=50');
   }
 
   @override
@@ -73,7 +75,7 @@ class SearchRepository implements SearchRepositoryInterface {
   @override
   Future<SearchSuggestionModel?> getSearchSuggestions(String searchText) async {
     SearchSuggestionModel? searchSuggestionModel;
-    Response response = await apiClient.getData('${AppConstants.searchSuggestionsUri}?name=$searchText');
+    Response response = await apiClient.getData('${AppConstants.searchSuggestionsUri}?name=${Uri.encodeComponent(searchText)}');
     if(response.statusCode == 200) {
       searchSuggestionModel = SearchSuggestionModel.fromJson(response.body);
     }

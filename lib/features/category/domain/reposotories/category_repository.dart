@@ -176,8 +176,11 @@ class CategoryRepository implements CategoryRepositoryInterface {
 
   @override
   Future<Response> getSearchData(String? query, String? categoryID, bool isStore, String type) async {
+    // The search text can contain characters that are meaningful in a query string (an "&"
+    // in a category name like "Haircuts & Styling" being the common case) — left unencoded
+    // it truncates the request there, so it must be percent-encoded before it goes in the URL.
     return await apiClient.getData(
-      '${AppConstants.searchUri}${isStore ? 'stores' : 'items'}/search?name=$query&category_id=$categoryID&type=$type&offset=1&limit=50',
+      '${AppConstants.searchUri}${isStore ? 'stores' : 'items'}/search?name=${Uri.encodeComponent(query ?? '')}&category_id=$categoryID&type=$type&offset=1&limit=50',
     );
   }
 

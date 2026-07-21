@@ -1,5 +1,6 @@
 
 import 'package:sixam_mart/features/address/domain/models/address_model.dart';
+import 'package:sixam_mart/features/order/domain/models/order_details_model.dart';
 import 'package:sixam_mart/features/parcel/domain/models/parcel_category_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 
@@ -378,6 +379,9 @@ class OrderServiceBooking {
   String? locationType;
   String? status;
   ServiceStaff? staff;
+  double? additionalAmount;
+  String? completionNote;
+  List<BookingAdditionalService>? additionalServices;
 
   OrderServiceBooking({
     this.id,
@@ -391,6 +395,9 @@ class OrderServiceBooking {
     this.locationType,
     this.status,
     this.staff,
+    this.additionalAmount,
+    this.completionNote,
+    this.additionalServices,
   });
 
   OrderServiceBooking.fromJson(Map<String, dynamic> json) {
@@ -405,6 +412,17 @@ class OrderServiceBooking {
     locationType = json['location_type'];
     status = json['status'];
     staff = json['staff'] != null ? ServiceStaff.fromJson(json['staff']) : null;
+    // Extras the staff added while on the job (live-synced from the staff app).
+    additionalAmount = json['additional_amount'] != null ? double.tryParse(json['additional_amount'].toString()) : null;
+    completionNote = json['completion_note'];
+    if (json['additional_services'] is List) {
+      additionalServices = [];
+      for (final dynamic v in json['additional_services']) {
+        if (v is Map<String, dynamic>) {
+          additionalServices!.add(BookingAdditionalService.fromJson(v));
+        }
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

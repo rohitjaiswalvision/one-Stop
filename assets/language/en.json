@@ -2354,5 +2354,7 @@
   "payment_pending": "Payment pending",
   "welcome_back": "Welcome back",
   "sign_in_to_continue": "Sign in to continue",
-  "enter_verification_code": "Enter verification code"
+  "enter_verification_code": "Enter verification code",
+  "additional_services": "Additional Services",
+  "work_done": "Work done"
 }

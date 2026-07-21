@@ -27,6 +27,7 @@ import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
+import 'package:sixam_mart/features/order/widgets/service_extras_widget.dart';
 import 'package:sixam_mart/features/order/widgets/track_details_view_widget.dart';
 import 'package:sixam_mart/features/order/widgets/tracking_stepper_widget.dart';
 import 'package:flutter/material.dart';
@@ -239,6 +240,22 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
                     padding: const EdgeInsets.all( Dimensions.paddingSizeSmall),
                     decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.white),
                     child: Icon(Icons.my_location_outlined, color: Theme.of(context).primaryColor, size: 25),
+                  ),
+                ),
+              ),
+
+              // Services module: there's no courier panel — instead surface what
+              // the staff has added to the booking so far (live-synced extra
+              // services + completion note). Renders nothing until extras exist.
+              if(isService) Positioned(
+                bottom: Dimensions.paddingSizeSmall, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.35),
+                  child: SingleChildScrollView(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                      child: ServiceExtrasWidget(serviceBookings: track.serviceBookings),
+                    ),
                   ),
                 ),
               ),

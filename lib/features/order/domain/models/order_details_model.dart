@@ -23,6 +23,10 @@ class OrderDetailsModel {
   int? isGuest;
   ParcelCancellation? parcelCancellation;
 
+  /// Services module: the booking attached to this order line, carrying what the
+  /// staff added on-site (extra services, extra amount) and the completion note.
+  DetailServiceBooking? serviceBooking;
+
   OrderDetailsModel({
     this.id,
     this.itemId,
@@ -44,6 +48,7 @@ class OrderDetailsModel {
     this.imageFullUrl,
     this.isGuest,
     this.parcelCancellation,
+    this.serviceBooking,
   });
 
   OrderDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -83,6 +88,7 @@ class OrderDetailsModel {
     imageFullUrl = json['image_full_url'];
     isGuest = json['is_guest'];
     parcelCancellation = json['parcel_cancellation'] != null ? ParcelCancellation.fromJson(json['parcel_cancellation']) : null;
+    serviceBooking = json['service_booking'] is Map<String, dynamic> ? DetailServiceBooking.fromJson(json['service_booking']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -116,8 +122,65 @@ class OrderDetailsModel {
     if (parcelCancellation != null) {
       data['parcel_cancellation'] = parcelCancellation!.toJson();
     }
+    if (serviceBooking != null) {
+      data['service_booking'] = serviceBooking!.toJson();
+    }
     return data;
   }
+}
+
+/// The `service_booking` object nested inside an order detail row of a services-module
+/// order. Everything here is optional: the staff may add extra services and an extra
+/// amount while on the job, and leaves a completion note when the work is done.
+class DetailServiceBooking {
+  int? id;
+  String? status;
+  double? additionalAmount;
+  String? completionNote;
+  List<BookingAdditionalService>? additionalServices;
+
+  DetailServiceBooking({this.id, this.status, this.additionalAmount, this.completionNote, this.additionalServices});
+
+  DetailServiceBooking.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    status = json['status'];
+    additionalAmount = json['additional_amount'] != null ? double.tryParse(json['additional_amount'].toString()) : null;
+    completionNote = json['completion_note'];
+    if (json['additional_services'] is List) {
+      additionalServices = [];
+      for (final dynamic v in json['additional_services']) {
+        if (v is Map<String, dynamic>) {
+          additionalServices!.add(BookingAdditionalService.fromJson(v));
+        }
+      }
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['status'] = status;
+    data['additional_amount'] = additionalAmount;
+    data['completion_note'] = completionNote;
+    if (additionalServices != null) {
+      data['additional_services'] = additionalServices!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class BookingAdditionalService {
+  String? name;
+  double? price;
+
+  BookingAdditionalService({this.name, this.price});
+
+  BookingAdditionalService.fromJson(Map<String, dynamic> json) {
+    name = json['name']?.toString();
+    price = json['price'] != null ? double.tryParse(json['price'].toString()) : null;
+  }
+
+  Map<String, dynamic> toJson() => {'name': name, 'price': price};
 }
 
 class AddOn {

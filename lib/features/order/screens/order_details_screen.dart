@@ -78,6 +78,21 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) async {
       await Get.find<OrderController>().timerTrackOrder(widget.orderId.toString(), contactNumber: widget.contactNumber);
+
+      // Services module: the staff can add extra services / an extra amount / a
+      // completion note while on the job, and those live in the order-details payload
+      // — so refresh it each tick too, then stop polling entirely once the booking
+      // reaches a terminal state (the tick that observes it has already pulled the
+      // final details, so the closing extras and "work done" note are on screen).
+      final OrderController orderController = Get.find<OrderController>();
+      final String? bookingStatus = _serviceBookingStatus(orderController);
+      if (bookingStatus != null) {
+        await orderController.getOrderDetails(widget.orderId.toString());
+        const Set<String> terminalStatuses = {'completed', 'canceled', 'cancelled', 'refunded'};
+        if (terminalStatuses.contains(bookingStatus)) {
+          timer.cancel();
+        }
+      }
     });
   }
 
@@ -238,8 +253,22 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> {
               && order.orderStatus != 'refunded' && order.orderStatus != 'refund_request_canceled');
 
             }
+            // Services module: staff-added services live on the bookings, not on the
+            // order-detail rows itemsPrice is summed from — so they must be added to the
+            // total explicitly (each booking counted once even across several rows).
+            double additionalServicesAmount = 0;
+            if(orderController.orderDetails != null) {
+              final Set<int> seenBookings = {};
+              for(OrderDetailsModel orderDetails in orderController.orderDetails!) {
+                final booking = orderDetails.serviceBooking;
+                if (booking == null) continue;
+                if (booking.id != null && !seenBookings.add(booking.id!)) continue;
+                additionalServicesAmount += booking.additionalAmount ?? 0;
+              }
+            }
+
             double subTotal = itemsPrice + addOns;
-            double total = itemsPrice + addOns - discount + (taxIncluded ? 0 : tax) + deliveryCharge - couponDiscount + dmTips + additionalCharge + extraPackagingCharge - referrerBonusAmount;
+            double total = itemsPrice + addOns - discount + (taxIncluded ? 0 : tax) + deliveryCharge - couponDiscount + dmTips + additionalCharge + extraPackagingCharge - referrerBonusAmount + additionalServicesAmount;
 
             return orderController.orderDetails != null && order != null && orderController.trackModel != null ? Column(children: [
 

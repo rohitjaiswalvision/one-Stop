@@ -15,6 +15,7 @@ import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/features/checkout/domain/models/payment_model.dart';
+import 'package:sixam_mart/features/order/widgets/service_extras_widget.dart';
 import 'package:sixam_mart/features/order/widgets/service_payment_amount_sheet.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -513,6 +514,10 @@ class OrderInfoWidget extends StatelessWidget {
             ),
           ),
         ) : const SizedBox() : const SizedBox(),
+
+        // Services module: extra services the staff added on the job + the completion
+        // note. Renders nothing when the booking carries neither.
+        if (isService) ServiceExtrasWidget(orderDetails: orderDetails),
 
         (isDesktop && Get.find<SplashController>().getModuleConfig(order.moduleType).orderAttachment! && order.orderAttachmentFullUrl != null
           && order.orderAttachmentFullUrl!.isNotEmpty ) ? const SizedBox(height: Dimensions.paddingSizeSmall) : const SizedBox(),

@@ -46,6 +46,21 @@ class OrderCalculationWidget extends StatelessWidget {
     required this.total, required this.bottomView, required this.extraPackagingAmount, required this.referrerBonusAmount, required this.timerCancel, required this.startApiCall,
   });
 
+  /// Sum of the staff-added `additional_amount` across the order's service bookings,
+  /// counting each booking once even when it spans several order lines. Zero for
+  /// non-service orders (no detail carries a service_booking).
+  double _additionalServicesAmount(OrderController orderController) {
+    double amount = 0;
+    final Set<int> seenBookings = {};
+    for (final detail in (orderController.orderDetails ?? [])) {
+      final booking = detail.serviceBooking;
+      if (booking == null) continue;
+      if (booking.id != null && !seenBookings.add(booking.id!)) continue;
+      amount += booking.additionalAmount ?? 0;
+    }
+    return amount;
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -208,6 +223,19 @@ class OrderCalculationWidget extends StatelessWidget {
                   ],
                 ) : const SizedBox(),
                 SizedBox(height: extraPackagingAmount > 0 ? 10 : 0),
+
+                // Services module: what the staff added on the job. The details screen
+                // adds the same amount into `total`; this is the matching display line.
+                Builder(builder: (context) {
+                  final double additionalServicesAmount = _additionalServicesAmount(orderController);
+                  return additionalServicesAmount > 0 ? Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Text('additional_services'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                      Text('(+) ${PriceConverter.convertPrice(additionalServicesAmount)}', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr),
+                    ]),
+                  ) : const SizedBox();
+                }),
 
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Text('delivery_fee'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
