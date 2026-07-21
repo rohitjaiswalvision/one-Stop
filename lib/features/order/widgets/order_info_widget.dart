@@ -14,6 +14,9 @@ import 'package:sixam_mart/features/review/domain/models/review_model.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
+import 'package:sixam_mart/features/checkout/domain/models/payment_model.dart';
+import 'package:sixam_mart/features/order/widgets/service_payment_amount_sheet.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/helper/string_extension.dart';
@@ -888,6 +891,28 @@ class OrderInfoWidget extends StatelessWidget {
                   ],
                 ) : const SizedBox(),
 
+                // Pay-after-service: the booking was placed as cash_on_delivery so it stays
+                // unpaid through the job. Once the work is done the customer settles online —
+                // even though the method is cod, unlike the block above which is for
+                // interrupted digital payments. "Done" is read from the bookings themselves
+                // (every booking completed), because the vendor's completion updates
+                // service_bookings.status while orders.order_status can lag behind.
+                (order.moduleType == AppConstants.service || ModuleHelper.isService())
+                    && order.paymentMethod == 'cash_on_delivery'
+                    && orderController.trackModel?.paymentStatus == 'unpaid'
+                    && (order.orderStatus == 'delivered' || order.orderStatus == 'completed'
+                        || ((order.serviceBookings?.isNotEmpty ?? false)
+                            && order.serviceBookings!.every((b) => b.status == 'completed'))) ? Column(
+                  children: [
+                    const SizedBox(height: Dimensions.paddingSizeDefault),
+
+                    Text('service_completed_pay_now_note'.tr, style: robotoRegular, textAlign: TextAlign.start),
+                    const SizedBox(height: Dimensions.paddingSizeLarge),
+
+                    servicePayNowButton(context, orderController),
+                  ],
+                ) : const SizedBox(),
+
               ],
             ),
 
@@ -898,6 +923,44 @@ class OrderInfoWidget extends StatelessWidget {
 
     ]);
   }
+}
+
+/// Pay-after-service "Pay Now": the customer first confirms/adjusts the payable
+/// amount (the final bill can differ from the estimate), then settles it through the
+/// same payment-method sheet the checkout uses. Digital only — cash/offline are not
+/// offered here. Refreshes the tracking after the sheet closes so paid state shows.
+Widget servicePayNowButton(BuildContext context, OrderController orderController) {
+  if(orderController.paymentModel == null) return const SizedBox();
+  final PaymentModel paymentModel = orderController.paymentModel!;
+
+  void refresh() => orderController.timerTrackOrder(paymentModel.orderID.toString(), contactNumber: paymentModel.contactNumber);
+
+  return CustomButton(
+    buttonText: 'pay_now'.tr,
+    onPressed: () {
+      final bool isDesktop = ResponsiveHelper.isDesktop(context);
+      ServicePaymentAmountSheet.show(
+        initialAmount: paymentModel.orderAmount ?? 0,
+        onProceed: (double amount) {
+          // The adjusted amount rides in the paymentModel: the method sheet displays
+          // it and the gateway URL carries it (see PaymentScreen `amount` param).
+          paymentModel.orderAmount = amount;
+          final Widget sheet = PaymentMethodBottomSheet(
+            isCashOnDeliveryActive: false,
+            isDigitalPaymentActive: true,
+            totalPrice: amount,
+            isOfflinePaymentActive: false,
+            paymentModel: paymentModel,
+          );
+          if(isDesktop) {
+            Get.dialog(Dialog(backgroundColor: Colors.transparent, child: sheet)).then((_) => refresh());
+          } else {
+            Get.bottomSheet(sheet, backgroundColor: Colors.transparent, isScrollControlled: true).then((_) => refresh());
+          }
+        },
+      );
+    },
+  );
 }
 
 Widget paymentSectionButton(BuildContext context, OrderController orderController) {

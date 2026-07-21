@@ -52,6 +52,18 @@ class Appointment {
 
   /// Cancellation is only permitted while pending or accepted (backend rule).
   bool get isCancellable => status == 'pending' || status == 'accepted';
+
+  /// Pay-after-service gate: once the provider finishes the job the customer settles
+  /// online. "Finished" is read from the booking's own status first ([status] is the
+  /// service_bookings value the vendor updates), because orders.order_status can lag
+  /// behind the vendor's completion. Settling keeps the order completed, only flipping
+  /// payment_status to paid.
+  bool get isPayable =>
+      order?.id != null &&
+      order?.paymentStatus == 'unpaid' &&
+      (status == 'completed' ||
+          order?.orderStatus == 'delivered' ||
+          order?.orderStatus == 'completed');
 }
 
 class AppointmentItem {

@@ -9,6 +9,7 @@ import 'package:sixam_mart/helper/date_converter.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -29,6 +30,33 @@ String _orderDisplayStatus(OrderModel order) {
     return bookings.first.status!;
   }
   return order.orderStatus ?? '';
+}
+
+/// Pay-after-service: the job is done but the customer has not settled yet, so the row
+/// flags the outstanding payment. Same detection as the order-details Pay Now gate —
+/// "done" is read from the bookings themselves because orders.order_status can lag.
+bool _isServicePaymentPending(OrderModel order) {
+  final List<OrderServiceBooking>? bookings = order.serviceBookings;
+  final bool workDone = order.orderStatus == 'delivered' || order.orderStatus == 'completed'
+      || (bookings != null && bookings.isNotEmpty && bookings.every((b) => b.status == 'completed'));
+  return order.moduleType == AppConstants.service
+      && order.paymentMethod == 'cash_on_delivery'
+      && order.paymentStatus == 'unpaid'
+      && workDone;
+}
+
+/// The orange chip shown beside/under the status chip while a completed service is unpaid.
+Widget _paymentPendingChip(BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+      color: Colors.orange.withValues(alpha: 0.12),
+    ),
+    child: Text('payment_pending'.tr, style: robotoMedium.copyWith(
+      fontSize: Dimensions.fontSizeExtraSmall, color: Colors.orange,
+    )),
+  );
 }
 
 class OrderViewWidget extends StatelessWidget {
@@ -168,16 +196,22 @@ class OrderViewWidget extends StatelessWidget {
 
                                     ResponsiveHelper.isDesktop(context) ? Padding(
                                       padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                          ),
+                                          child: Text(_orderDisplayStatus(paginatedOrderModel.orders![index]).tr, style: robotoMedium.copyWith(
+                                            fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
+                                          )),
                                         ),
-                                        child: Text(_orderDisplayStatus(paginatedOrderModel.orders![index]).tr, style: robotoMedium.copyWith(
-                                          fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
-                                        )),
-                                      ),
+                                        if(_isServicePaymentPending(paginatedOrderModel.orders![index])) ...[
+                                          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                                          _paymentPendingChip(context),
+                                        ],
+                                      ]),
                                     ) : const SizedBox(),
 
                                     Text(
@@ -199,6 +233,10 @@ class OrderViewWidget extends StatelessWidget {
                                       fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
                                     )),
                                   ) : const SizedBox(),
+                                  if(!ResponsiveHelper.isDesktop(context) && _isServicePaymentPending(paginatedOrderModel.orders![index])) ...[
+                                    const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                                    _paymentPendingChip(context),
+                                  ],
                                   const SizedBox(height: Dimensions.paddingSizeSmall),
 
                                   isRunning ? InkWell(

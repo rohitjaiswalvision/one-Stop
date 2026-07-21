@@ -1262,8 +1262,10 @@ class CheckoutController extends GetxController implements GetxService {
         String? hostname = html.window.location.hostname;
         String protocol = html.window.location.protocol;
         String selectedUrl;
+        // Service orders carry the customer-adjusted payable amount (pay-after-service).
+        String serviceAmount = paymentData.orderType == 'service' ? '&amount=${paymentData.orderAmount}' : '';
         selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=${paymentData.orderID}&customer_id=${paymentData.userId ?? AuthHelper.getGuestId()}'
-            '&payment_method=$digitalPaymentName&payment_platform=web&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=${paymentData.orderID}&status=';
+            '&payment_method=$digitalPaymentName&payment_platform=web$serviceAmount&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=${paymentData.orderID}&status=';
 
         html.window.open(selectedUrl,"_self");
       } else{

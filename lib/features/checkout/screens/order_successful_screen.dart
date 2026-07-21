@@ -7,6 +7,7 @@ import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -79,6 +80,7 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
           bool success = true;
           bool parcel = false;
           bool takeAway = false;
+          bool servicePaid = false;
           // double? maximumCodOrderAmount;
           if(orderController.trackModel != null) {
             total = ((orderController.trackModel!.orderAmount! / 100) * Get.find<SplashController>().configModel!.loyaltyPointItemPurchasePoint!);
@@ -86,6 +88,11 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
               || orderController.trackModel!.paymentMethod == 'partial_payment' || orderController.trackModel!.paymentMethod == 'wallet' || orderController.trackModel!.paymentMethod == 'momo';
             parcel = orderController.trackModel!.orderType == 'parcel';
             takeAway = orderController.trackModel!.orderType == 'take_away';
+            // A service order only ever passes through the payment gateway when the
+            // customer settles AFTER the job (bookings are placed as cod). So a paid
+            // service order here means "payment completed", not "order placed".
+            servicePaid = orderController.trackModel!.moduleType == AppConstants.service
+                && orderController.trackModel!.paymentStatus == 'paid';
           }
 
           if(orderController.paymentModel != null && GetPlatform.isWeb) {
@@ -102,7 +109,7 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
               child: FooterView(child: SizedBox(
                 width: Dimensions.webMaxWidth,
                 child: success
-                    ? _orderSuccessfulContent(total: total, parcel: parcel, takeAway: takeAway, success: success)
+                    ? _orderSuccessfulContent(total: total, parcel: parcel, takeAway: takeAway, success: success, servicePaid: servicePaid)
                     : PaymentIncompleteView(),
               )),
             ) : const Center(child: CircularProgressIndicator());
@@ -113,7 +120,7 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
               child: FooterView(child: SizedBox(width: Dimensions.webMaxWidth,
                   child: GetPlatform.isWeb && orderController.paymentModel != null
                       ? PaymentIncompleteView()
-                      : _orderSuccessfulContent(total: total, parcel: parcel, takeAway: takeAway, success: success),
+                      : _orderSuccessfulContent(total: total, parcel: parcel, takeAway: takeAway, success: success, servicePaid: servicePaid),
               )),
             ),
           ) : const Center(child: CircularProgressIndicator());
@@ -122,7 +129,7 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
     );
   }
 
-  Widget _orderSuccessfulContent({required double total, required bool parcel, required bool takeAway, required bool success}) {
+  Widget _orderSuccessfulContent({required double total, required bool parcel, required bool takeAway, required bool success, bool servicePaid = false}) {
     return Container(
       decoration: !ResponsiveHelper.isDesktop(context) ? null : BoxDecoration(
         borderRadius: const  BorderRadius.all(Radius.circular(Dimensions.radiusDefault)),
@@ -144,7 +151,7 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
         ) : const SizedBox(),
 
         Text(
-          success ? parcel ? 'you_placed_the_parcel_request_successfully'.tr
+          success ? servicePaid ? 'payment_successful'.tr : parcel ? 'you_placed_the_parcel_request_successfully'.tr
               : 'you_placed_the_order_successfully'.tr : 'your_order_is_failed_to_place'.tr,
           style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
         ),
@@ -176,7 +183,8 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeSmall),
           child: Text(
-            success ? parcel ? 'your_parcel_request_is_placed_successfully'.tr : takeAway ? 'your_takeaway_order_has_been_placed_successfully'.tr
+            success ? servicePaid ? 'your_payment_for_this_service_is_completed'.tr
+                : parcel ? 'your_parcel_request_is_placed_successfully'.tr : takeAway ? 'your_takeaway_order_has_been_placed_successfully'.tr
                 : 'your_order_is_placed_successfully'.tr : 'your_order_is_failed_to_place_because'.tr,
             style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
             textAlign: TextAlign.center,

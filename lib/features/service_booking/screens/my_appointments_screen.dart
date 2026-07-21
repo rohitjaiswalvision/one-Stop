@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
+import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
+import 'package:sixam_mart/features/checkout/domain/models/payment_model.dart';
+import 'package:sixam_mart/features/checkout/widgets/payment_method_bottom_sheet.dart';
+import 'package:sixam_mart/features/order/controllers/order_controller.dart';
+import 'package:sixam_mart/features/order/widgets/service_payment_amount_sheet.dart';
 import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
 import 'package:sixam_mart/features/service_booking/domain/models/appointment_model.dart';
+import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
@@ -78,6 +84,25 @@ class _AppointmentCard extends StatelessWidget {
         _row(context, 'staff'.tr, appointment.staff?.name?.isNotEmpty == true ? appointment.staff!.name! : 'not_assigned_yet'.tr),
         if(appointment.store?.name != null) _row(context, 'provider'.tr, appointment.store!.name!),
 
+        // Job finished, payment still due — collect it online now (pay after service).
+        if(appointment.isPayable) ...[
+          const SizedBox(height: Dimensions.paddingSizeSmall),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+                padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
+              ),
+              icon: const Icon(Icons.payments_outlined, size: 18),
+              label: Text('pay_now'.tr, style: robotoMedium.copyWith(color: Colors.white)),
+              onPressed: () => _startPayment(context),
+            ),
+          ),
+        ],
+
         if(appointment.isCancellable) ...[
           const SizedBox(height: Dimensions.paddingSizeSmall),
           Align(
@@ -91,6 +116,52 @@ class _AppointmentCard extends StatelessWidget {
           ),
         ],
       ]),
+    );
+  }
+
+  /// Opens the same payment-method sheet the "pay again" flow uses, driven by a
+  /// PaymentModel fetched for this appointment's order. The sheet routes the customer
+  /// through the gateway webview (`/payment-mobile?order_id=X`); on return we refresh
+  /// so the now-paid appointment updates.
+  Future<void> _startPayment(BuildContext context) async {
+    final int? orderId = appointment.order?.id;
+    if(orderId == null) return;
+    // Read layout before the await so no BuildContext crosses the async gap.
+    final bool isDesktop = ResponsiveHelper.isDesktop(context);
+
+    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    final PaymentModel? paymentModel = await Get.find<OrderController>().getPaymentFailedDetails(orderId.toString());
+    if(Get.isDialogOpen ?? false) Get.back();
+
+    if(paymentModel == null) {
+      showCustomSnackBar('payment_details_not_found'.tr);
+      return;
+    }
+
+    // The customer first confirms/adjusts the payable amount (the final bill can
+    // differ from the estimate), then settles online — digital gateways only, so the
+    // commission split reaches the provider; cash/offline are intentionally not shown.
+    ServicePaymentAmountSheet.show(
+      initialAmount: paymentModel.orderAmount ?? 0,
+      onProceed: (double amount) {
+        // The adjusted amount rides in the paymentModel: the method sheet displays
+        // it and the gateway URL carries it (see PaymentScreen `amount` param).
+        paymentModel.orderAmount = amount;
+        final Widget sheet = PaymentMethodBottomSheet(
+          isCashOnDeliveryActive: false,
+          isDigitalPaymentActive: true,
+          totalPrice: amount,
+          isOfflinePaymentActive: false,
+          paymentModel: paymentModel,
+        );
+        if(isDesktop) {
+          Get.dialog(Dialog(backgroundColor: Colors.transparent, child: sheet))
+              .then((_) => controller.getMyAppointments());
+        } else {
+          Get.bottomSheet(sheet, backgroundColor: Colors.transparent, isScrollControlled: true)
+              .then((_) => controller.getMyAppointments());
+        }
+      },
     );
   }
 

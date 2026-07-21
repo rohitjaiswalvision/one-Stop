@@ -47,7 +47,12 @@ class PaymentScreenState extends State<PaymentScreen> {
 
     if(widget.addFundUrl == '' && widget.addFundUrl!.isEmpty && widget.subscriptionUrl == '' && widget.subscriptionUrl!.isEmpty){
       final String callbackUrl = Uri.encodeComponent('${AppConstants.baseUrl}/payment-success');
-      selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=${widget.orderModel.id}&customer_id=${widget.orderModel.userId == 0 ? widget.guestId : widget.orderModel.userId}&payment_method=${widget.paymentMethod}&payment_platform=app&callback=$callbackUrl';
+      // Pay-after-service lets the customer adjust the payable amount (final bill vs
+      // estimate), so service orders carry it to the gateway; other modules always
+      // charge the stored order amount and send nothing extra.
+      final String serviceAmount = widget.orderModel.orderType == 'service'
+          ? '&amount=${widget.orderModel.orderAmount}' : '';
+      selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=${widget.orderModel.id}&customer_id=${widget.orderModel.userId == 0 ? widget.guestId : widget.orderModel.userId}&payment_method=${widget.paymentMethod}&payment_platform=app$serviceAmount&callback=$callbackUrl';
     } else if(widget.subscriptionUrl != '' && widget.subscriptionUrl!.isNotEmpty){
       selectedUrl = widget.subscriptionUrl!;
     } else{
