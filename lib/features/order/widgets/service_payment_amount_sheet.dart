@@ -55,8 +55,16 @@ class _ServicePaymentAmountSheetState extends State<ServicePaymentAmountSheet> {
 
   void _bump(double delta) {
     final double next = _amount + delta;
-    if (next <= 0) return;
+    // Never allow the payable amount to drop below the original order total.
+    if (next < widget.initialAmount) return;
     setState(() => _amountController.text = _format(next));
+  }
+
+  /// If the customer types a value lower than the order total, snap it back.
+  void _clampToMinimum() {
+    if (_amount < widget.initialAmount) {
+      setState(() => _amountController.text = _format(widget.initialAmount));
+    }
   }
 
   @override
@@ -105,6 +113,7 @@ class _ServicePaymentAmountSheetState extends State<ServicePaymentAmountSheet> {
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
             style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge),
             onChanged: (_) => setState(() {}),
+            onEditingComplete: _clampToMinimum,
             decoration: InputDecoration(
               hintText: 'enter_amount'.tr,
               contentPadding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),

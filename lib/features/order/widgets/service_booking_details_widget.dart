@@ -78,7 +78,7 @@ class ServiceBookingDetailsWidget extends StatelessWidget {
       if (timeRange.isNotEmpty)
         _row(context, 'time'.tr, timeRange),
 
-      if (booking.duration != null)
+      if (booking.duration != null && booking.duration != 0)
         _row(context, 'duration'.tr, '${booking.duration} ${'minutes'.tr}'),
 
       if (staff != null && (staff.name?.isNotEmpty ?? false)) ...[
