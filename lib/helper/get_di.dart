@@ -346,7 +346,7 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => itemRepositoryInterface);
 
   CategoryRepositoryInterface categoryRepositoryInterface = CategoryRepository(apiClient: Get.find());
-  Get.lazyPut(() => categoryRepositoryInterface);
+  Get.lazyPut(() => categoryRepositoryInterface, fenix: true);
 
   LoyaltyRepositoryInterface loyaltyRepositoryInterface = LoyaltyRepository(apiClient: Get.find());
   Get.lazyPut(() => loyaltyRepositoryInterface);
@@ -494,7 +494,7 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => itemServiceInterface);
 
   CategoryServiceInterface categoryServiceInterface = CategoryService(categoryRepositoryInterface: Get.find());
-  Get.lazyPut(() => categoryServiceInterface);
+  Get.lazyPut(() => categoryServiceInterface, fenix: true);
 
   LoyaltyServiceInterface loyaltyServiceInterface = LoyaltyService(loyaltyRepositoryInterface: Get.find());
   Get.lazyPut(() => loyaltyServiceInterface);
@@ -565,9 +565,9 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => StoreRegistrationController(storeRegistrationServiceInterface: Get.find(), locationServiceInterface: locationServiceInterface));
   Get.lazyPut(() => ProfileController(profileServiceInterface: Get.find()));
   Get.lazyPut(() => BannerController(bannerServiceInterface: Get.find()));
-  Get.lazyPut(() => CategoryController(categoryServiceInterface: Get.find()));
-  Get.lazyPut(() => ServiceCategoryController(categoryServiceInterface: Get.find()));
-  Get.lazyPut(() => ServiceStoreCategoryController(categoryServiceInterface: Get.find(), storeServiceInterface: Get.find()));
+  Get.lazyPut(() => CategoryController(categoryServiceInterface: Get.find()), fenix: true);
+  Get.lazyPut(() => ServiceCategoryController(categoryServiceInterface: Get.find()), fenix: true);
+  Get.lazyPut(() => ServiceStoreCategoryController(categoryServiceInterface: Get.find(), storeServiceInterface: Get.find()), fenix: true);
   Get.lazyPut(() => ItemController(itemServiceInterface: Get.find()));
   Get.lazyPut(() => CartController(cartServiceInterface: Get.find()));
   Get.lazyPut(() => StoreController(storeServiceInterface: Get.find()));
@@ -588,7 +588,7 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => PaymentController(paymentServiceInterface: Get.find()));
   Get.lazyPut(() => HtmlController(htmlServiceInterface: Get.find()));
   Get.lazyPut(() => ReviewController(reviewServiceInterface: Get.find()));
-  Get.lazyPut(() => CategoryController(categoryServiceInterface: Get.find()));
+  Get.lazyPut(() => CategoryController(categoryServiceInterface: Get.find()), fenix: true);
   Get.lazyPut(() => LoyaltyController(loyaltyServiceInterface: Get.find()));
   Get.lazyPut(() => VerificationController(verificationServiceInterface: Get.find()));
   Get.lazyPut(() => BrandsController(brandsServiceInterface: Get.find()));
