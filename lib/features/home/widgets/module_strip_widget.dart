@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
-import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
 /// A Swiggy-style horizontal strip of the zone's modules, meant to sit pinned at the top
 /// of a module's home so the user can hop between modules (Services / Food / Parcel …)
-/// without going back to the full module grid. The currently selected module is highlighted.
+/// without going back to the full module grid. The currently selected module is highlighted
+/// with the brand gradient; switching animates the tile in smoothly.
 ///
 /// Taxi and pharmacy are excluded to match the module grid ([ModuleView]); switching is the
 /// same call the grid makes, so cart/category/banner state is reset consistently.
@@ -51,33 +53,38 @@ class ModuleStripWidget extends StatelessWidget {
             final module = splashController.moduleList![originalIndex];
             final bool isSelected = currentId != null && module.id == currentId;
 
-            return CustomInkWell(
+            return PressableScale(
               onTap: () {
                 if (!isSelected) {
                   splashController.switchModule(originalIndex, true);
                 }
               },
-              radius: Dimensions.radiusDefault,
-              child: Container(
+              child: AnimatedContainer(
+                duration: PremiumTokens.medium,
+                curve: PremiumTokens.easeOut,
                 width: 78,
                 padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall, vertical: Dimensions.paddingSizeExtraSmall),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                  color: isSelected
-                      ? Theme.of(context).primaryColor.withValues(alpha: 0.08)
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).disabledColor.withValues(alpha: 0.25),
-                    width: isSelected ? 1 : 0.5,
-                  ),
+                  gradient: isSelected ? PremiumTokens.brandGradient(context) : null,
+                  color: isSelected ? null : PremiumTokens.tint(context, opacity: 0.05),
+                  boxShadow: isSelected ? PremiumTokens.softShadow(context, strength: 0.6) : null,
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
 
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                    child: CustomImage(
-                      image: '${module.iconFullUrl}',
-                      height: 28, width: 28,
+                  AnimatedContainer(
+                    duration: PremiumTokens.medium,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? Colors.white.withValues(alpha: 0.18) : Colors.transparent,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                      child: CustomImage(
+                        image: '${module.iconFullUrl}',
+                        height: 26, width: 26,
+                      ),
                     ),
                   ),
                   const SizedBox(height: Dimensions.paddingSizeExtraSmall),
@@ -86,8 +93,8 @@ class ModuleStripWidget extends StatelessWidget {
                     module.moduleName ?? '',
                     maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
                     style: isSelected
-                        ? robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor)
-                        : robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
+                        ? robotoSemiBold.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Colors.white)
+                        : robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).textTheme.bodyMedium!.color),
                   ),
 
                 ]),

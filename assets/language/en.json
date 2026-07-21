@@ -2351,5 +2351,8 @@
   "payment_details_not_found": "Payment details not found",
   "service_completed_pay_now_note": "Your service is completed. Please complete the payment.",
   "your_payment_for_this_service_is_completed": "Your payment for this service has been completed successfully",
-  "payment_pending": "Payment pending"
+  "payment_pending": "Payment pending",
+  "welcome_back": "Welcome back",
+  "sign_in_to_continue": "Sign in to continue",
+  "enter_verification_code": "Enter verification code"
 }

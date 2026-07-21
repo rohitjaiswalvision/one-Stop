@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_button.dart';
 import 'package:sixam_mart/common/widgets/readmore_widget.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
@@ -16,13 +17,13 @@ import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/service_note_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/cart_snackbar.dart';
 import 'package:sixam_mart/common/widgets/confirmation_dialog.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
-import 'package:sixam_mart/common/widgets/custom_button.dart';
 import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 import 'package:sixam_mart/features/checkout/screens/checkout_screen.dart';
@@ -352,8 +353,15 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
                         Row(
                           children: [
-                            Row(children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
+                                color: PremiumTokens.tint(context, opacity: 0.06),
+                              ),
+                              child: Row(children: [
                               InkWell(
+                                borderRadius: BorderRadius.circular(50),
                                 onTap: cartController.isLoading ? null : () {
                                   if(itemController.cartIndex != -1) {
                                     if(cartController.cartList[itemController.cartIndex].quantity! > 1) {
@@ -366,12 +374,14 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                   }
                                 },
                                 child: Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).disabledColor.withValues(alpha: 0.3),
+                                    color: Theme.of(context).cardColor,
                                     shape: BoxShape.circle,
+                                    boxShadow: PremiumTokens.softShadow(context, strength: 0.4),
                                   ),
                                   padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
-                                  child: Icon(Icons.remove, size: 20),
+                                  child: Icon(Icons.remove_rounded, size: 20),
                                 ),
                               ),
 
@@ -380,34 +390,37 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                 child: Text(
                                   itemController.cartIndex != -1 ? cartController.cartList[itemController.cartIndex].quantity.toString()
                                       : itemController.quantity.toString(),
-                                  style:robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraLarge),
+                                  style:robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge),
                                 ),
                               ),
 
                               InkWell(
+                                borderRadius: BorderRadius.circular(50),
                                 onTap: cartController.isLoading ? null : () => itemController.cartIndex != -1
                                     ? cartController.setQuantity(true, itemController.cartIndex, stock, cartController.cartList[itemController.cartIndex].quantityLimit)
                                     : itemController.setQuantity(true, stock, item.quantityLimit),
                                 child: Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor,
+                                    gradient: PremiumTokens.brandGradient(context),
                                     shape: BoxShape.circle,
                                   ),
                                   padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
-                                  child: Icon(Icons.add, size: 20, color: Colors.white),
+                                  child: Icon(Icons.add_rounded, size: 20, color: Colors.white),
                                 ),
                               ),
-                            ]),
+                            ])),
                             const SizedBox(width: Dimensions.paddingSizeSmall),
 
                             Expanded(
                               child: Container(
                                 width: 1170,
                                 padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                                child: CustomButton(
+                                child: PremiumButton(
                                   isLoading: cartController.isLoading,
-                                  buttonText: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0) ? 'out_of_stock'.tr
+                                  text: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0) ? 'out_of_stock'.tr
                                       : item.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'update_in_cart'.tr : 'add_to_cart'.tr,
+                                  height: 52,
                                   onPressed: (!Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! || stock! > 0) ?  () async {
 
                                     if(AddressHelper.getUserAddressFromSharedPref() == null) {

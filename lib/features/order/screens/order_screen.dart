@@ -1,5 +1,5 @@
 import 'package:sixam_mart/common/models/module_model.dart';
-import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_chip.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/rental_module/rental_order/controllers/taxi_order_controller.dart';
 import 'package:sixam_mart/features/rental_module/rental_order/widgets/trip_order_view_widget.dart';
@@ -129,30 +129,23 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                     const SizedBox(height: Dimensions.paddingSizeDefault),
 
                     SizedBox(
-                      height: 30,
+                      height: 34,
                       child: ListView.builder(
                           itemCount: type.length,
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
                             bool selected = type[index] == selectType;
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: selected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-                                borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-                                border: Border.all(color: Theme.of(context).disabledColor, width: 0.3),
-                              ),
-                              alignment: Alignment.center,
-                              margin: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
-                              child: CustomInkWell(
+                            return Padding(
+                              padding: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
+                              child: PremiumChip(
+                                label: type[index].tr,
+                                selected: selected,
                                 onTap: () {
                                   setState(() {
                                     selectType = type[index];
                                   });
                                   initCall();
                                 },
-                                radius: Dimensions.radiusLarge,
-                                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                                child: Text(type[index].tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: selected ? Colors.white : Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: 0.7))),
                               ),
                             );
                           }),

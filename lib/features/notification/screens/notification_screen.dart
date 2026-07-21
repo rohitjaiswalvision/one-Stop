@@ -1,5 +1,7 @@
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/common/widgets/web_page_title_widget.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/features/notification/controllers/notification_controller.dart';
 import 'package:sixam_mart/features/notification/widgets/notification_bottom_sheet.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
@@ -99,7 +101,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
                         bool isSeen = notificationController.getSeenNotificationIdList()!.contains(notificationController.notificationList![index].id);
 
-                        return Padding(
+                        return FadeSlideIn(index: index, child: Padding(
                           padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
@@ -107,11 +109,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
                               child: Text(
                                 DateConverter.convertTodayYesterdayDate(notificationController.notificationList![index].createdAt!),
-                                style: robotoMedium.copyWith(color: Theme.of(context).hintColor),
+                                style: robotoSemiBold.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall),
                               ),
                             ) : const SizedBox(),
 
                             InkWell(
+                              borderRadius: BorderRadius.circular(PremiumTokens.radiusCard),
                               onTap: () {
                                 notificationController.addSeenNotificationId(notificationController.notificationList![index].id!);
 
@@ -135,15 +138,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).cardColor,
-                                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                                  boxShadow: isSeen ? [] : [const BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 1)],
+                                  borderRadius: BorderRadius.circular(PremiumTokens.radiusCard),
+                                  boxShadow: isSeen ? null : PremiumTokens.softShadow(context, strength: 0.6),
+                                  border: isSeen ? Border.all(color: Theme.of(context).dividerColor) : null,
                                 ),
                                 padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                                      color: PremiumTokens.tint(context, opacity: 0.08),
                                       borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                     ),
                                     padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall + 1),
@@ -204,7 +208,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             ),
 
                           ]),
-                        );
+                        ));
                       },
                     )),
                   ),

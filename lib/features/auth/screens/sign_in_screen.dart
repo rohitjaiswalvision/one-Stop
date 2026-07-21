@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:sixam_mart/common/widgets/premium/premium_button.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/auth/controllers/auth_controller.dart';
 import 'package:sixam_mart/features/auth/widgets/sign_in/sign_in_view.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
+import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -65,10 +69,12 @@ class SignInScreenState extends State<SignInScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: ResponsiveHelper.isDesktop(context) ? Colors.transparent : Theme.of(context).cardColor,
+        backgroundColor: ResponsiveHelper.isDesktop(context) ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
+        extendBodyBehindAppBar: true,
         appBar: (ResponsiveHelper.isDesktop(context) ? null : AppBar(
-          leading: !widget.exitFromApp ? IconButton(
-            onPressed: () {
+          leading: !widget.exitFromApp ? PremiumIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () {
               if(widget.fromNotification || widget.fromResetPassword) {
                 Navigator.pushNamed(context, RouteHelper.getInitialRoute());
               }else if(Get.find<AuthController>().isOtpViewEnable){
@@ -77,52 +83,79 @@ class SignInScreenState extends State<SignInScreen> {
                 Get.back(result: false);
               }
             },
-            icon: Icon(Icons.arrow_back_ios_rounded, color: Theme.of(context).textTheme.bodyLarge!.color),
           ) : const SizedBox(),
-          elevation: 0, backgroundColor: Theme.of(context).cardColor,
+          leadingWidth: 64,
+          elevation: 0, backgroundColor: Colors.transparent, surfaceTintColor: Colors.transparent,
           actions: [
-            IconButton(
-              onPressed: () => Get.bottomSheet(const LanguageBottomSheetWidget(), isScrollControlled: true),
-              icon: Icon(Icons.language, color: Theme.of(context).textTheme.bodyLarge!.color),
+            PremiumIconButton(
+              icon: Icons.language_rounded,
+              onTap: () => Get.bottomSheet(const LanguageBottomSheetWidget(), isScrollControlled: true),
             ),
+            const SizedBox(width: Dimensions.paddingSizeDefault),
           ],
         )),
         endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
 
-        body: SafeArea(
-          child: Align(
-            alignment: Alignment.center,
-            child: Container(
-              width: context.width > 700 ? 500 : context.width,
-              padding: context.width > 700 ? const EdgeInsets.all(50) : const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraLarge),
-              margin: context.width > 700 ? const EdgeInsets.all(50) : EdgeInsets.zero,
-              decoration: context.width > 700 ? BoxDecoration(
-                color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                boxShadow: ResponsiveHelper.isDesktop(context) ? null : const [BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 1)],
-              ) : null,
-              child: SingleChildScrollView(
-                child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              colors: [PremiumTokens.tint(context, opacity: 0.10), Theme.of(context).scaffoldBackgroundColor],
+              stops: const [0, 0.35],
+            ),
+          ),
+          child: SafeArea(
+            child: Align(
+              alignment: Alignment.center,
+              child: Container(
+                width: context.width > 700 ? 500 : context.width,
+                padding: context.width > 700 ? const EdgeInsets.all(50) : const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraLarge),
+                margin: context.width > 700 ? const EdgeInsets.all(50) : EdgeInsets.zero,
+                decoration: context.width > 700 ? BoxDecoration(
+                  color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+                  boxShadow: ResponsiveHelper.isDesktop(context) ? null : PremiumTokens.softShadow(context),
+                ) : null,
+                child: SingleChildScrollView(
+                  child: FadeSlideIn(
+                    child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
 
-                  ResponsiveHelper.isDesktop(context) ? Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        onPressed: () => Get.bottomSheet(const LanguageBottomSheetWidget(), isScrollControlled: true),
-                        icon: const Icon(Icons.language),
+                      ResponsiveHelper.isDesktop(context) ? Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: () => Get.bottomSheet(const LanguageBottomSheetWidget(), isScrollControlled: true),
+                            icon: const Icon(Icons.language),
+                          ),
+                          IconButton(
+                            onPressed: () => Get.back(),
+                            icon: const Icon(Icons.clear),
+                          ),
+                        ],
+                      ) : const SizedBox(),
+
+                      Container(
+                        padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).cardColor,
+                          boxShadow: PremiumTokens.softShadow(context, strength: 0.7),
+                        ),
+                        child: Image.asset(Images.logo, width: 84),
                       ),
-                      IconButton(
-                        onPressed: () => Get.back(),
-                        icon: const Icon(Icons.clear),
-                      ),
-                    ],
-                  ) : const SizedBox(),
+                      const SizedBox(height: Dimensions.paddingSizeExtraLarge),
 
-                  Image.asset(Images.logo, width: 125),
-                  const SizedBox(height: Dimensions.paddingSizeExtremeLarge),
+                      Text('welcome_back'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
+                      const SizedBox(height: 4),
+                      Text('sign_in_to_continue'.tr, style: robotoRegular.copyWith(
+                        fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).disabledColor,
+                      )),
+                      const SizedBox(height: Dimensions.paddingSizeExtremeLarge),
 
-                  SignInView(exitFromApp: widget.exitFromApp, backFromThis: widget.backFromThis, fromResetPassword: widget.fromResetPassword, isOtpViewEnable: (v){},),
+                      SignInView(exitFromApp: widget.exitFromApp, backFromThis: widget.backFromThis, fromResetPassword: widget.fromResetPassword, isOtpViewEnable: (v){},),
 
-                ]),
+                    ]),
+                  ),
+                ),
               ),
             ),
           ),

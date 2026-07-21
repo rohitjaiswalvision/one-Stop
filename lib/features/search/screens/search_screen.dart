@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:sixam_mart/common/controllers/theme_controller.dart';
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_chip.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/search/controllers/search_controller.dart' as search;
@@ -20,6 +21,7 @@ import 'package:sixam_mart/common/widgets/web_menu_bar.dart';
 import 'package:sixam_mart/features/search/widgets/filter_widget.dart';
 import 'package:sixam_mart/features/search/widgets/search_field_widget.dart';
 import 'package:sixam_mart/features/search/widgets/search_result_widget.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
@@ -348,14 +350,14 @@ class SearchScreenState extends State<SearchScreen> with TickerProviderStateMixi
                         return Container(
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                            boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.1), blurRadius: 10)]
+                            borderRadius: BorderRadius.circular(PremiumTokens.radiusChip),
+                            boxShadow: PremiumTokens.softShadow(context, strength: 0.6),
                           ),
                           child: CustomInkWell(
                             onTap: () {
                               Get.find<ItemController>().navigateToItemPage(searchController.suggestedItemList![index], context);
                             },
-                            radius: Dimensions.radiusDefault,
+                            radius: PremiumTokens.radiusChip,
                             child: Row(children: [
                               const SizedBox(width: Dimensions.paddingSizeSmall),
                               ClipRRect(
@@ -385,29 +387,14 @@ class SearchScreenState extends State<SearchScreen> with TickerProviderStateMixi
                     const SizedBox(height: Dimensions.paddingSizeSmall),
 
                     searchController.popularCategoryList != null && searchController.popularCategoryList!.isNotEmpty ? Wrap(
+                      spacing: Dimensions.paddingSizeSmall, runSpacing: Dimensions.paddingSizeSmall,
                       children: searchController.popularCategoryList!.map((category) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: Dimensions.paddingSizeSmall, bottom: Dimensions.paddingSizeSmall),
-                          child: CustomInkWell(
-                            onTap: () {
-                              _searchController.text = category.name??'';
-                              searchController.searchData(category.name??'', false);
-                            },
-                            radius: 50,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(50),
-                                border: Border.all(color: Theme.of(context).disabledColor, width: 0.1),
-                              ),
-                              child: Text(
-                                category!.name??'',
-                                style: robotoRegular.copyWith(color: Theme.of(context).textTheme.bodyMedium!.color!),
-                                maxLines: 1, overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
+                        return PremiumChip(
+                          label: category!.name ?? '',
+                          onTap: () {
+                            _searchController.text = category.name??'';
+                            searchController.searchData(category.name??'', false);
+                          },
                         );
                       }).toList(),
                     ) : const SizedBox(),

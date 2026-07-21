@@ -1,6 +1,7 @@
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:sixam_mart/common/widgets/address_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/banner/controllers/banner_controller.dart';
 import 'package:sixam_mart/features/location/controllers/location_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
@@ -67,7 +68,7 @@ class ModuleView extends StatelessWidget {
           // Cycle a soft, deliberately light palette so the tiles stay colourful in both
           // themes; the icon sits in a white chip and the label is dark on top of the pastel.
           final List<Color> gradient = _moduleTilePalette[index % _moduleTilePalette.length];
-          return Container(
+          return FadeSlideIn(index: index, child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
               gradient: LinearGradient(
@@ -126,7 +127,7 @@ class ModuleView extends StatelessWidget {
                 ]),
               ),
             ),
-          );
+          ));
         },
       ) : Center(child: Padding(
         padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall), child: Text('no_module_found'.tr),

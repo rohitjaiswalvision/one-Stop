@@ -6,8 +6,11 @@ import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/notification/domain/models/notification_body_model.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
+import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/no_internet_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,13 +24,23 @@ class SplashScreen extends StatefulWidget {
   SplashScreenState createState() => SplashScreenState();
 }
 
-class SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey();
   StreamSubscription<List<ConnectivityResult>>? _onConnectivityChanged;
+  late final AnimationController _logoController;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoFade;
 
   @override
   void initState() {
     super.initState();
+
+    _logoController = AnimationController(vsync: this, duration: PremiumTokens.slow);
+    _logoScale = Tween<double>(begin: 0.82, end: 1).animate(
+      CurvedAnimation(parent: _logoController, curve: PremiumTokens.easeSpring),
+    );
+    _logoFade = CurvedAnimation(parent: _logoController, curve: PremiumTokens.easeOut);
+    _logoController.forward();
 
     bool firstTime = true;
     _onConnectivityChanged = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) {
@@ -67,6 +80,7 @@ class SplashScreenState extends State<SplashScreen> {
     super.dispose();
 
     _onConnectivityChanged?.cancel();
+    _logoController.dispose();
   }
 
   // void _route() {
@@ -170,16 +184,104 @@ class SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       key: _globalKey,
       body: GetBuilder<SplashController>(builder: (splashController) {
-        return Center(
-          child: splashController.hasConnection ? Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(Images.logo, width: 200),
-              const SizedBox(height: Dimensions.paddingSizeSmall),
-            ],
-          ) : NoInternetScreen(child: SplashScreen(body: widget.body, deeplinkUrl: widget.deeplinkUrl)),
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.topCenter,
+              radius: 1.4,
+              colors: [
+                PremiumTokens.tint(context, opacity: 0.14),
+                Theme.of(context).scaffoldBackgroundColor,
+              ],
+            ),
+          ),
+          child: Center(
+            child: splashController.hasConnection ? FadeTransition(
+              opacity: _logoFade,
+              child: ScaleTransition(
+                scale: _logoScale,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(Dimensions.paddingSizeExtraLarge),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).cardColor,
+                        boxShadow: PremiumTokens.softShadow(context, strength: 1.4),
+                      ),
+                      child: Image.asset(Images.logo, width: 132),
+                    ),
+                    const SizedBox(height: Dimensions.paddingSizeExtraOverLarge),
+
+                    Text(
+                      AppConstants.appName,
+                      style: robotoBold.copyWith(
+                        fontSize: Dimensions.fontSizeOverLarge,
+                        letterSpacing: 0.5,
+                        color: Theme.of(context).textTheme.bodyLarge!.color,
+                      ),
+                    ),
+                    const SizedBox(height: Dimensions.paddingSizeExtraLarge),
+
+                    const _PulsingDot(),
+                  ],
+                ),
+              ),
+            ) : NoInternetScreen(child: SplashScreen(body: widget.body, deeplinkUrl: widget.deeplinkUrl)),
+          ),
         );
       }),
+    );
+  }
+}
+
+/// Understated loading indicator — three softly pulsing dots instead of a
+/// spinner, so the splash reads as calm rather than "working hard".
+class _PulsingDot extends StatefulWidget {
+  const _PulsingDot();
+
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Row(mainAxisSize: MainAxisSize.min, children: List.generate(3, (index) {
+          final double phase = (_controller.value - (index * 0.18)) % 1.0;
+          final double opacity = 0.25 + (0.75 * (0.5 + 0.5 * (phase < 0.5 ? phase * 2 : (1 - phase) * 2)));
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Container(
+              width: 8, height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).primaryColor.withValues(alpha: opacity.clamp(0.25, 1.0)),
+              ),
+            ),
+          );
+        }));
+      },
     );
   }
 }

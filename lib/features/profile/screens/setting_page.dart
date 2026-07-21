@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/common/controllers/theme_controller.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 import 'package:sixam_mart/features/auth/controllers/auth_controller.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
@@ -24,7 +25,7 @@ class SettingPage extends StatelessWidget {
       key: UniqueKey(),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(Dimensions.paddingSizeDefault),
-        child: Column(children: [
+        child: FadeSlideIn(child: Column(children: [
 
           ProfileButtonWidget(icon: Icons.language, title: 'language'.tr, languageName: AppConstants.languages[Get.find<LocalizationController>().selectedLanguageIndex].languageName, onTap: () {
             _manageLanguageFunctionality();
@@ -59,7 +60,7 @@ class SettingPage extends StatelessWidget {
             Text(AppConstants.appVersion.toStringAsFixed(1), style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall)),
           ]),
 
-        ]),
+        ])),
       ),
     );
   }

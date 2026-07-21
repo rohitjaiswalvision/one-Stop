@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:flutter/material.dart';
 
+/// One settings/profile row: tinted icon badge, title, and a trailing control
+/// (switch, language pill, or a plain chevron for a plain navigation row).
 class ProfileButtonWidget extends StatelessWidget {
   final IconData? icon;
   final String title;
@@ -15,24 +19,31 @@ class ProfileButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return PressableScale(
       onTap: onTap as void Function()?,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: isButtonActive != null ? 12 : languageName != null ? Dimensions.paddingSizeDefault : Dimensions.paddingSizeLarge),
+        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-          border: Border.all(color: Theme.of(context).disabledColor, width: 0.1),
-          boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.2), spreadRadius: 1, blurRadius: 5)],
+          borderRadius: BorderRadius.circular(PremiumTokens.radiusCard),
+          boxShadow: PremiumTokens.softShadow(context, strength: 0.5),
         ),
         child: Row(children: [
-          iconImage != null ? Image.asset(iconImage!, height: 18, width: 25) : Icon(icon, size: 25, color: color ?? Theme.of(context).textTheme.bodyMedium!.color),
-          const SizedBox(width: Dimensions.paddingSizeSmall),
+          Container(
+            padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: (color ?? Theme.of(context).primaryColor).withValues(alpha: 0.10),
+            ),
+            child: iconImage != null ? Image.asset(iconImage!, height: 18, width: 20)
+                : Icon(icon, size: 20, color: color ?? Theme.of(context).primaryColor),
+          ),
+          const SizedBox(width: Dimensions.paddingSizeDefault),
 
-          Expanded(child: Text(title, style: robotoRegular)),
+          Expanded(child: Text(title, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault))),
 
           isButtonActive != null ? Transform.scale(
-            scale: 0.7,
+            scale: 0.8,
             child: CupertinoSwitch(
               value: isButtonActive!,
               activeTrackColor: Theme.of(context).primaryColor,
@@ -41,21 +52,21 @@ class ProfileButtonWidget extends StatelessWidget {
             ),
           ) : languageName != null ? Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-              border: Border.all(color: Theme.of(context).hintColor.withValues(alpha: 0.5)),
+              borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
+              color: PremiumTokens.tint(context, opacity: 0.08),
             ),
             padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
             child: Row(
               children: [
-                Text(languageName!, style: robotoRegular.copyWith(
-                  fontSize: Dimensions.fontSizeSmall,
+                Text(languageName!, style: robotoMedium.copyWith(
+                  fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor,
                 )),
-                const SizedBox(width: Dimensions.paddingSizeSmall),
+                const SizedBox(width: 4),
 
-                Icon(Icons.keyboard_arrow_down, size: 15),
+                Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Theme.of(context).primaryColor),
               ],
             ),
-          ) : const SizedBox(),
+          ) : Icon(Icons.chevron_right_rounded, size: 22, color: Theme.of(context).disabledColor),
         ]),
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:sixam_mart/common/controllers/theme_controller.dart';
 import 'package:sixam_mart/common/widgets/custom_tool_tip_widget.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_button.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/features/banner/controllers/banner_controller.dart';
 import 'package:sixam_mart/features/brands/controllers/brands_controller.dart';
 import 'package:sixam_mart/features/home/controllers/advertisement_controller.dart';
@@ -248,12 +250,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
       // Skip the full-screen module grid landing: users should always land straight on a
-      // module's home. Whenever the modules are loaded but none is selected, auto-enter the
-      // first one — the pinned ModuleStripWidget then lets them switch between modules.
-      // (Previously this only auto-entered when the zone had exactly one module.)
+      // module's home. Whenever the modules are loaded but none is selected, auto-enter one
+      // — the pinned ModuleStripWidget then lets them switch between modules. Services is
+      // the default landing module (this is also what a fresh login resets to); fall back
+      // to the first module in the zone when services isn't offered there.
       if(splashController.moduleList != null && splashController.moduleList!.isNotEmpty
           && splashController.module == null && splashController.configModel?.module == null) {
-        splashController.switchModule(0, true);
+        int landingIndex = splashController.moduleList!.indexWhere((m) => m.moduleType.toString() == AppConstants.service);
+        splashController.switchModule(landingIndex != -1 ? landingIndex : 0, true);
       }
       bool showMobileModule = !ResponsiveHelper.isDesktop(context) && splashController.module == null && splashController.configModel!.module == null;
       // Only reserve the pinned module strip when there are at least two switchable modules
@@ -424,20 +428,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           }),
                         ),
-                        InkWell(
-                          child: GetBuilder<NotificationController>(builder: (notificationController) {
-                            return Stack(children: [
-                              Icon(CupertinoIcons.bell, size: 25, color: Theme.of(context).textTheme.bodyLarge!.color),
-                              notificationController.hasNotification ? Positioned(top: 0, right: 0, child: Container(
-                                height: 10, width: 10, decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor, shape: BoxShape.circle,
-                                border: Border.all(width: 1, color: Theme.of(context).cardColor),
+                        GetBuilder<NotificationController>(builder: (notificationController) {
+                          return Stack(clipBehavior: Clip.none, children: [
+                            PremiumIconButton(
+                              icon: CupertinoIcons.bell_fill,
+                              onTap: () => Get.toNamed(RouteHelper.getNotificationRoute()),
+                            ),
+                            if (notificationController.hasNotification) Positioned(
+                              top: -2, right: -2,
+                              child: Container(
+                                height: 11, width: 11,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.error, shape: BoxShape.circle,
+                                  border: Border.all(width: 2, color: Theme.of(context).cardColor),
+                                ),
                               ),
-                              )) : const SizedBox(),
-                            ]);
-                          }),
-                          onTap: () => Get.toNamed(RouteHelper.getNotificationRoute()),
-                        ),
+                            ),
+                          ]);
+                        }),
                       ]),
                     )),
                     actions: [const SizedBox()],
@@ -463,29 +471,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: searchBgShow ? Get.find<ThemeController>().darkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).cardColor : null,
                       padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
                       child: isTaxi? Container(color: Theme.of(context).primaryColor): InkWell(
+                        borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
                         onTap: () => Get.toNamed(RouteHelper.getSearchRoute()),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                           margin: const EdgeInsets.symmetric(vertical: 3),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            border: Border.all(color: Theme.of(context).disabledColor, width: 0.2),
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, spreadRadius: 1, offset: Offset(0, 2))],
+                            color: PremiumTokens.tint(context, opacity: 0.06),
+                            borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                           ),
                           child: Row(children: [
                             Icon(
-                              CupertinoIcons.search, size: 25,
+                              CupertinoIcons.search, size: 20,
                               color: Theme.of(context).primaryColor,
                             ),
-                            const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                            const SizedBox(width: Dimensions.paddingSizeSmall),
                             Expanded(child: Text(
                               Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! ? 'search_food_or_restaurant'.tr : 'search_item_or_store'.tr,
                               style: robotoRegular.copyWith(
                                 fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).hintColor,
                               ),
                             )),
-                            Icon(Icons.keyboard_voice_sharp, size: 22, color: Theme.of(context).disabledColor)
+                            Icon(Icons.keyboard_voice_sharp, size: 20, color: Theme.of(context).disabledColor)
                           ]),
                         ),
                       ),

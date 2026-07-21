@@ -1,5 +1,7 @@
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/profile/widgets/notification_status_change_bottom_sheet.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/common/controllers/theme_controller.dart';
 import 'package:sixam_mart/features/profile/controllers/profile_controller.dart';
 import 'package:sixam_mart/features/auth/controllers/auth_controller.dart';
@@ -60,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           Container(
             width: 1170, height: double.infinity,
-            color: Theme.of(context).primaryColor,
+            decoration: BoxDecoration(gradient: PremiumTokens.brandGradient(context)),
           ),
 
           SizedBox(
@@ -124,18 +126,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(width: Dimensions.paddingSizeDefault),
 
-                isLoggedIn ? InkWell(
+                isLoggedIn ? PressableScale(
                   onTap: ()=> Get.toNamed(RouteHelper.getUpdateProfileRoute()),
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Theme.of(context).cardColor,
-                      boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.05), blurRadius: 5, spreadRadius: 1, offset: const Offset(3, 3))],
+                      boxShadow: PremiumTokens.softShadow(context, strength: 0.5),
                     ),
                     padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                    child: const Icon(Icons.edit_outlined, size: 16, color: Colors.blue),
+                    child: Icon(Icons.edit_outlined, size: 16, color: Theme.of(context).primaryColor),
                   ),
-                ) : InkWell(
+                ) : PressableScale(
                   onTap: () async {
                     await Get.toNamed(RouteHelper.getSignInRoute(Get.currentRoute));
                     if(AuthHelper.isLoggedIn()) {
@@ -144,12 +146,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
+                      color: Theme.of(context).cardColor,
+                      boxShadow: PremiumTokens.softShadow(context, strength: 0.5),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeLarge),
                     child: Text(
-                      'login'.tr, style: robotoMedium.copyWith(color: Theme.of(context).cardColor),
+                      'login'.tr, style: robotoSemiBold.copyWith(color: Theme.of(context).primaryColor),
                     ),
                   ),
                 ),
@@ -164,10 +167,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(PremiumTokens.radiusHero)),
                 color: Theme.of(context).cardColor,
+                boxShadow: PremiumTokens.softShadow(context, strength: 0.7),
               ),
-              child: Column(children: [
+              child: FadeSlideIn(child: Column(children: [
 
                 (showWalletCard && isLoggedIn) ? Row(children: [
 
@@ -235,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(AppConstants.appVersion.toStringAsFixed(1), style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall)),
                 ]),
 
-              ]),
+              ])),
             ),
           ),
 

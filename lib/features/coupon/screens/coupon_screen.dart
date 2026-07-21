@@ -1,4 +1,5 @@
 import 'package:just_the_tooltip/just_the_tooltip.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/coupon/controllers/coupon_controller.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -77,7 +78,7 @@ class _CouponScreenState extends State<CouponScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
                     itemBuilder: (context, index) {
-                      return JustTheTooltip(
+                      return FadeSlideIn(index: index, child: JustTheTooltip(
                         backgroundColor: Get.isDarkMode ? Colors.white : Colors.black87,
                         controller: _availableToolTipControllerList![index],
                         preferredDirection: AxisDirection.up,
@@ -101,7 +102,7 @@ class _CouponScreenState extends State<CouponScreen> {
                           },
                           child: CouponCardWidget(coupon: couponController.couponList![index], index: index, toolTipController: _availableToolTipControllerList),
                         ),
-                      );
+                      ));
                     },
                   )),
                 ))

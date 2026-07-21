@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:sixam_mart/common/models/response_model.dart';
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_button.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/features/auth/domain/enum/centralize_login_enum.dart';
 import 'package:sixam_mart/features/auth/screens/new_user_setup_screen.dart';
 import 'package:sixam_mart/features/auth/widgets/sign_in/existing_user_bottom_sheet.dart';
@@ -20,7 +23,6 @@ import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
-import 'package:sixam_mart/common/widgets/custom_button.dart';
 import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -108,11 +110,11 @@ class VerificationScreenState extends State<VerificationScreen> {
             color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
           ) : null,
           child: GetBuilder<VerificationController>(builder: (verificationController) {
-            return Column(children: [
+            return FadeSlideIn(child: Column(children: [
 
               isDesktop ? Align(
                 alignment: Alignment.topRight,
-                child: IconButton(onPressed: ()=> Get.back(), icon: const Icon(Icons.clear)),
+                child: PremiumIconButton(icon: Icons.close_rounded, onTap: ()=> Get.back()),
               ) : const SizedBox(),
 
               isDesktop ? Padding(
@@ -122,22 +124,35 @@ class VerificationScreenState extends State<VerificationScreen> {
                 ),
               ) : const SizedBox(),
 
-              CustomAssetImageWidget((_email != null && _email!.isNotEmpty) ? Images.emailVerifiedIcon : Images.otpVerification, height: 100),
-              const SizedBox(height: Dimensions.paddingSizeExtremeLarge),
+              Container(
+                padding: const EdgeInsets.all(Dimensions.paddingSizeExtraLarge),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(colors: [
+                    PremiumTokens.tint(context, opacity: 0.14),
+                    PremiumTokens.tint(context, opacity: 0.02),
+                  ]),
+                ),
+                child: CustomAssetImageWidget((_email != null && _email!.isNotEmpty) ? Images.emailVerifiedIcon : Images.otpVerification, height: 76),
+              ),
+              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
+
+              Text('enter_verification_code'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge)),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
 
               Get.find<SplashController>().configModel!.demo! ? Text(
                 'for_demo_purpose'.tr, style: robotoMedium,
               ) : SizedBox(
-                width: 250,
-                child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
+                width: 260,
+                child: Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
                   RichText(text: TextSpan(children: [
-                    TextSpan(text: 'we_have_a_verification_code'.tr, style: robotoRegular.copyWith(color: Theme.of(context).hintColor)),
-                    TextSpan(text: ' ${(_email != null && _email!.isNotEmpty) ? _email : _number}', style: robotoMedium.copyWith(color: Theme.of(context).textTheme.bodyLarge!.color)),
+                    TextSpan(text: '${'we_have_a_verification_code'.tr} ', style: robotoRegular.copyWith(color: Theme.of(context).hintColor)),
+                    TextSpan(text: (_email != null && _email!.isNotEmpty) ? _email : _number, style: robotoSemiBold.copyWith(color: Theme.of(context).textTheme.bodyLarge!.color)),
                   ]), textAlign: TextAlign.center,),
                 ],
                 ),
               ),
-              const SizedBox(height: Dimensions.paddingSizeLarge),
+              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
 
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.width > 850 ? 50 : Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeDefault),
@@ -145,24 +160,24 @@ class VerificationScreenState extends State<VerificationScreen> {
                   length: 6,
                   appContext: context,
                   keyboardType: TextInputType.number,
-                  animationType: AnimationType.slide,
+                  animationType: AnimationType.scale,
                   pinTheme: PinTheme(
                     shape: PinCodeFieldShape.box,
-                    fieldHeight: 60,
-                    fieldWidth: 50,
+                    fieldHeight: 56,
+                    fieldWidth: 46,
                     borderWidth: borderWidth,
-                    borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
                     selectedColor: Theme.of(context).primaryColor,
-                    selectedFillColor: Colors.white,
-                    inactiveFillColor: Theme.of(context).cardColor,
-                    inactiveColor: Theme.of(context).disabledColor.withValues(alpha: 0.6),
-                    activeColor: hasError ? Colors.orange : Theme.of(context).disabledColor,
-                    activeFillColor: Theme.of(context).cardColor,
+                    selectedFillColor: PremiumTokens.tint(context, opacity: 0.10),
+                    inactiveFillColor: PremiumTokens.tint(context, opacity: 0.05),
+                    inactiveColor: Colors.transparent,
+                    activeColor: hasError ? Theme.of(context).colorScheme.error : Theme.of(context).primaryColor,
+                    activeFillColor: PremiumTokens.tint(context, opacity: 0.08),
                     inactiveBorderWidth: borderWidth,
-                    selectedBorderWidth: borderWidth,
+                    selectedBorderWidth: 1.8,
                     disabledBorderWidth: borderWidth,
-                    errorBorderWidth: borderWidth,
-                    activeBorderWidth: borderWidth,
+                    errorBorderWidth: 1.8,
+                    activeBorderWidth: 1.4,
                   ),
                   animationDuration: const Duration(milliseconds: 300),
                   backgroundColor: Colors.transparent,
@@ -178,16 +193,15 @@ class VerificationScreenState extends State<VerificationScreen> {
 
               Text(
                 hasError ? errorMessage : "",
-                style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w400),
+                style: robotoMedium.copyWith(color: Theme.of(context).colorScheme.error, fontSize: Dimensions.fontSizeSmall),
               ),
               const SizedBox(height: Dimensions.paddingSizeLarge),
 
               GetBuilder<ProfileController>(builder: (profileController) {
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : Dimensions.paddingSizeSmall),
-                  child: CustomButton(
-                    radius: Dimensions.radiusDefault,
-                    buttonText: 'verify'.tr,
+                  child: PremiumButton(
+                    text: 'verify'.tr,
                     isLoading: verificationController.isLoading || profileController.isLoading,
                     onPressed: verificationController.verificationCode.length < 6 ? null : () {
                       if(widget.firebaseSession != null && widget.userModel == null) {
@@ -246,12 +260,13 @@ class VerificationScreenState extends State<VerificationScreen> {
 
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: isDesktop ? 29 : Dimensions.paddingSizeDefault),
-                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text(
-                    'did_not_receive_the_code'.tr,
-                    style: robotoRegular.copyWith(color: Theme.of(context).hintColor),
+                    '${'did_not_receive_the_code'.tr} ',
+                    style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall),
                   ),
                   TextButton(
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                     onPressed: _seconds < 1 ? () async {
                       if(widget.firebaseSession != null) {
                         await Get.find<AuthController>().firebaseVerifyPhoneNumber(_number!, widget.token, widget.loginType, fromSignUp: widget.fromSignUp, canRoute: false);
@@ -260,13 +275,16 @@ class VerificationScreenState extends State<VerificationScreen> {
                         _resendOtp();
                       }
                     } : null,
-                    child: Text('${'resent_it'.tr}${_seconds > 0 ? ' (${_seconds}s)' : ''}', style: TextStyle(color: Theme.of(context).primaryColor),),
+                    child: Text('${'resent_it'.tr}${_seconds > 0 ? ' (${_seconds}s)' : ''}', style: robotoSemiBold.copyWith(
+                      color: _seconds < 1 ? Theme.of(context).primaryColor : Theme.of(context).disabledColor,
+                      fontSize: Dimensions.fontSizeSmall,
+                    )),
                   ),
                 ]),
               ),
               const SizedBox(height: Dimensions.paddingSizeLarge),
 
-            ]);
+            ]));
           }),
         )),
       ))),

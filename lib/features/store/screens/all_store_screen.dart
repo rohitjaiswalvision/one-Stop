@@ -1,6 +1,7 @@
 import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
@@ -98,7 +99,7 @@ class _AllStoreScreenState extends State<AllStoreScreen> {
                   widget.isTopOfferStore && ResponsiveHelper.isDesktop(context) ? Container(
                     height: 64,
                     width: double.infinity,
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.10),
+                    color: PremiumTokens.tint(context, opacity: 0.08),
                     child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
 
                       SizedBox(
@@ -106,7 +107,7 @@ class _AllStoreScreenState extends State<AllStoreScreen> {
                         child: Row(children: [
                           const Spacer(),
 
-                          Text('top_offers_near_me'.tr, style: robotoMedium),
+                          Text('top_offers_near_me'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
                           const Spacer(),
 
                           PopupMenuButton(
@@ -123,10 +124,11 @@ class _AllStoreScreenState extends State<AllStoreScreen> {
                                 ),
                               ];
                             },
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
-                            child: const RotatedBox(
-                              quarterTurns: 1,
-                              child: Icon(Icons.sync_alt, size: 20),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+                            child: Container(
+                              height: 38, width: 38,
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).cardColor, boxShadow: PremiumTokens.softShadow(context, strength: 0.5)),
+                              child: const RotatedBox(quarterTurns: 1, child: Icon(Icons.sync_alt_rounded, size: 19)),
                             ),
                             onSelected: (dynamic value) => storeController.setTopOfferSort(value),
                           ),
@@ -150,8 +152,12 @@ class _AllStoreScreenState extends State<AllStoreScreen> {
                                 ),
                               ];
                             },
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
-                            child: const Icon(Icons.tune, size: 20),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+                            child: Container(
+                              height: 38, width: 38,
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).cardColor, boxShadow: PremiumTokens.softShadow(context, strength: 0.5)),
+                              child: const Icon(Icons.tune_rounded, size: 19),
+                            ),
                             onSelected: (dynamic value) => storeController.setTopOfferFilter(value),
                           ) : const SizedBox(),
                           SizedBox(width: isFood ? Dimensions.paddingSizeDefault : 0),
