@@ -31,6 +31,7 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
   TabController? _tabController;
   bool _isLoggedIn = AuthHelper.isLoggedIn();
   List<String> type = [];
+  Map<String, String> moduleLabels = {};
   String selectType = 'orders';
   bool haveTaxiModule = false;
   ScrollController? scrollController;
@@ -44,38 +45,63 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
 
   void initSetup() {
     _isLoggedIn = AuthHelper.isLoggedIn();
+    moduleLabels = {};
 
     if(_isLoggedIn) {
-      type = ['orders', 'trips', 'rides'];
-      if(!TaxiHelper.haveTaxiModule()) {
-        type.remove('trips');
+      final List<ModuleModel>? moduleList = Get.find<SplashController>().moduleList;
+      type = [];
+      if(moduleList != null) {
+        for (final ModuleModel module in moduleList) {
+          if(module.moduleType != null
+              && module.moduleType != AppConstants.taxi
+              && module.moduleType != AppConstants.ride
+              && !type.contains(module.moduleType)) {
+            type.add(module.moduleType!);
+            moduleLabels[module.moduleType!] = module.moduleName ?? module.moduleType!;
+          }
+        }
       }
-      if(!TaxiHelper.haveRideModule()) {
-        type.remove('rides');
+      if(type.isEmpty) {
+        type = ['orders'];
+      }
+      if(TaxiHelper.haveTaxiModule()) {
+        type.add('trips');
+      }
+      if(TaxiHelper.haveRideModule()) {
+        type.add('rides');
       }
     }else {
       type = ['orders', 'trips'];
     }
 
-    if(!TaxiHelper.haveTaxiServiceRideModules()) {
-      type = ['orders',];
-    } else if (!TaxiHelper.haveTaxiServiceRideModules() && !AuthHelper.isLoggedIn()) {
+    if(!TaxiHelper.haveTaxiServiceRideModules() && !AuthHelper.isLoggedIn()) {
       type = ['orders'];
-    } else if (!TaxiHelper.haveTaxiServiceRideModules() && AuthHelper.isLoggedIn()) {
-      type = ['orders',];
     }
 
-    _tabController = TabController(length: 2, initialIndex: 0, vsync: this);
-    selectType = widget.index!;
+    selectType = type.contains(widget.index) ? widget.index! : type.first;
+    _ensureTabController();
     haveTaxiModule = TaxiHelper.haveTaxiServiceRideModules();
 
     initCall();
   }
 
+  /// Trips/Rides keep their existing Running/Completed 2-tab layout; every other module
+  /// tab gets a 3rd "Cancelled" tab so cancelled/refunded/failed orders split out of Completed.
+  int get _runningCompletedTabCount => (selectType == 'trips' || selectType == 'rides') ? 2 : 3;
+
+  void _ensureTabController() {
+    final int desiredLength = _runningCompletedTabCount;
+    if(_tabController == null || _tabController!.length != desiredLength) {
+      final int previousIndex = _tabController != null && _tabController!.index < desiredLength ? _tabController!.index : 0;
+      _tabController?.dispose();
+      _tabController = TabController(length: desiredLength, initialIndex: previousIndex, vsync: this);
+    }
+  }
+
   void initCall(){
     _ensureCachedModule();
     if(AuthHelper.isLoggedIn()) {
-      if(selectType == "orders") {
+      if(selectType != 'trips' && selectType != 'rides') {
         Get.find<OrderController>().getRunningOrders(1);
         Get.find<OrderController>().getHistoryOrders(1);
       } else if(selectType == 'trips') {
@@ -138,11 +164,12 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                             return Padding(
                               padding: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
                               child: PremiumChip(
-                                label: type[index].tr,
+                                label: moduleLabels[type[index]] ?? type[index].tr,
                                 selected: selected,
                                 onTap: () {
                                   setState(() {
                                     selectType = type[index];
+                                    _ensureTabController();
                                   });
                                   initCall();
                                 },
@@ -184,6 +211,7 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                                   tabs: [
                                     Tab(text: 'running'.tr),
                                     Tab(text: 'completed'.tr),
+                                    if(_runningCompletedTabCount == 3) Tab(text: 'cancelled'.tr),
                                   ],
                                 ),
                               ),
@@ -209,28 +237,30 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                           tabs: [
                             Tab(text: 'running'.tr),
                             Tab(text: 'completed'.tr),
+                            if(_runningCompletedTabCount == 3) Tab(text: 'cancelled'.tr),
                           ],
                         ),
                       ),
                     ]),
 
-                    selectType == 'orders' ? Expanded(child: TabBarView(
-                      controller: _tabController,
-                      children: const [
-                        OrderViewWidget(isRunning: true),
-                        OrderViewWidget(isRunning: false),
-                      ],
-                    )) : selectType == 'trips' ? Expanded(child: TabBarView(
+                    selectType == 'trips' ? Expanded(child: TabBarView(
                      controller: _tabController,
                      children: const [
                        TripOrderViewWidget(isRunning: true),
                        TripOrderViewWidget(isRunning: false),
                      ],
-                   )) : Expanded(child: TabBarView(
+                   )) : selectType == 'rides' ? Expanded(child: TabBarView(
                       controller: _tabController,
                       children: const [
                         RideOrderViewWidget(isRunning: true),
                         RideOrderViewWidget(isRunning: false),
+                      ],
+                    )) : Expanded(child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        OrderViewWidget(isRunning: true, moduleType: selectType == 'orders' ? null : selectType),
+                        OrderViewWidget(isRunning: false, moduleType: selectType == 'orders' ? null : selectType),
+                        OrderViewWidget(isRunning: false, moduleType: selectType == 'orders' ? null : selectType, cancelledOnly: true),
                       ],
                     )),
 

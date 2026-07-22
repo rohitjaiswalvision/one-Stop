@@ -18,6 +18,7 @@ import 'package:sixam_mart/features/flash_sale/controllers/flash_sale_controller
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
 import 'package:sixam_mart/features/location/controllers/location_controller.dart';
 import 'package:sixam_mart/features/notification/controllers/notification_controller.dart';
+import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/reels/controllers/reels_controller.dart';
 import 'package:sixam_mart/features/ride_share_module/ride_home/controllers/rideHome_controller.dart';
@@ -74,6 +75,7 @@ class HomeScreen extends StatefulWidget {
 
       if(AuthHelper.isLoggedIn()) {
         Get.find<StoreController>().getVisitAgainStoreList(fromModule: fromModule);
+        Get.find<OrderController>().getRunningOrders(1);
       }
 
       Get.find<BannerController>().getBannerList(reload);

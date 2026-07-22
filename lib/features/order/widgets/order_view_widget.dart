@@ -21,6 +21,10 @@ import 'package:sixam_mart/features/order/screens/order_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Statuses that mean an order didn't go through — split out into their own "Cancelled" tab
+/// rather than sitting inside "Completed" alongside genuinely delivered/completed orders.
+const Set<String> _cancelledStatuses = {'canceled', 'cancelled', 'failed', 'refunded', 'refund_requested', 'refund_request_canceled'};
+
 /// Status to show for an order row. For a services order the booking carries the real
 /// status (e.g. "accepted" while the order row is still "pending"), so prefer the first
 /// service_booking's status; every other module keeps the order-level status.
@@ -32,17 +36,22 @@ String _orderDisplayStatus(OrderModel order) {
   return order.orderStatus ?? '';
 }
 
-/// Pay-after-service: the job is done but the customer has not settled yet, so the row
-/// flags the outstanding payment. Same detection as the order-details Pay Now gate —
-/// "done" is read from the bookings themselves because orders.order_status can lag.
-bool _isServicePaymentPending(OrderModel order) {
+/// True once a services order's work is actually finished, per the service_bookings the
+/// vendor updates directly — read instead of orders.order_status, which can lag behind
+/// (the vendor completes the booking without the parent order ever moving out of "running").
+bool _isServiceOrderDone(OrderModel order) {
   final List<OrderServiceBooking>? bookings = order.serviceBookings;
-  final bool workDone = order.orderStatus == 'delivered' || order.orderStatus == 'completed'
+  return order.orderStatus == 'delivered' || order.orderStatus == 'completed'
       || (bookings != null && bookings.isNotEmpty && bookings.every((b) => b.status == 'completed'));
+}
+
+/// Pay-after-service: the job is done but the customer has not settled yet, so the row
+/// flags the outstanding payment. Same detection as the order-details Pay Now gate.
+bool _isServicePaymentPending(OrderModel order) {
   return order.moduleType == AppConstants.service
       && order.paymentMethod == 'cash_on_delivery'
       && order.paymentStatus == 'unpaid'
-      && workDone;
+      && _isServiceOrderDone(order);
 }
 
 /// The orange chip shown beside/under the status chip while a completed service is unpaid.
@@ -61,7 +70,11 @@ Widget _paymentPendingChip(BuildContext context) {
 
 class OrderViewWidget extends StatelessWidget {
   final bool isRunning;
-  const OrderViewWidget({super.key, required this.isRunning});
+  final String? moduleType;
+  /// Only meaningful when [isRunning] is false: true shows just cancelled/refunded/failed
+  /// orders (the "Cancelled" tab), false shows everything else (the "Completed" tab).
+  final bool cancelledOnly;
+  const OrderViewWidget({super.key, required this.isRunning, this.moduleType, this.cancelledOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +90,40 @@ class OrderViewWidget extends StatelessWidget {
           paginatedOrderModel = orderController.historyOrderModel;
         }
 
-        return paginatedOrderModel != null ? paginatedOrderModel.orders!.isNotEmpty ? RefreshIndicator(
+        bool isCancelled(OrderModel order) => _cancelledStatuses.contains(_orderDisplayStatus(order));
+        bool isFinished(OrderModel order) => _isServiceOrderDone(order) || isCancelled(order);
+
+        List<OrderModel> filteredOrders;
+        if(moduleType == AppConstants.service) {
+          // Services orders can be marked done (or cancelled) at the booking level while
+          // orders.order_status still parks them under "running" — so route by that real
+          // state instead of which API list the order came from, merging in anything the
+          // backend already moved to history so nothing is double-counted.
+          final List<OrderModel> runningServiceOrders = (orderController.runningOrderModel?.orders ?? <OrderModel>[])
+              .where((order) => order.moduleType == AppConstants.service).toList();
+          final List<OrderModel> historyServiceOrders = (orderController.historyOrderModel?.orders ?? <OrderModel>[])
+              .where((order) => order.moduleType == AppConstants.service).toList();
+
+          if(isRunning) {
+            filteredOrders = runningServiceOrders.where((order) => !isFinished(order)).toList();
+          } else {
+            final Set<int?> historyIds = historyServiceOrders.map((order) => order.id).toSet();
+            final List<OrderModel> finishedPool = [
+              ...historyServiceOrders,
+              ...runningServiceOrders.where((order) => isFinished(order) && !historyIds.contains(order.id)),
+            ];
+            filteredOrders = finishedPool.where((order) => isCancelled(order) == cancelledOnly).toList();
+          }
+        } else {
+          filteredOrders = moduleType == null
+              ? (paginatedOrderModel?.orders ?? <OrderModel>[])
+              : (paginatedOrderModel?.orders ?? <OrderModel>[]).where((order) => order.moduleType == moduleType).toList();
+          if(!isRunning) {
+            filteredOrders = filteredOrders.where((order) => isCancelled(order) == cancelledOnly).toList();
+          }
+        }
+
+        return paginatedOrderModel != null ? filteredOrders.isNotEmpty ? RefreshIndicator(
           onRefresh: () async {
             if(isRunning) {
               await orderController.getRunningOrders(1, isUpdate: true);
@@ -114,10 +160,11 @@ class OrderViewWidget extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       padding: ResponsiveHelper.isDesktop(context) ? const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge) : const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-                      itemCount: paginatedOrderModel.orders!.length,
+                      itemCount: filteredOrders.length,
                       itemBuilder: (context, index) {
-                        bool isParcel = paginatedOrderModel!.orders![index].orderType == 'parcel';
-                        bool isPrescription = paginatedOrderModel.orders![index].prescriptionOrder!;
+                        final OrderModel order = filteredOrders[index];
+                        bool isParcel = order.orderType == 'parcel';
+                        bool isPrescription = order.prescriptionOrder!;
 
                         return Container(
                           padding: ResponsiveHelper.isDesktop(context) ? const EdgeInsets.all(Dimensions.paddingSizeSmall) : null,
@@ -129,10 +176,10 @@ class OrderViewWidget extends StatelessWidget {
                           child: CustomInkWell(
                             onTap: () {
                               Get.toNamed(
-                                RouteHelper.getOrderDetailsRoute(paginatedOrderModel!.orders![index].id),
+                                RouteHelper.getOrderDetailsRoute(order.id),
                                 arguments: OrderDetailsScreen(
-                                  orderId: paginatedOrderModel.orders![index].id,
-                                  orderModel: paginatedOrderModel.orders![index],
+                                  orderId: order.id,
+                                  orderModel: order,
                                 ),
                               );
                             },
@@ -151,8 +198,8 @@ class OrderViewWidget extends StatelessWidget {
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                       child: CustomImage(
-                                        image: isParcel ? '${paginatedOrderModel.orders![index].parcelCategory != null ? paginatedOrderModel.orders![index].parcelCategory!.imageFullUrl : ''}'
-                                            : '${paginatedOrderModel.orders![index].store != null ? paginatedOrderModel.orders![index].store!.logoFullUrl : ''}',
+                                        image: isParcel ? '${order.parcelCategory != null ? order.parcelCategory!.imageFullUrl : ''}'
+                                            : '${order.store != null ? order.store!.logoFullUrl : ''}',
                                         height: isParcel ? 35 : ResponsiveHelper.isDesktop(context) ? 80 : 60,
                                         width: isParcel ? 35 : ResponsiveHelper.isDesktop(context) ? 80 : 60, fit: isParcel ? null : BoxFit.cover,
                                       ),
@@ -190,7 +237,7 @@ class OrderViewWidget extends StatelessWidget {
                                         style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
                                       ),
                                       const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                      Text('#${paginatedOrderModel.orders![index].id}', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                                      Text('#${order.id}', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall)),
                                     ]),
                                     const SizedBox(height: Dimensions.paddingSizeSmall),
 
@@ -203,11 +250,11 @@ class OrderViewWidget extends StatelessWidget {
                                             borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                             color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                           ),
-                                          child: Text(_orderDisplayStatus(paginatedOrderModel.orders![index]).tr, style: robotoMedium.copyWith(
+                                          child: Text(_orderDisplayStatus(order).tr, style: robotoMedium.copyWith(
                                             fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
                                           )),
                                         ),
-                                        if(_isServicePaymentPending(paginatedOrderModel.orders![index])) ...[
+                                        if(_isServicePaymentPending(order)) ...[
                                           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
                                           _paymentPendingChip(context),
                                         ],
@@ -215,7 +262,7 @@ class OrderViewWidget extends StatelessWidget {
                                     ) : const SizedBox(),
 
                                     Text(
-                                      DateConverter.dateTimeStringToDateTime(paginatedOrderModel.orders![index].createdAt!),
+                                      DateConverter.dateTimeStringToDateTime(order.createdAt!),
                                       style: robotoRegular.copyWith(color: Theme.of(context).disabledColor, fontSize: Dimensions.fontSizeSmall),
                                     ),
                                   ]),
@@ -229,18 +276,18 @@ class OrderViewWidget extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                       color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                     ),
-                                    child: Text(_orderDisplayStatus(paginatedOrderModel.orders![index]).tr, style: robotoMedium.copyWith(
+                                    child: Text(_orderDisplayStatus(order).tr, style: robotoMedium.copyWith(
                                       fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor,
                                     )),
                                   ) : const SizedBox(),
-                                  if(!ResponsiveHelper.isDesktop(context) && _isServicePaymentPending(paginatedOrderModel.orders![index])) ...[
+                                  if(!ResponsiveHelper.isDesktop(context) && _isServicePaymentPending(order)) ...[
                                     const SizedBox(height: Dimensions.paddingSizeExtraSmall),
                                     _paymentPendingChip(context),
                                   ],
                                   const SizedBox(height: Dimensions.paddingSizeSmall),
 
                                   isRunning ? InkWell(
-                                    onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(paginatedOrderModel!.orders![index].id, null)),
+                                    onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(order.id, null)),
                                     child: Container(
                                       padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: ResponsiveHelper.isDesktop(context) ? Dimensions.fontSizeSmall : Dimensions.paddingSizeExtraSmall),
                                       decoration: ResponsiveHelper.isDesktop(context) ? BoxDecoration(
@@ -259,14 +306,14 @@ class OrderViewWidget extends StatelessWidget {
                                       ]),
                                     ),
                                   ) : isParcel ? const SizedBox() : Text(
-                                    '${paginatedOrderModel.orders![index].detailsCount} ${paginatedOrderModel.orders![index].detailsCount! > 1 ? 'items'.tr : 'item'.tr}',
+                                    '${order.detailsCount} ${order.detailsCount! > 1 ? 'items'.tr : 'item'.tr}',
                                     style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
                                   ),
                                 ]),
 
                               ]),
 
-                              (index == paginatedOrderModel.orders!.length-1 || ResponsiveHelper.isDesktop(context)) ? const SizedBox() : Padding(
+                              (index == filteredOrders.length-1 || ResponsiveHelper.isDesktop(context)) ? const SizedBox() : Padding(
                                 padding: const EdgeInsets.only(left: 70),
                                 child: Divider(
                                   color: Theme.of(context).disabledColor, height: Dimensions.paddingSizeLarge,
@@ -281,8 +328,8 @@ class OrderViewWidget extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeSmall),
-                        itemCount: paginatedOrderModel.orders!.length,
-                        itemBuilder: (context, index) => _orderCard(context, paginatedOrderModel!.orders![index]),
+                        itemCount: filteredOrders.length,
+                        itemBuilder: (context, index) => _orderCard(context, filteredOrders[index]),
                       ),
                   ),
                 ),
@@ -429,9 +476,8 @@ class OrderViewWidget extends StatelessWidget {
   /// Green when done, red when cancelled/refunded, otherwise the brand colour for in-progress.
   Color _statusColor(BuildContext context, String status) {
     const Set<String> done = {'delivered', 'completed'};
-    const Set<String> bad = {'canceled', 'cancelled', 'failed', 'refunded', 'refund_requested', 'refund_request_canceled'};
     if (done.contains(status)) return const Color(0xFF2E7D32);
-    if (bad.contains(status)) return const Color(0xFFD32F2F);
+    if (_cancelledStatuses.contains(status)) return const Color(0xFFD32F2F);
     return Theme.of(context).primaryColor;
   }
 

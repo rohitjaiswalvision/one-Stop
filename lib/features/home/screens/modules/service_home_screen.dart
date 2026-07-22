@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sixam_mart/features/home/widgets/views/banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/promo_code_banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/promotional_banner_view.dart';
+import 'package:sixam_mart/features/home/widgets/views/running_services_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/service_catalog_grid_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/visit_again_view.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
@@ -34,6 +35,9 @@ class ServiceHomeScreen extends StatelessWidget {
 
       // Service groups: Women's Salon, Cleaning, AC & Appliance Repair, ...
       const ServiceCatalogGridView(),
+
+      // Bookings still in progress.
+      isLoggedIn ? const RunningServicesView() : const SizedBox(),
 
       // Rebook what was booked before.
       isLoggedIn ? const VisitAgainView() : const SizedBox(),
