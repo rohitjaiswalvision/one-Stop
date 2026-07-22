@@ -105,6 +105,15 @@ class OrderModel {
   List<OrderServiceBooking>? serviceBookings;
   ServiceStaff? serviceStaff;
 
+  /// Services module, order level: the staff-added services flattened across all
+  /// of the order's bookings, their sum, and the authoritative payable total.
+  /// [grandTotal] already accounts for billing state (pre-completion it is
+  /// order_amount + additional_amount; post-completion the additions are inside
+  /// order_amount) — display/settle on it and it never double-counts.
+  List<BookingAdditionalService>? additionalServices;
+  double? additionalAmount;
+  double? grandTotal;
+
   OrderModel({
     this.id,
     this.userId,
@@ -178,6 +187,16 @@ class OrderModel {
     id = json['id'];
     userId = json['user_id'];
     orderAmount = json['order_amount'].toDouble();
+    additionalAmount = json['additional_amount'] != null ? double.tryParse(json['additional_amount'].toString()) : null;
+    grandTotal = json['grand_total'] != null ? double.tryParse(json['grand_total'].toString()) : null;
+    if (json['additional_services'] is List) {
+      additionalServices = [];
+      for (final dynamic v in json['additional_services']) {
+        if (v is Map<String, dynamic>) {
+          additionalServices!.add(BookingAdditionalService.fromJson(v));
+        }
+      }
+    }
     couponDiscountAmount = json['coupon_discount_amount'].toDouble();
     couponDiscountTitle = json['coupon_discount_title'];
     paymentStatus = json['payment_status'];
@@ -380,6 +399,10 @@ class OrderServiceBooking {
   String? status;
   ServiceStaff? staff;
   double? additionalAmount;
+
+  /// What of the staff additions has already been billed into the order amount
+  /// (post-completion the backend folds them in) — per-appointment breakdown.
+  double? additionalBilled;
   String? completionNote;
   List<BookingAdditionalService>? additionalServices;
 
@@ -396,6 +419,7 @@ class OrderServiceBooking {
     this.status,
     this.staff,
     this.additionalAmount,
+    this.additionalBilled,
     this.completionNote,
     this.additionalServices,
   });
@@ -414,6 +438,7 @@ class OrderServiceBooking {
     staff = json['staff'] != null ? ServiceStaff.fromJson(json['staff']) : null;
     // Extras the staff added while on the job (live-synced from the staff app).
     additionalAmount = json['additional_amount'] != null ? double.tryParse(json['additional_amount'].toString()) : null;
+    additionalBilled = json['additional_billed'] != null ? double.tryParse(json['additional_billed'].toString()) : null;
     completionNote = json['completion_note'];
     if (json['additional_services'] is List) {
       additionalServices = [];

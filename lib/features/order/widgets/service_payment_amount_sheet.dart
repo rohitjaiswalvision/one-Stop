@@ -93,7 +93,7 @@ class _ServicePaymentAmountSheetState extends State<ServicePaymentAmountSheet> {
         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
         Row(children: [
-          Text('${'estimate_amount'.tr}: ', style: robotoRegular.copyWith(
+          Text('${'total_amount'.tr}: ', style: robotoRegular.copyWith(
             fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor,
           )),
           Text(PriceConverter.convertPrice(widget.initialAmount), style: robotoMedium.copyWith(
@@ -142,6 +142,13 @@ class _ServicePaymentAmountSheetState extends State<ServicePaymentAmountSheet> {
           onPressed: () {
             if (_amount <= 0) {
               showCustomSnackBar('enter_amount'.tr);
+              return;
+            }
+            // The keyboard-done snap can be bypassed by tapping Proceed directly with a
+            // typed lower value, so the minimum is enforced here too.
+            if (_amount < widget.initialAmount) {
+              _clampToMinimum();
+              showCustomSnackBar('amount_can_not_be_less_than_the_total_amount'.tr);
               return;
             }
             Get.back();

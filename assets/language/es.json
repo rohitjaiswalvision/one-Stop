@@ -1757,5 +1757,6 @@
   "sign_in_to_continue": "Sign in to continue",
   "enter_verification_code": "Enter verification code",
   "additional_services": "Additional Services",
-  "work_done": "Work done"
+  "work_done": "Work done",
+  "amount_can_not_be_less_than_the_total_amount": "Amount can not be less than the total amount"
 }

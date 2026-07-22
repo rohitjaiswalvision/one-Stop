@@ -6,6 +6,7 @@ import 'package:sixam_mart/common/widgets/custom_card.dart';
 import 'package:sixam_mart/features/order/widgets/support_reason_bottom_sheet.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
+import 'package:sixam_mart/features/order/domain/models/order_details_model.dart';
 import 'package:sixam_mart/features/order/domain/models/order_model.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
@@ -46,20 +47,38 @@ class OrderCalculationWidget extends StatelessWidget {
     required this.total, required this.bottomView, required this.extraPackagingAmount, required this.referrerBonusAmount, required this.timerCancel, required this.startApiCall,
   });
 
-  /// Sum of the staff-added `additional_amount` across the order's service bookings,
-  /// counting each booking once even when it spans several order lines. Zero for
-  /// non-service orders (no detail carries a service_booking).
-  double _additionalServicesAmount(OrderController orderController) {
-    double amount = 0;
-    final Set<int> seenBookings = {};
-    for (final detail in (orderController.orderDetails ?? [])) {
-      final booking = detail.serviceBooking;
-      if (booking == null) continue;
-      if (booking.id != null && !seenBookings.add(booking.id!)) continue;
-      amount += booking.additionalAmount ?? 0;
+  /// The staff-added services as individual bill lines (mirrors the admin order
+  /// view: item line, then addon lines, then grand total). Prefers the order-level
+  /// flattened `additional_services` the backend now sends; falls back to merging
+  /// the per-booking copies for older payloads, one copy per booking id.
+  List<BookingAdditionalService> _additionalServiceLines(OrderController orderController) {
+    final List<BookingAdditionalService>? flattened =
+        orderController.trackModel?.additionalServices ?? order.additionalServices;
+    if (flattened != null && flattened.isNotEmpty) return flattened;
+
+    final Map<Object, List<BookingAdditionalService>> byBooking = {};
+    int syntheticKey = -1;
+
+    void absorb(int? id, List<BookingAdditionalService>? services) {
+      if (services == null || services.isEmpty) return;
+      final Object key = id ?? syntheticKey--;
+      if (byBooking[key]?.isEmpty ?? true) byBooking[key] = services;
     }
-    return amount;
+
+    for (final booking in (orderController.trackModel?.serviceBookings ?? order.serviceBookings ?? [])) {
+      absorb(booking.id, booking.additionalServices);
+    }
+    for (final detail in (orderController.orderDetails ?? [])) {
+      absorb(detail.serviceBooking?.id, detail.serviceBooking?.additionalServices);
+    }
+    return byBooking.values.expand((v) => v).toList();
   }
+
+  /// The total to display/settle: grand_total already accounts for billing state
+  /// (pre-completion it is order_amount + additions; post-completion the additions
+  /// are inside order_amount) so it never double-counts. Older payloads without it
+  /// keep the screen-computed total.
+  double _displayTotal() => order.grandTotal ?? total;
 
   @override
   Widget build(BuildContext context) {
@@ -224,18 +243,21 @@ class OrderCalculationWidget extends StatelessWidget {
                 ) : const SizedBox(),
                 SizedBox(height: extraPackagingAmount > 0 ? 10 : 0),
 
-                // Services module: what the staff added on the job. The details screen
-                // adds the same amount into `total`; this is the matching display line.
-                Builder(builder: (context) {
-                  final double additionalServicesAmount = _additionalServicesAmount(orderController);
-                  return additionalServicesAmount > 0 ? Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text('additional_services'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
-                      Text('(+) ${PriceConverter.convertPrice(additionalServicesAmount)}', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr),
-                    ]),
-                  ) : const SizedBox();
-                }),
+                // Services module: each staff-added service is its own bill line, right
+                // under the item lines (mirrors the admin order view). Display only —
+                // the grand total already accounts for these amounts.
+                ..._additionalServiceLines(orderController).map((service) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Expanded(child: Text(
+                      service.name ?? '',
+                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                    )),
+                    const SizedBox(width: 10),
+                    Text('(+) ${PriceConverter.convertPrice(service.price ?? 0)}', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr),
+                  ]),
+                )),
 
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Text('delivery_fee'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
@@ -268,7 +290,7 @@ class OrderCalculationWidget extends StatelessWidget {
                       fontSize: isDesktop ? Dimensions.fontSizeSmall : Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor,
                     )),
                     Text(
-                      PriceConverter.convertPrice(total), textDirection: TextDirection.ltr,
+                      PriceConverter.convertPrice(_displayTotal()), textDirection: TextDirection.ltr,
                       style: robotoMedium.copyWith(fontSize: isDesktop ? Dimensions.fontSizeSmall : Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),
                     ),
                   ]),
@@ -326,7 +348,7 @@ class OrderCalculationWidget extends StatelessWidget {
               const Expanded(child: SizedBox()),
 
               Text(
-                PriceConverter.convertPrice(total), textDirection: TextDirection.ltr,
+                PriceConverter.convertPrice(_displayTotal()), textDirection: TextDirection.ltr,
                 style: robotoBold.copyWith(fontSize: isDesktop ? Dimensions.fontSizeSmall : Dimensions.fontSizeDefault),
               ),
             ]),

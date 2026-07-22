@@ -19,28 +19,36 @@ class ServiceExtrasWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<BookingAdditionalService> services = [];
-    final List<String> notes = [];
-    final Set<int> seenBookings = {};
+    // The two payloads can BOTH carry the same booking, and either one may be the
+    // only one holding the staff-added data (backends differ on where they attach
+    // it). So entries are merged per booking id — services/note come from whichever
+    // source actually has them — instead of first-source-wins, which would drop
+    // the filled copy whenever an empty copy of the same booking was seen first.
+    final Map<Object, List<BookingAdditionalService>> servicesByBooking = {};
+    final Map<Object, String> noteByBooking = {};
+    int syntheticKey = -1;
 
-    for (final OrderDetailsModel detail in orderDetails ?? const []) {
-      final DetailServiceBooking? booking = detail.serviceBooking;
-      if (booking == null) continue;
-      // The same booking can arrive on several rows; count it once.
-      if (booking.id != null && !seenBookings.add(booking.id!)) continue;
-      services.addAll(booking.additionalServices ?? const []);
-      if (booking.completionNote != null && booking.completionNote!.trim().isNotEmpty) {
-        notes.add(booking.completionNote!.trim());
+    void absorb(int? id, List<BookingAdditionalService>? bookingServices, String? note) {
+      final Object key = id ?? syntheticKey--;
+      if (bookingServices != null && bookingServices.isNotEmpty && (servicesByBooking[key]?.isEmpty ?? true)) {
+        servicesByBooking[key] = bookingServices;
+      }
+      if (note != null && note.trim().isNotEmpty && (noteByBooking[key]?.isEmpty ?? true)) {
+        noteByBooking[key] = note.trim();
       }
     }
 
     for (final OrderServiceBooking booking in serviceBookings ?? const []) {
-      if (booking.id != null && !seenBookings.add(booking.id!)) continue;
-      services.addAll(booking.additionalServices ?? const []);
-      if (booking.completionNote != null && booking.completionNote!.trim().isNotEmpty) {
-        notes.add(booking.completionNote!.trim());
-      }
+      absorb(booking.id, booking.additionalServices, booking.completionNote);
     }
+    for (final OrderDetailsModel detail in orderDetails ?? const []) {
+      final DetailServiceBooking? booking = detail.serviceBooking;
+      if (booking == null) continue;
+      absorb(booking.id, booking.additionalServices, booking.completionNote);
+    }
+
+    final List<BookingAdditionalService> services = servicesByBooking.values.expand((v) => v).toList();
+    final List<String> notes = noteByBooking.values.toList();
 
     if (services.isEmpty && notes.isEmpty) {
       return const SizedBox();

@@ -517,7 +517,13 @@ class OrderInfoWidget extends StatelessWidget {
 
         // Services module: extra services the staff added on the job + the completion
         // note. Renders nothing when the booking carries neither.
-        if (isService) ServiceExtrasWidget(orderDetails: orderDetails),
+        // Both payload shapes are fed in: some backends attach the staff-added services
+        // per order line (details[].service_booking), others on the track response's
+        // service_bookings. The widget dedups by booking id.
+        if (isService) ServiceExtrasWidget(
+          orderDetails: orderDetails,
+          serviceBookings: orderController.trackModel?.serviceBookings ?? order.serviceBookings,
+        ),
 
         (isDesktop && Get.find<SplashController>().getModuleConfig(order.moduleType).orderAttachment! && order.orderAttachmentFullUrl != null
           && order.orderAttachmentFullUrl!.isNotEmpty ) ? const SizedBox(height: Dimensions.paddingSizeSmall) : const SizedBox(),
@@ -944,8 +950,14 @@ Widget servicePayNowButton(BuildContext context, OrderController orderController
     buttonText: 'pay_now'.tr,
     onPressed: () {
       final bool isDesktop = ResponsiveHelper.isDesktop(context);
+      // Seed from the live tracking total: paymentModel was fetched when the screen
+      // opened and misses anything the staff added since, while trackModel refreshes
+      // every poll tick. grand_total is the authoritative payable (it accounts for
+      // billing state, so staff additions are included exactly once).
+      final double liveTotal = orderController.trackModel?.grandTotal
+          ?? orderController.trackModel?.orderAmount ?? paymentModel.orderAmount ?? 0;
       ServicePaymentAmountSheet.show(
-        initialAmount: paymentModel.orderAmount ?? 0,
+        initialAmount: liveTotal,
         onProceed: (double amount) {
           // The adjusted amount rides in the paymentModel: the method sheet displays
           // it and the gateway URL carries it (see PaymentScreen `amount` param).
