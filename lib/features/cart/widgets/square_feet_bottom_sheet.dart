@@ -191,7 +191,12 @@ class _SquareFeetBottomSheetState extends State<SquareFeetBottomSheet> {
     final OnlineCart onlineCart = OnlineCart(
       widget.cart?.id, item.id, null, price.toString(), '', null,
       ModuleHelper.getModuleConfig(item.moduleType).newVariation! ? [] : null,
-      _squareFeet, [], [], [], 'Item',
+      // quantity carries the measured area (see SquareFeetHelper) — confirmed against the
+      // backend that price * quantity is what yields the correct order total. area is also
+      // sent as supplementary info. The per-item `maximum_cart_quantity` cap that can reject
+      // a large area value is an admin-side setting to raise for area-priced items, not
+      // something the client should work around by changing what quantity means.
+      _squareFeet, [], [], [], 'Item', area: _squareFeet,
     );
 
     if (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && (item.stock ?? 0) <= 0) {

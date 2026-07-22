@@ -12,7 +12,16 @@ import 'package:sixam_mart/helper/responsive_helper.dart';
 /// A service whose `unit_type` is set to square feet is priced per square foot
 /// rather than per piece. The area the customer enters is carried in the cart's
 /// existing `quantity` field, so `price * quantity` — the line-total formula used
-/// everywhere in the app and on the server — already yields the correct total.
+/// everywhere in the app and on the server — already yields the correct total
+/// (confirmed against the backend directly: order_amount = price * area). The
+/// measured area is also duplicated into a separate `area` field on the wire
+/// (see `SquareFeetBottomSheet._submit`, `checkout_screen.dart`'s
+/// `_buildOnlineCarts`) as supplementary info, but pricing does not depend on it.
+///
+/// A per-item `maximum_cart_quantity` admin setting can reject a large area value
+/// sent as `quantity` — that is a backend/admin config to raise for area-priced
+/// items, not something this client should route around by changing what
+/// `quantity` means.
 class SquareFeetHelper {
   SquareFeetHelper._();
 
