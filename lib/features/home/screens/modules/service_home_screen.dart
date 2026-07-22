@@ -37,7 +37,7 @@ class ServiceHomeScreen extends StatelessWidget {
       const ServiceCatalogGridView(),
 
       // Bookings still in progress.
-      isLoggedIn ? const RunningServicesView() : const SizedBox(),
+      // isLoggedIn ? const RunningServicesView() : const SizedBox(),
 
       // Rebook what was booked before.
       isLoggedIn ? const VisitAgainView() : const SizedBox(),

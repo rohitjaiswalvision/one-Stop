@@ -6,6 +6,7 @@ import 'package:sixam_mart/common/widgets/card_design/visit_again_card.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
 import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/features/home/widgets/web/widgets/arrow_icon_button.dart';
@@ -69,7 +70,7 @@ class _WebVisitAgainViewState extends State<WebVisitAgainView> {
           ),
 
           Text(
-            'get_your_recent_purchase_from_the_shop_you_recently_ordered'.tr,
+            ModuleHelper.isService() ? 'get_your_recent_service_from_the_shop_you_recently_ordered'.tr : 'get_your_recent_purchase_from_the_shop_you_recently_ordered'.tr,
             style: robotoRegular.copyWith(color: Theme.of(context).disabledColor, fontSize: Dimensions.fontSizeSmall),
           ),
           const SizedBox(height: Dimensions.paddingSizeSmall),

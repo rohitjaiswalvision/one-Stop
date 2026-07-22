@@ -102,6 +102,9 @@ class OrderModel {
   double? bringChangeAmount;
   String? cancellationNote;
   List<Reviews>? reviews;
+  /// The customer's own rating of the delivery man for this order, if one's been submitted
+  /// via delivery-man/reviews/submit — null when there's nothing to show yet.
+  DeliveryManReview? deliveryManReview;
   List<OrderServiceBooking>? serviceBookings;
   ServiceStaff? serviceStaff;
 
@@ -179,6 +182,7 @@ class OrderModel {
     this.bringChangeAmount,
     this.cancellationNote,
     this.reviews,
+    this.deliveryManReview,
     this.serviceBookings,
     this.serviceStaff,
   });
@@ -282,6 +286,7 @@ class OrderModel {
         reviews!.add(Reviews.fromJson(v));
       });
     }
+    deliveryManReview = json['delivery_man_review'] != null ? DeliveryManReview.fromJson(json['delivery_man_review']) : null;
     if (json['service_bookings'] != null) {
       serviceBookings = <OrderServiceBooking>[];
       json['service_bookings'].forEach((v) {
@@ -374,6 +379,9 @@ class OrderModel {
     data['cancellation_note'] = cancellationNote;
     if (reviews != null) {
       data['reviews'] = reviews!.map((v) => v.toJson()).toList();
+    }
+    if (deliveryManReview != null) {
+      data['delivery_man_review'] = deliveryManReview!.toJson();
     }
     if (serviceBookings != null) {
       data['service_bookings'] = serviceBookings!.map((v) => v.toJson()).toList();
@@ -838,6 +846,54 @@ class Reviews {
     data['status'] = status;
     data['module_id'] = moduleId;
     data['review_id'] = reviewId;
+    return data;
+  }
+}
+
+/// The customer's own rating of the delivery man for a specific order, from
+/// POST /delivery-man/reviews/submit.
+class DeliveryManReview {
+  int? id;
+  int? deliveryManId;
+  int? userId;
+  int? orderId;
+  int? rating;
+  String? comment;
+  String? createdAt;
+  String? updatedAt;
+
+  DeliveryManReview({
+    this.id,
+    this.deliveryManId,
+    this.userId,
+    this.orderId,
+    this.rating,
+    this.comment,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  DeliveryManReview.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    deliveryManId = json['delivery_man_id'];
+    userId = json['user_id'];
+    orderId = json['order_id'];
+    rating = json['rating'];
+    comment = json['comment'];
+    createdAt = json['created_at'];
+    updatedAt = json['updated_at'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['delivery_man_id'] = deliveryManId;
+    data['user_id'] = userId;
+    data['order_id'] = orderId;
+    data['rating'] = rating;
+    data['comment'] = comment;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
     return data;
   }
 }

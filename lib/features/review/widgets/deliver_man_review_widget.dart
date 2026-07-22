@@ -1,4 +1,5 @@
 import 'package:sixam_mart/features/review/domain/models/review_body_model.dart';
+import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/order/domain/models/order_model.dart';
 import 'package:sixam_mart/features/review/controllers/review_controller.dart';
 import 'package:sixam_mart/features/review/widgets/delivery_man_widget.dart';
@@ -104,16 +105,26 @@ class _DeliveryManReviewWidgetState extends State<DeliveryManReviewWidget> {
                           if (!currentFocus.hasPrimaryFocus) {
                             currentFocus.unfocus();
                           }
+                          final int ratingGiven = reviewController.deliveryManRating;
+                          final String commentGiven = _controller.text;
                           ReviewBodyModel reviewBody = ReviewBodyModel(
                             deliveryManId: widget.deliveryMan!.id.toString(),
-                            rating: reviewController.deliveryManRating.toString(),
-                            comment: _controller.text,
+                            rating: ratingGiven.toString(),
+                            comment: commentGiven,
                             orderId: widget.orderID,
                           );
                           await reviewController.submitDeliveryManReview(reviewBody).then((value) {
                             if (value.isSuccess) {
                               showCustomSnackBar(value.message, isError: false);
                               _controller.text = '';
+                              // Reflect it on the order-list card right away, without waiting on
+                              // that screen's own refetch when the user navigates back to it.
+                              Get.find<OrderController>().applyDeliveryManReviewLocally(
+                                int.tryParse(widget.orderID),
+                                widget.deliveryMan!.id,
+                                ratingGiven,
+                                commentGiven,
+                              );
                             } else {
                               showCustomSnackBar(value.message);
                             }

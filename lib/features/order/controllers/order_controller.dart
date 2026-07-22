@@ -191,6 +191,47 @@ class OrderController extends GetxController implements GetxService {
     }
   }
 
+  /// Immediately reflects a just-submitted item rating on any cached order (running or
+  /// history) so the order-list star row updates the instant the user comes back from the
+  /// rating screen — no waiting on a network refetch. [_openReview] in OrderViewWidget still
+  /// re-fetches the list afterwards as the source of truth; this only removes the visible
+  /// delay until that lands.
+  void applyItemReviewLocally(int? orderId, int? itemId, int rating, String? comment) {
+    bool changed = false;
+    for (final PaginatedOrderModel? model in <PaginatedOrderModel?>[_runningOrderModel, _historyOrderModel]) {
+      final List<OrderModel>? orders = model?.orders;
+      if (orders == null) continue;
+      for (final OrderModel order in orders) {
+        if (order.id != orderId) continue;
+        order.reviews ??= <Reviews>[];
+        final int existingIndex = order.reviews!.indexWhere((Reviews r) => r.itemId == itemId);
+        final Reviews review = Reviews(itemId: itemId, orderId: orderId, rating: rating, comment: comment);
+        if (existingIndex >= 0) {
+          order.reviews![existingIndex] = review;
+        } else {
+          order.reviews!.add(review);
+        }
+        changed = true;
+      }
+    }
+    if (changed) update();
+  }
+
+  /// Same idea as [applyItemReviewLocally] but for the delivery-man rating.
+  void applyDeliveryManReviewLocally(int? orderId, int? deliveryManId, int rating, String? comment) {
+    bool changed = false;
+    for (final PaginatedOrderModel? model in <PaginatedOrderModel?>[_runningOrderModel, _historyOrderModel]) {
+      final List<OrderModel>? orders = model?.orders;
+      if (orders == null) continue;
+      for (final OrderModel order in orders) {
+        if (order.id != orderId) continue;
+        order.deliveryManReview = DeliveryManReview(deliveryManId: deliveryManId, orderId: orderId, rating: rating, comment: comment);
+        changed = true;
+      }
+    }
+    if (changed) update();
+  }
+
   Future<void> getSupportReasons() async {
     _supportReasons = await orderServiceInterface.getSupportReasonsList();
     update();

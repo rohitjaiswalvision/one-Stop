@@ -410,10 +410,7 @@ class OrderViewWidget extends StatelessWidget {
               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
               Text(status.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: statusColor)),
               const Spacer(),
-              Text(
-                DateConverter.dateTimeStringToDateTime(order.createdAt!),
-                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor),
-              ),
+             
             ]),
           ),
 
@@ -440,32 +437,76 @@ class OrderViewWidget extends StatelessWidget {
               if(isRunning)
                 _actionButton(context, filled: true, icon: Images.tracking, text: isParcel ? 'track_delivery'.tr : 'track_order'.tr,
                     onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(order.id, null)))
-              else if(order.store != null && !isParcel)
-                _actionButton(context, filled: false, text: 're_order'.tr,
-                    onTap: () => Get.toNamed(RouteHelper.getStoreRoute(id: order.store!.id, page: 'store', slug: order.store!.slug ?? ''))),
+              // else if(order.store != null && !isParcel)
+              //   _actionButton(context, filled: false, text: 're_order'.tr,
+              //       onTap: () => Get.toNamed(RouteHelper.getStoreRoute(id: order.store!.id, page: 'store', slug: order.store!.slug ?? ''))),
             ]),
           ),
 
-          // A completed order gets two rating entries side by side: the store on one half,
-          // the delivery on the other. Delivery only shows when a delivery man was assigned
-          // (service bookings have none), otherwise the store rating spans the row.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0, Dimensions.paddingSizeDefault, Dimensions.paddingSizeSmall),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                DateConverter.dateTimeStringToDateTime(order.createdAt!),
+                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor),
+              ),
+            ]),
+          ),
+
+          // A completed order gets two star-rating rows side by side: the food/items on one
+          // half, the delivery man on the other (delivery only shows when one was assigned —
+          // service bookings have none). Below that, a full-width Reorder pill plus an
+          // "Ordered: <date> • Bill Total: <amount>" footer, mirroring the marketplace-app pattern.
           if(_isCompleted(status)) ...[
             Divider(height: 1, thickness: 1, color: Theme.of(context).disabledColor.withValues(alpha: 0.12)),
-            IntrinsicHeight(child: Row(children: [
-              if(order.store != null) Expanded(child: _rateHalf(
-                context, icon: Icons.storefront_outlined, label: 'rate_store'.tr,
-                onTap: () => _openStoreReview(order),
-              )),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
+              child: IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if(order.store != null) Expanded(child: _starRatingRow(
+                  context, label: _foodRatingLabel(order), rating: _averageFoodRating(order),
+                  // Already rated (reviews/submit only accepts one rating per item per order) —
+                  // show the given stars as a read-only summary instead of reopening the form.
+                  onTap: _hasFoodRating(order) ? null : () => _openReview(order),
+                )),
 
-              if(order.store != null && order.deliveryMan != null) VerticalDivider(
-                width: 1, thickness: 1, color: Theme.of(context).disabledColor.withValues(alpha: 0.12),
-              ),
+                if(order.store != null && order.deliveryMan != null) const SizedBox(width: Dimensions.paddingSizeDefault),
 
-              if(order.deliveryMan != null) Expanded(child: _rateHalf(
-                context, icon: Icons.delivery_dining_outlined, label: 'rate_delivery'.tr,
-                onTap: () => _openReview(order),
-              )),
-            ])),
+                if(order.deliveryMan != null) Expanded(child: _starRatingRow(
+                  context, label: 'delivery_rating'.tr, rating: order.deliveryManReview?.rating ?? 0,
+                  // Same one-time-rating rule as the food row, keyed off the delivery man review.
+                  onTap: order.deliveryManReview != null ? null : () => _openReview(order, openDeliveryTab: true),
+                )),
+              ])),
+            ),
+
+            if(order.store != null && !isParcel) Padding(
+              padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0, Dimensions.paddingSizeDefault, Dimensions.paddingSizeDefault),
+              child: Column(children: [
+                InkWell(
+                  onTap: () => Get.toNamed(RouteHelper.getStoreRoute(id: order.store!.id, page: 'store', slug: order.store!.slug ?? '')),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text('re_order'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor)),
+                      const SizedBox(width: 2),
+                      Icon(Icons.chevron_right, size: 16, color: Theme.of(context).primaryColor),
+                    ]),
+                  ),
+                ),
+                // const SizedBox(height: Dimensions.paddingSizeSmall),
+                // Text(
+                //   '${'ordered'.tr}: ${DateConverter.dateTimeStringToDateTime(order.createdAt!)} • ${'bill_total'.tr}: ${PriceConverter.convertPrice(order.orderAmount)}',
+                //   style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor),
+                // ),
+              ]),
+            ),
           ],
 
         ]),
@@ -507,37 +548,51 @@ class OrderViewWidget extends StatelessWidget {
   /// A finished order the customer can rate — delivered goods or a completed service booking.
   bool _isCompleted(String status) => status == 'delivered' || status == 'completed';
 
-  /// One half of the completed-order rating strip: an icon, a label and a star.
-  Widget _rateHalf(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeExtraSmall),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, size: 16, color: Theme.of(context).primaryColor),
-          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-          Flexible(child: Text(
-            label, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
-          )),
-          const SizedBox(width: 2),
-          Icon(Icons.star_border, size: 16, color: Theme.of(context).primaryColor),
-        ]),
-      ),
-    );
+  /// "Your Food Rating" for a food order, a generic "Your Order Rating" for every other module.
+  String _foodRatingLabel(OrderModel order) {
+    return order.moduleType == AppConstants.food ? 'your_food_rating'.tr : 'your_order_rating'.tr;
   }
 
-  /// Opens the store's own review screen (separate from the item/delivery-man review).
-  void _openStoreReview(OrderModel order) {
-    if (order.store == null) return;
-    Get.toNamed(RouteHelper.getStoreReviewRoute(
-      order.store!.id, order.store!.name, order.store!, slug: order.store!.slug ?? '',
-    ));
+  /// The order list has no per-order "my rating" field — only per-item reviews already left
+  /// on this order — so show the average of those (0 stars, i.e. unrated, when there are none).
+  int _averageFoodRating(OrderModel order) {
+    final List<Reviews>? reviews = order.reviews;
+    if (reviews == null || reviews.isEmpty) return 0;
+    final int sum = reviews.fold(0, (int total, Reviews r) => total + (r.rating ?? 0));
+    return (sum / reviews.length).round();
+  }
+
+  /// reviews/submit only accepts one rating per item per order — once any review exists here,
+  /// treat the item/service as already rated instead of offering to rate it again.
+  bool _hasFoodRating(OrderModel order) => order.reviews?.isNotEmpty ?? false;
+
+  /// One rating row of the completed-order strip: a label above a row of 5 stars.
+  /// [rating] fills that many stars; the rest render outlined. A null [onTap] renders the
+  /// row as a static read-only summary (already rated, tapping again would resubmit).
+  Widget _starRatingRow(BuildContext context, {required String label, required int rating, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          label, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall),
+        ),
+        const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+        Row(children: List.generate(5, (int i) => Padding(
+          padding: const EdgeInsets.only(right: 2),
+          child: Icon(
+            i < rating ? Icons.star : Icons.star_border, size: 18,
+            color: i < rating ? Colors.amber : Theme.of(context).disabledColor,
+          ),
+        ))),
+      ]),
+    );
   }
 
   /// The order list doesn't carry the item details the review screen needs, so fetch them
   /// first (with a loader), then open the same rate-and-review flow the details screen uses.
-  Future<void> _openReview(OrderModel order) async {
+  /// [openDeliveryTab] jumps straight to the delivery-man tab (used by the "Delivery Rating" row).
+  Future<void> _openReview(OrderModel order, {bool openDeliveryTab = false}) async {
     Get.dialog(const CustomLoaderWidget(), barrierDismissible: false);
     await Get.find<OrderController>().getOrderDetails(order.id.toString());
     final List<OrderDetailsModel> details = Get.find<OrderController>().orderDetails ?? <OrderDetailsModel>[];
@@ -554,11 +609,21 @@ class OrderViewWidget extends StatelessWidget {
 
     if (Get.isDialogOpen ?? false) Get.back(); // close loader
 
-    Get.toNamed(RouteHelper.getReviewRoute(), arguments: RateReviewScreen(
+    // Wait for the rating screen to close, then refresh the list — the order object held
+    // here is a snapshot from the last fetch, so a rating just submitted won't show on this
+    // card until the list is re-fetched (otherwise it only appears after a manual pull-to-refresh).
+    await Get.toNamed(RouteHelper.getReviewRoute(), arguments: RateReviewScreen(
       orderDetailsList: uniqueDetails,
       deliveryMan: order.deliveryMan,
       orderID: order.id,
       reviews: order.reviews,
+      initialTabIndex: openDeliveryTab ? 1 : 0,
     ));
+
+    if(isRunning) {
+      await Get.find<OrderController>().getRunningOrders(1, isUpdate: true);
+    } else {
+      await Get.find<OrderController>().getHistoryOrders(1, isUpdate: true);
+    }
   }
 }

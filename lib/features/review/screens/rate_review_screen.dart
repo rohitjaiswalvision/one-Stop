@@ -15,7 +15,9 @@ class RateReviewScreen extends StatefulWidget {
   final DeliveryMan? deliveryMan;
   final int? orderID;
   final List<Reviews>? reviews;
-  const RateReviewScreen({super.key, required this.orderDetailsList, required this.deliveryMan, required this.orderID, this.reviews});
+  /// Which tab opens first (0 = items/food, 1 = delivery man) — only meaningful when both tabs exist.
+  final int initialTabIndex;
+  const RateReviewScreen({super.key, required this.orderDetailsList, required this.deliveryMan, required this.orderID, this.reviews, this.initialTabIndex = 0});
 
   @override
   RateReviewScreenState createState() => RateReviewScreenState();
@@ -27,7 +29,8 @@ class RateReviewScreenState extends State<RateReviewScreen> with TickerProviderS
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: (widget.deliveryMan == null || widget.orderDetailsList.isEmpty) ? 1 : 2, initialIndex: 0, vsync: this);
+    final int tabLength = (widget.deliveryMan == null || widget.orderDetailsList.isEmpty) ? 1 : 2;
+    _tabController = TabController(length: tabLength, initialIndex: widget.initialTabIndex < tabLength ? widget.initialTabIndex : 0, vsync: this);
     Get.find<ReviewController>().initRatingData(widget.orderDetailsList);
   }
   @override
