@@ -330,15 +330,24 @@ class SplashController extends GetxController implements GetxService {
     if(_module == null || _module!.id != _moduleList![index].id) {
       // ShadowRouterHelper.updateParameter('module_id', _moduleList![index].id.toString());
 
-      await Get.find<SplashController>().setModule(_moduleList![index]);
-
-      if(_module!.moduleType.toString() != AppConstants.taxi) {
-        Get.find<CartController>().getCartDataOnline();
+      final bool toTaxi = _moduleList![index].moduleType.toString() == AppConstants.taxi;
+      if(!toTaxi) {
+        // Drop the previous module's lists BEFORE setModule notifies the UI: setModule's
+        // update() rebuilds the home as the new module, and any list left behind renders
+        // as the new module's content (old categories/items flashing) until the network
+        // responses land. Cleared first, the first frame shows shimmers instead.
         Get.find<ItemController>().clearItemLists();
         Get.find<BannerController>().clearBanner();
         Get.find<CategoryController>().clearCategoryList();
         Get.find<CampaignController>().itemAndBasicCampaignNull();
         Get.find<FlashSaleController>().setEmptyFlashSale(fromModule: true);
+        Get.find<StoreController>().clearStoreListData();
+      }
+
+      await Get.find<SplashController>().setModule(_moduleList![index]);
+
+      if(!toTaxi) {
+        Get.find<CartController>().getCartDataOnline();
 
         if(AuthHelper.isLoggedIn()) {
           Get.find<HomeController>().getCashBackOfferList();

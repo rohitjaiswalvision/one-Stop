@@ -261,13 +261,10 @@ class StoreRegistrationController extends GetxController implements GetxService 
   }
 
   void setLocation(LatLng location, {bool forStoreRegistration = false, int? zoneId, bool resetAddress = false}) async {
+    // /config/get-zone-id is the authority on which zone(s) cover this location — the
+    // zone selection and the module picker both follow its answer, so the vendor can
+    // only pick a module that actually exists in the zone of the picked address.
     ZoneResponseModel response = await locationServiceInterface.getZone(location.latitude.toString(), location.longitude.toString());
-
-    if(zoneId != null) {
-      _inZone = await storeRegistrationServiceInterface.checkInZone(location.latitude.toString(), location.longitude.toString(), zoneId);
-    }else{
-      _inZone = false;
-    }
 
     if(resetAddress){
       _storeAddress = '';
@@ -278,12 +275,34 @@ class StoreRegistrationController extends GetxController implements GetxService 
     if(response.isSuccess && response.zoneIds.isNotEmpty) {
       _restaurantLocation = location;
       _zoneIds = response.zoneIds;
+
+      if(zoneId != null) {
+        _inZone = _zoneIds!.contains(zoneId)
+            || await storeRegistrationServiceInterface.checkInZone(location.latitude.toString(), location.longitude.toString(), zoneId);
+      }else{
+        _inZone = true;
+      }
+
+      // Keep the caller's zone when the API confirms it covers the location; otherwise
+      // switch to the first listed zone the API returned. A zone change invalidates the
+      // module list, so reload it for the detected zone.
+      int detectedIndex = -1;
+      bool keepCallerZone = zoneId != null && _zoneIds!.contains(zoneId);
       for(int index=0; index<zoneList!.length; index++) {
-        if(zoneIds!.contains(zoneList![index].id)) {
-          if(!forStoreRegistration) {
-            _selectedZoneIndex = index;
-          }
+        if(keepCallerZone ? zoneList![index].id == zoneId : _zoneIds!.contains(zoneList![index].id)) {
+          detectedIndex = index;
           break;
+        }
+      }
+      if(detectedIndex != -1) {
+        if(_selectedZoneIndex != detectedIndex) {
+          _selectedZoneIndex = detectedIndex;
+          _moduleList = null;
+          _selectedModuleIndex = -1;
+          update();
+          await getModules(zoneList![detectedIndex].id);
+        }else if(_moduleList == null) {
+          await getModules(zoneList![detectedIndex].id);
         }
       }
     }else {

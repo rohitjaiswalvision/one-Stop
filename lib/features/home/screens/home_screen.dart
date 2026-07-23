@@ -505,18 +505,41 @@ class _HomeScreenState extends State<HomeScreen> {
                   SliverToBoxAdapter(
                     child: Center(child: SizedBox(
                       width: Dimensions.webMaxWidth,
-                      child: !showMobileModule ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      // Keyed by module id so hopping between modules cross-fades the whole
+                      // module home (old one fades/slides out, new one in) instead of the
+                      // content swapping abruptly mid-frame.
+                      child: !showMobileModule ? AnimatedSwitcher(
+                        duration: PremiumTokens.medium,
+                        switchInCurve: PremiumTokens.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) => Stack(
+                          alignment: Alignment.topCenter,
+                          children: [...previousChildren, ?currentChild],
+                        ),
+                        transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero).animate(animation),
+                            child: child,
+                          ),
+                        ),
+                        child: Column(
+                          key: ValueKey<int?>(splashController.module?.id),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
 
-                        isGrocery ? const GroceryHomeScreen()
-                            // : isPharmacy ? const PharmacyHomeScreen()
-                            : isFood ? const FoodHomeScreen()
-                            : isShop ? const ShopHomeScreen()
-                            : isService ? const ServiceHomeScreen()
-                            // : isTaxi ? const TaxiHomeScreen()
-                            : isRide ? const RideHomeScreen()
-                            : const SizedBox(),
+                            isGrocery ? const GroceryHomeScreen()
+                                // : isPharmacy ? const PharmacyHomeScreen()
+                                : isFood ? const FoodHomeScreen()
+                                : isShop ? const ShopHomeScreen()
+                                : isService ? const ServiceHomeScreen()
+                                // : isTaxi ? const TaxiHomeScreen()
+                                : isRide ? const RideHomeScreen()
+                                : const SizedBox(),
 
-                      ]) : ModuleView(splashController: splashController),
+                          ],
+                        ),
+                      ) : ModuleView(splashController: splashController),
                     )),
                   ),
 

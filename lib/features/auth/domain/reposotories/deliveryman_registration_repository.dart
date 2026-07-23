@@ -1,3 +1,4 @@
+import 'dart:convert';
 
 import 'package:get/get_connect/http/src/response/response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +48,10 @@ class DeliverymanRegistrationRepository implements DeliverymanRegistrationReposi
       headers: {
       'Content-Type': 'application/json; charset=UTF-8',
         AppConstants.localizationKey: sharedPreferences.getString(AppConstants.languageCode) ?? AppConstants.languages[0].languageCode!,
+        // The backend resolves the zone from the zoneId header (JSON array), not the
+        // zone_id query param — without it, it falls back to the default zone and only
+        // returns that zone's modules.
+        AppConstants.zoneId: jsonEncode([zoneId]),
       },
     );
     if (response.statusCode == 200) {

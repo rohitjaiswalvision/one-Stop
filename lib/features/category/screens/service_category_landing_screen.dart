@@ -75,10 +75,12 @@ class _ServiceCategoryLandingScreenState extends State<ServiceCategoryLandingScr
             onPressed: () => Get.back(),
           ),
           title: Text(widget.categoryName, style: robotoBold.copyWith(
+  
             fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).textTheme.bodyLarge!.color,
           )),
+          centerTitle: true,
         ),
-        endDrawer: const MenuDrawer(), endDrawerEnableOpenDragGesture: false,
+        // endDrawer: const MenuDrawer(), endDrawerEnableOpenDragGesture: false,
 
         bottomNavigationBar: GetBuilder<CartController>(builder: (CartController cartController) {
           return cartController.cartList.isNotEmpty && !isDesktop

@@ -481,7 +481,7 @@ class OrderViewWidget extends StatelessWidget {
 
             if(order.store != null && !isParcel) Padding(
               padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0, Dimensions.paddingSizeDefault, Dimensions.paddingSizeDefault),
-              child: Column(children: [
+              child: Column(children: [ 
                 InkWell(
                   onTap: () => Get.toNamed(RouteHelper.getStoreRoute(id: order.store!.id, page: 'store', slug: order.store!.slug ?? '')),
                   borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),

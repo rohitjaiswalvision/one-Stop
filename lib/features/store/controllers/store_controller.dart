@@ -259,6 +259,17 @@ class StoreController extends GetxController implements GetxService {
     _storeType = 'all';
   }
 
+  /// Drops every module-scoped store list so a module switch never renders the
+  /// previous module's stores while the new module's lists are still loading.
+  void clearStoreListData() {
+    _storeModel = null;
+    _popularStoreList = null;
+    _latestStoreList = null;
+    _topOfferStoreList = null;
+    _visitAgainStoreList = null;
+    _recommendedStoreList = null;
+  }
+
   Future<void> getPopularStoreList(bool reload, String type, bool notify, {DataSourceEnum dataSource = DataSourceEnum.local, bool fromRecall = false}) async {
     _type = type;
     if(reload) {
