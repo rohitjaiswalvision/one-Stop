@@ -2,6 +2,7 @@ import 'package:sixam_mart/common/enums/data_source_enum.dart';
 import 'package:sixam_mart/common/models/response_model.dart';
 import 'package:sixam_mart/features/auth/controllers/auth_controller.dart';
 import 'package:sixam_mart/features/banner/controllers/banner_controller.dart';
+import 'package:sixam_mart/features/brands/controllers/brands_controller.dart';
 import 'package:sixam_mart/features/category/controllers/category_controller.dart';
 import 'package:sixam_mart/features/flash_sale/controllers/flash_sale_controller.dart';
 import 'package:sixam_mart/features/home/controllers/home_controller.dart';
@@ -10,6 +11,7 @@ import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/notification/domain/models/notification_body_model.dart';
 import 'package:sixam_mart/features/profile/controllers/profile_controller.dart';
+import 'package:sixam_mart/features/reels/controllers/reels_controller.dart';
 import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/favourite/controllers/favourite_controller.dart';
 import 'package:sixam_mart/api/api_client.dart';
@@ -342,6 +344,12 @@ class SplashController extends GetxController implements GetxService {
         Get.find<CampaignController>().itemAndBasicCampaignNull();
         Get.find<FlashSaleController>().setEmptyFlashSale(fromModule: true);
         Get.find<StoreController>().clearStoreListData();
+        if(Get.isRegistered<ReelsController>()) {
+          Get.find<ReelsController>().clearReelsList();
+        }
+        if(Get.isRegistered<BrandsController>()) {
+          Get.find<BrandsController>().clearBrandList();
+        }
       }
 
       await Get.find<SplashController>().setModule(_moduleList![index]);

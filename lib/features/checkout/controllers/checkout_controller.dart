@@ -248,6 +248,27 @@ class CheckoutController extends GetxController implements GetxService {
     _store = await Get.find<StoreController>().getStoreDetails(Store(id: storeId), false);
 
     if (_store != null) {
+      // Pin the payment method before the first update() fires (getSurgePrice below
+      // notifies immediately). Doing this after that call left a window where
+      // checkout_screen's tax-preview read the default paymentMethodIndex (-1),
+      // which mapped to 'offline_payment' and got rejected by the backend for
+      // service bookings ("can only be booked with pay after service").
+      if(ModuleHelper.isService()) {
+        // Service bookings are always schedulable: force the date/time slot picker
+        // on for service-module providers even when the store itself has schedule
+        // order disabled. This flips both the slot UI and the scheduleAt payload.
+        _store!.scheduleOrder = true;
+
+        // Nothing is paid when a service is booked. The customer settles up with the
+        // vendor once the work is done, so checkout offers no payment choice. The actual
+        // payment_method sent to the server is AppConstants.payAfterService, forced
+        // directly in checkout_screen.dart's place-order/tax-preview bodies via
+        // ModuleHelper.isService() — this index is just an internal placeholder so no
+        // other paymentMethodIndex-driven UI (e.g. the COD max-amount check) misfires.
+        // See _payAfterServiceNote in top_section.dart.
+        _paymentMethodIndex = 0;
+      }
+
       await getSurgePrice(
         zoneId: _store!.zoneId.toString(),
         moduleId: _store!.moduleId.toString(),
@@ -265,19 +286,6 @@ class CheckoutController extends GetxController implements GetxService {
           }
         }
         Get.find<SplashController>().setModule(Get.find<SplashController>().moduleList![i]);
-      }
-
-      // Service bookings are always schedulable: force the date/time slot picker
-      // on for service-module providers even when the store itself has schedule
-      // order disabled. This flips both the slot UI and the scheduleAt payload.
-      if(ModuleHelper.isService()) {
-        _store!.scheduleOrder = true;
-
-        // Nothing is paid when a service is booked. The customer settles up with the
-        // vendor once the work is done, so checkout offers no payment choice and pins
-        // the method to cash-on-delivery — the value the server already understands for
-        // "collect on completion". See _payAfterServiceNote in top_section.dart.
-        _paymentMethodIndex = 0;
       }
 
       initializeTimeSlot(_store!);

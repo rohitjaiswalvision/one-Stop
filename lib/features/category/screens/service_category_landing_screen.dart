@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sixam_mart/common/widgets/menu_drawer.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_card.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_chip.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/common/widgets/web_menu_bar.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/category/controllers/service_category_controller.dart';
@@ -8,14 +10,16 @@ import 'package:sixam_mart/features/category/widgets/service_sub_category_card.d
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
+import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
 /// Landing page of one catalog category (services → categories sheet → *here*).
 ///
-/// Header carries the category name and a rating line derived from the services
-/// actually loaded; below it, the "Select a service" list — one card per bookable
-/// sub-category with its starting price, a short description, View details, and Add.
+/// A gradient hero banner carries the category name and a rating pill derived
+/// from the services actually loaded; below it, a card holding the "Select a
+/// service" list — one row per bookable sub-category with its starting price,
+/// a short description, View details, and Add.
 class ServiceCategoryLandingScreen extends StatefulWidget {
   final String? categoryId;
   final String? serviceId;
@@ -67,16 +71,15 @@ class _ServiceCategoryLandingScreenState extends State<ServiceCategoryLandingScr
       return Scaffold(
         backgroundColor: Theme.of(context).cardColor,
         appBar: isDesktop ? const WebMenuBar() : AppBar(
-          backgroundColor: Theme.of(context).cardColor,
-          surfaceTintColor: Theme.of(context).cardColor,
-          elevation: 0.5,
+          backgroundColor: Theme.of(context).primaryColor,
+          surfaceTintColor: Theme.of(context).primaryColor,
+          elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).textTheme.bodyLarge!.color),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
             onPressed: () => Get.back(),
           ),
           title: Text(widget.categoryName, style: robotoBold.copyWith(
-  
-            fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).textTheme.bodyLarge!.color,
+            fontSize: Dimensions.fontSizeLarge, color: Colors.white,
           )),
           centerTitle: true,
         ),
@@ -94,53 +97,90 @@ class _ServiceCategoryLandingScreenState extends State<ServiceCategoryLandingScr
             width: Dimensions.webMaxWidth,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Dimensions.paddingSizeDefault, Dimensions.paddingSizeLarge, Dimensions.paddingSizeDefault, 0,
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(
-                    controller.parentName ?? widget.categoryName,
-                    style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge),
-                    maxLines: 2, overflow: TextOverflow.ellipsis,
-                  ),
+              // Hero banner — brand gradient, rounded bottom edge, soft shadow so it
+              // reads as a distinct header rather than a plain title bar.
+              // Container(
+              //   width: double.infinity,
+              //   padding: const EdgeInsets.fromLTRB(
+              //     Dimensions.paddingSizeDefault, Dimensions.paddingSizeLarge,
+              //     Dimensions.paddingSizeDefault, Dimensions.paddingSizeExtraLarge,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     gradient: PremiumTokens.brandGradient(context),
+              //     borderRadius: const BorderRadius.only(
+              //       bottomLeft: Radius.circular(PremiumTokens.radiusHero),
+              //       bottomRight: Radius.circular(PremiumTokens.radiusHero),
+              //     ),
+              //     boxShadow: PremiumTokens.softShadow(context),
+              //   ),
+              //   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              //     // Text(
+              //     //   controller.parentName ?? widget.categoryName,
+              //     //   style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge, color: Colors.white),
+              //     //   maxLines: 2, overflow: TextOverflow.ellipsis,
+              //     // ),
 
-                  if (controller.showRatingLine) Padding(
-                    padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
-                    child: Row(children: [
-                      const Icon(Icons.star, size: 16, color: Colors.orange),
-                      const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                      Text(
-                        controller.derivedRating.toStringAsFixed(1),
-                        style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall),
-                      ),
-                      const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                      Text(
-                        '(${controller.derivedRatingCount} ${'ratings'.tr})',
-                        style: robotoRegular.copyWith(
-                          fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor,
-                        ),
-                      ),
-                    ]),
-                  ),
-                ]),
-              ),
+              //     if (controller.showRatingLine) Padding(
+              //       padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+              //       child: Container(
+              //         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: 4),
+              //         decoration: BoxDecoration(
+              //           color: Colors.white.withValues(alpha: 0.16),
+              //           borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
+              //         ),
+              //         child: Row(mainAxisSize: MainAxisSize.min, children: [
+              //           const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+              //           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+              //           Text(
+              //             controller.derivedRating.toStringAsFixed(1),
+              //             style: robotoSemiBold.copyWith(fontSize: Dimensions.fontSizeSmall, color: Colors.white),
+              //           ),
+              //           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+              //           Text(
+              //             '(${controller.derivedRatingCount} ${'ratings'.tr})',
+              //             style: robotoRegular.copyWith(
+              //               fontSize: Dimensions.fontSizeSmall, color: Colors.white.withValues(alpha: 0.85),
+              //             ),
+              //           ),
+              //         ]),
+              //       ),
+              //     ),
+              //   ]),
+              // ),
               const SizedBox(height: Dimensions.paddingSizeLarge),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                child: Text('select_a_service'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
-              ),
-              const SizedBox(height: Dimensions.paddingSizeSmall),
+                child: PremiumCard(
+                  padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-              ServiceItemsListView(items: items),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                      child: Row(children: [
+                        Expanded(child: Text(
+                          'select_a_service'.tr,
+                          style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge),
+                        )),
+                        if (items != null && items.isNotEmpty) StatusPill(
+                          label: '${items.length} ${'services'.tr}',
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ]),
+                    ),
+                    const SizedBox(height: Dimensions.paddingSizeSmall),
 
-              if (controller.isSectionBusy(_sectionId)) Center(child: Padding(
-                padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                    FadeSlideIn(child: ServiceItemsListView(items: items)),
+
+                    if (controller.isSectionBusy(_sectionId)) Center(child: Padding(
+                      padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                      ),
+                    )),
+                  ]),
                 ),
-              )),
+              ),
 
               const SizedBox(height: 100),
             ]),

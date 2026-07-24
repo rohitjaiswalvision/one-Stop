@@ -112,6 +112,7 @@ class Item {
   bool? isPrescriptionRequired;
   bool? homeService; // service item can be performed at the customer's address
   bool? atStore;     // service item can be performed at the provider's store
+  bool? isInspection; // final price is set by the provider on arrival, not fixed upfront
   List<String>? nutritionsName;
   List<String>? allergiesName;
   List<String>? genericName;
@@ -168,6 +169,7 @@ class Item {
     this.isPrescriptionRequired,
     this.homeService,
     this.atStore,
+    this.isInspection,
     this.nutritionsName,
     this.allergiesName,
     this.genericName,
@@ -264,6 +266,7 @@ class Item {
     isPrescriptionRequired = json['is_prescription_required'] == 1;
     homeService = json['home_service'] == 1 || json['home_service'] == true;
     atStore = json['at_store'] == 1 || json['at_store'] == true;
+    isInspection = json['is_inspection'] == 1 || json['is_inspection'] == true;
     nutritionsName = json['nutritions_name']?.cast<String>();
     allergiesName = json['allergies_name']?.cast<String>();
     genericName = json['generic_name']?.cast<String>();
@@ -335,6 +338,7 @@ class Item {
     data['is_prescription_required'] = isPrescriptionRequired;
     data['home_service'] = homeService;
     data['at_store'] = atStore;
+    data['is_inspection'] = isInspection;
     data['nutritions_name'] = nutritionsName;
     data['allergies_name'] = allergiesName;
     data['generic_name'] = genericName;

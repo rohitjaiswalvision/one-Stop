@@ -74,6 +74,14 @@ class ReelsController extends GetxController {
     _offset = offset;
   }
 
+  void clearReelsList() {
+    _reelsList = null;
+    _pageSize = null;
+    _offsetList.clear();
+    _offset = 1;
+    _isLoading = true;
+  }
+
   bool reelListLoadingComplete() {
     if(_pageSize == null || _reelsList == null) {
       return false;

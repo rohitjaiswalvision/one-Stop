@@ -171,6 +171,7 @@ class OrderInfoWidget extends StatelessWidget {
                   color: Theme.of(context).primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                 ),
                 child: Text( order.paymentMethod == 'cash_on_delivery' ? 'cash_on_delivery'.tr
+                  : order.paymentMethod == AppConstants.payAfterService ? 'pay_after_service'.tr
                   : order.paymentMethod == 'wallet' ? 'wallet_payment'.tr
                   : order.paymentMethod == 'partial_payment' ? 'partial_payment'.tr
                   : order.paymentMethod == 'offline_payment' ? 'offline_payment'.tr : 'digital_payment'.tr,
@@ -865,7 +866,7 @@ class OrderInfoWidget extends StatelessWidget {
                 Row(children: [
 
                   Image.asset(
-                    order.paymentMethod == 'cash_on_delivery' ? Images.cash
+                    order.paymentMethod == 'cash_on_delivery' || order.paymentMethod == AppConstants.payAfterService ? Images.cash
                         : order.paymentMethod == 'wallet' ? Images.wallet
                         : order.paymentMethod == 'partial_payment' ? Images.partialWallet
                         : Images.digitalPayment,
@@ -877,6 +878,7 @@ class OrderInfoWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       order.paymentMethod == 'cash_on_delivery' ? 'cash'.tr
+                          : order.paymentMethod == AppConstants.payAfterService ? 'pay_after_service'.tr
                           : order.paymentMethod == 'wallet' ? 'wallet'.tr
                           : order.paymentMethod == 'partial_payment' ? '${'partial_payment'.tr} (${order.payments != null ? order.payments![1].paymentMethod?.tr.replaceAll('_', ' ').toCapitalized() : ''})'
                           : '${'digital_payment'.tr} ${order.paymentMethod != 'digital_payment' ? '(${order.paymentMethod?.toCapitalized().replaceAll('_', ' ')})' : ''}',
@@ -884,14 +886,14 @@ class OrderInfoWidget extends StatelessWidget {
                     ),
                   ),
 
-                  if(order.paymentMethod == 'wallet' || order.paymentMethod == 'cash_on_delivery')
+                  if(order.paymentMethod == 'wallet' || order.paymentMethod == 'cash_on_delivery' || order.paymentMethod == AppConstants.payAfterService)
                     Text(PriceConverter.convertPrice(order.orderAmount), style: robotoBold.copyWith(color: Theme.of(context).primaryColor),)
 
                 ]),
 
 
                 (order.paymentMethod == 'partial_payment' && order.orderStatus == 'failed' && order.payments != null && order.payments?[1].paymentMethod == 'digital_payment')
-                    || (orderController.trackModel?.paymentStatus == 'unpaid' && order.orderStatus != 'canceled' && (order.paymentMethod != 'cash_on_delivery' && order.paymentMethod != 'wallet' && order.paymentMethod != 'partial_payment')) ? Column(
+                    || (orderController.trackModel?.paymentStatus == 'unpaid' && order.orderStatus != 'canceled' && (order.paymentMethod != 'cash_on_delivery' && order.paymentMethod != AppConstants.payAfterService && order.paymentMethod != 'wallet' && order.paymentMethod != 'partial_payment')) ? Column(
                   children: [
                     const SizedBox(height: Dimensions.paddingSizeDefault),
 
@@ -902,14 +904,16 @@ class OrderInfoWidget extends StatelessWidget {
                   ],
                 ) : const SizedBox(),
 
-                // Pay-after-service: the booking was placed as cash_on_delivery so it stays
-                // unpaid through the job. Once the work is done the customer settles online —
-                // even though the method is cod, unlike the block above which is for
-                // interrupted digital payments. "Done" is read from the bookings themselves
-                // (every booking completed), because the vendor's completion updates
-                // service_bookings.status while orders.order_status can lag behind.
+                // Pay-after-service: the booking is placed unpaid (payment_method
+                // 'pay_after_service' — older bookings were placed under the legacy
+                // 'cash_on_delivery' value, matched here too) and stays that way through the
+                // job. Once the work is done the customer settles online, unlike the block
+                // above which is for interrupted digital payments. "Done" is read from the
+                // bookings themselves (every booking completed), because the vendor's
+                // completion updates service_bookings.status while orders.order_status can
+                // lag behind.
                 (order.moduleType == AppConstants.service || ModuleHelper.isService())
-                    && order.paymentMethod == 'cash_on_delivery'
+                    && (order.paymentMethod == AppConstants.payAfterService || order.paymentMethod == 'cash_on_delivery')
                     && orderController.trackModel?.paymentStatus == 'unpaid'
                     && (order.orderStatus == 'delivered' || order.orderStatus == 'completed'
                         || ((order.serviceBookings?.isNotEmpty ?? false)

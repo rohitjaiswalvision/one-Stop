@@ -10,13 +10,13 @@ class AppConstants {
   static const String fontFamily = 'Roboto';
   static const bool payInWevView = false;
   static const int balanceInputLen = 10;
-  // static const String webHostedUrl = 'https://6ammart-web.6amtech.com';
+  static const String webHostedUrl = 'https://6ammart-web.6amtech.com';
   static const bool useReactWebsite = false;
   static const bool stopPolylineAnimation = false;
   static const String googleServerClientId = '491987943015-agln6biv84krpnngdphj87jkko7r9lb8.apps.googleusercontent.com';
   static const String pusherBroadcustUrl = '/api/v1/broadcasting/user-auth';
-
-  static const String baseUrl = 'https://onestop.visionvivante.in';
+ static const String baseUrl = 'http://192.168.3.60:8001';
+  // static const String baseUrl = 'https://onestop.visionvivante.in';'
   static const String categoryUri = '/api/v1/categories';
   static const String bannerUri = '/api/v1/banners';
   static const String storeItemUri = '/api/v1/items/latest';
@@ -456,6 +456,12 @@ class AppConstants {
   /// The order's `order_type`, sent when booking a service and returned on service orders.
   /// Deliberately singular — do NOT confuse with the module type `service` above ('services').
   static const String serviceOrderType = 'service';
+
+  /// `payment_method` value for a service booking: nothing is charged at booking time,
+  /// the amount is settled once the provider completes the job (backend keeps the order
+  /// unpaid at placement and only runs settlement on the later digital-payment callback).
+  /// Replaces the old convention of booking services under 'cash_on_delivery'.
+  static const String payAfterService = 'pay_after_service';
 
   ///ride share map zoom
   static const double mapZoom = 20;

@@ -6,6 +6,7 @@ import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -43,6 +44,7 @@ class _OrderSuccessfulDialogState extends State<OrderSuccessfulDialog> {
         if(orderController.trackModel != null) {
           total = ((orderController.trackModel!.orderAmount! / 100) * Get.find<SplashController>().configModel!.loyaltyPointItemPurchasePoint!);
           success = orderController.trackModel!.paymentStatus == 'paid' || orderController.trackModel!.paymentMethod == 'cash_on_delivery'
+              || orderController.trackModel!.paymentMethod == AppConstants.payAfterService
               || orderController.trackModel!.paymentMethod == 'partial_payment';
           parcel = orderController.trackModel!.paymentMethod == 'parcel';
           for(ZoneData zData in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {

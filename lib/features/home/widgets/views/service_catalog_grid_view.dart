@@ -37,7 +37,7 @@ class ServiceCatalogGridView extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
+              crossAxisCount: 4,
               mainAxisSpacing: Dimensions.paddingSizeDefault,
               crossAxisSpacing: Dimensions.paddingSizeDefault,
               childAspectRatio: 0.78,

@@ -47,9 +47,11 @@ bool _isServiceOrderDone(OrderModel order) {
 
 /// Pay-after-service: the job is done but the customer has not settled yet, so the row
 /// flags the outstanding payment. Same detection as the order-details Pay Now gate.
+/// Matches both the current 'pay_after_service' value and the legacy 'cash_on_delivery'
+/// value older bookings were placed under.
 bool _isServicePaymentPending(OrderModel order) {
   return order.moduleType == AppConstants.service
-      && order.paymentMethod == 'cash_on_delivery'
+      && (order.paymentMethod == AppConstants.payAfterService || order.paymentMethod == 'cash_on_delivery')
       && order.paymentStatus == 'unpaid'
       && _isServiceOrderDone(order);
 }
@@ -548,9 +550,12 @@ class OrderViewWidget extends StatelessWidget {
   /// A finished order the customer can rate — delivered goods or a completed service booking.
   bool _isCompleted(String status) => status == 'delivered' || status == 'completed';
 
-  /// "Your Food Rating" for a food order, a generic "Your Order Rating" for every other module.
+  /// "Your Food Rating" for a food order, "Rate your service" for a service booking,
+  /// a generic "Your Order Rating" for every other module.
   String _foodRatingLabel(OrderModel order) {
-    return order.moduleType == AppConstants.food ? 'your_food_rating'.tr : 'your_order_rating'.tr;
+    if (order.moduleType == AppConstants.food) return 'your_food_rating'.tr;
+    if (order.moduleType == AppConstants.service) return 'rate_your_service'.tr;
+    return 'your_order_rating'.tr;
   }
 
   /// The order list has no per-order "my rating" field — only per-item reviews already left

@@ -23,6 +23,10 @@ class BrandsController extends GetxController implements GetxService {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  void clearBrandList() {
+    _brandList = null;
+  }
+
   Future<void> getBrandList({DataSourceEnum dataSource = DataSourceEnum.local}) async {
     List<BrandModel>? brandList;
     if(dataSource == DataSourceEnum.local) {

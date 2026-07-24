@@ -2363,5 +2363,7 @@
   "enter_verification_code": "Enter verification code",
   "additional_services": "Additional Services",
   "work_done": "Work done",
-  "amount_can_not_be_less_than_the_total_amount": "Amount can not be less than the total amount"
+  "amount_can_not_be_less_than_the_total_amount": "Amount can not be less than the total amount",
+  "price_decided_after_inspection": "Price will be decided by the service provider on arrival",
+  "rate_your_service": "Rate your service"
 }

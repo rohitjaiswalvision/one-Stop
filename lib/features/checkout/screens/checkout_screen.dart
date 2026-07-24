@@ -316,7 +316,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 PlaceOrderBodyModel placeOrderBody = PlaceOrderBodyModel(
                   cart: carts, couponDiscountAmount: Get.find<CouponController>().discount, distance: checkoutController.distance,
                   orderAmount: widget.storeId == null ? subTotal : 0, orderNote: checkoutController.noteController.text, orderType: checkoutController.orderType,
-                  paymentMethod: checkoutController.paymentMethodIndex == 0 ? 'cash_on_delivery'
+                  paymentMethod: ModuleHelper.isService() ? AppConstants.payAfterService
+                      : checkoutController.paymentMethodIndex == 0 ? 'cash_on_delivery'
                       : checkoutController.paymentMethodIndex == 1 ? 'wallet'
                       : checkoutController.paymentMethodIndex == 2 ? 'digital_payment' : 'offline_payment',
                   couponCode: (Get.find<CouponController>().discount! > 0 || (Get.find<CouponController>().coupon != null
@@ -748,7 +749,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 scheduleAt: !checkoutController.store!.scheduleOrder! ? null : (checkoutController.selectedDateSlot == 0
                     && checkoutController.selectedTimeSlot == 0) ? null : DateConverter.dateToDateAndTime(scheduleEndDate),
                 orderAmount: total, orderNote: checkoutController.noteController.text, orderType: checkoutController.orderType,
-                paymentMethod: checkoutController.paymentMethodIndex == 0 ? 'cash_on_delivery'
+                paymentMethod: ModuleHelper.isService() ? AppConstants.payAfterService
+                    : checkoutController.paymentMethodIndex == 0 ? 'cash_on_delivery'
                     : checkoutController.paymentMethodIndex == 1 ? 'wallet'
                     : checkoutController.paymentMethodIndex == 2 ? 'digital_payment' : 'offline_payment',
                 couponCode: (Get.find<CouponController>().discount! > 0 || (Get.find<CouponController>().coupon != null
@@ -965,7 +967,7 @@ print("Request: ${placeOrderBody.toJson()}");
         orderNote: checkoutController.noteController.text,
         // Not a delivery: the backend distinguishes bookings by this value.
         orderType: AppConstants.serviceOrderType,
-        paymentMethod: 'cash_on_delivery',
+        paymentMethod: AppConstants.payAfterService,
         address: finalAddress.address, latitude: finalAddress.latitude, longitude: finalAddress.longitude,
         senderZoneId: null, addressType: finalAddress.addressType,
         contactPersonName: finalAddress.contactPersonName ?? '${Get.find<ProfileController>().userInfoModel!.fName} '

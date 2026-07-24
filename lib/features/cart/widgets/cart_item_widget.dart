@@ -64,6 +64,7 @@ class _CartItemWidgetState extends State<CartItemWidget> {
 
     bool isSquareFeet = SquareFeetHelper.isSquareFeetItem(widget.cart.item);
     bool isService = ModuleHelper.isService(moduleType: widget.cart.item!.moduleType);
+    bool isInspection = widget.cart.item!.isInspection ?? false;
 
     // Admin-authored service descriptions arrive as HTML; show them as plain text.
     String description = HtmlHelper.toPlainText(widget.cart.item!.description);
@@ -210,7 +211,11 @@ class _CartItemWidgetState extends State<CartItemWidget> {
 
                       const SizedBox(height: 2),
 
-                      isSquareFeet ? Text(
+                      isInspection ? Text(
+                        'price_decided_after_inspection'.tr,
+                        style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
+                        maxLines: 2, overflow: TextOverflow.ellipsis,
+                      ) : isSquareFeet ? Text(
                         SquareFeetHelper.areaBreakdown(widget.cart),
                         style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
                         textDirection: TextDirection.ltr, maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -362,7 +367,7 @@ class _CartItemWidgetState extends State<CartItemWidget> {
 
                         const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                        Padding(
+                        isInspection ? const SizedBox() : Padding(
                           padding: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
                           child: PriceConverter.convertAnimationPrice(totalPrice),
                         ),
