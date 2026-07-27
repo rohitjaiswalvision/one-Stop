@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:sixam_mart/common/controllers/theme_controller.dart';
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
@@ -42,6 +43,7 @@ class SearchScreenState extends State<SearchScreen> with TickerProviderStateMixi
 
   List<String> _itemsAndStors = <String>[];
   bool _showSuggestion = false;
+  Timer? _suggestionDebounce;
 
   @override
   void initState() {
@@ -59,16 +61,35 @@ class SearchScreenState extends State<SearchScreen> with TickerProviderStateMixi
     }
   }
 
-  Future<void> _searchSuggestions(String query) async {
-    _itemsAndStors = [];
+  @override
+  void dispose() {
+    _suggestionDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _searchSuggestions(String query) {
+    _suggestionDebounce?.cancel();
+
     if (query == '') {
-      _showSuggestion = false;
       _itemsAndStors = [];
-    } else {
-      _showSuggestion = true;
-      _itemsAndStors = await Get.find<search.SearchController>().getSearchSuggestions(query);
+      _showSuggestion = false;
+      setState(() {});
+      return;
     }
-    setState(() {});
+
+    // Debounce so we don't fire one request per keystroke, then only apply the
+    // response if the text field still holds this exact query — otherwise an
+    // earlier keystroke's request that happens to resolve later (out of order)
+    // would overwrite the results for what the user is now looking at (e.g.
+    // typing "painting" briefly showing "plumbing" from a stale "p"/"pl" request).
+    _suggestionDebounce = Timer(const Duration(milliseconds: 350), () async {
+      final List<String> results = await Get.find<search.SearchController>().getSearchSuggestions(query);
+      if (!mounted || _searchController.text != query) return;
+      _itemsAndStors = results;
+      _showSuggestion = true;
+      setState(() {});
+    });
   }
 
   @override

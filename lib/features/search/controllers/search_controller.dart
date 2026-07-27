@@ -72,6 +72,12 @@ class SearchController extends GetxController implements GetxService {
 
   bool _isAvailableStore = false;
   bool get isAvailableStore => _isAvailableStore;
+
+  // Bumped on every searchData() call and captured per-request, so that if two
+  // searches overlap (e.g. a quick second submit before the first responds) the
+  // slower response — which may no longer match what's on screen — can't
+  // overwrite the result of the request that was actually issued last.
+  int _searchRequestToken = 0;
   
   bool _isDiscountedItems = false;
   bool get isDiscountedItems => _isDiscountedItems;
@@ -210,6 +216,8 @@ class SearchController extends GetxController implements GetxService {
 
   Future<void> searchData(String? query, bool fromHome) async {
     if((_isStore && query!.isNotEmpty && query != _storeResultText) || (!_isStore && query!.isNotEmpty && (query != _itemResultText || fromHome))) {
+      final int requestToken = ++_searchRequestToken;
+
       _searchHomeText = query;
       _searchText = query;
       _rating = -1;
@@ -233,6 +241,11 @@ class SearchController extends GetxController implements GetxService {
       }
 
       Response response = await searchServiceInterface.getSearchData(query, _isStore);
+      // A newer search was issued while this one was in flight — its response will
+      // apply the correct, current results, so don't let this stale one overwrite them.
+      if (requestToken != _searchRequestToken) {
+        return;
+      }
       if (response.statusCode == 200) {
         if (query.isEmpty) {
           if (_isStore) {

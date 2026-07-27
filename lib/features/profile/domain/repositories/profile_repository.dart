@@ -75,14 +75,15 @@ class ProfileRepository implements ProfileRepositoryInterface {
   }*/
 
   @override
-  Future<ResponseModel> changePassword(UserInfoModel userInfoModel) async {
+  Future<ResponseModel> changePassword(UserInfoModel userInfoModel, {String? currentPassword}) async {
     ResponseModel responseModel;
     Map<String, dynamic> data = {
       'name': '${userInfoModel.fName} ${userInfoModel.lName}',
       'email': userInfoModel.email,
       'password': userInfoModel.password,
       'phone': userInfoModel.phone,
-      'button_type': 'change_password'
+      'button_type': 'change_password',
+      'current_password': ?currentPassword,
     };
     Response response = await apiClient.postData(AppConstants.updateProfileUri, data, handleError: false);
     if (response.statusCode == 200) {

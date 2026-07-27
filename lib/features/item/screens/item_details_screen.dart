@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
+import 'package:sixam_mart/common/widgets/card_design/item_card.dart';
 import 'package:sixam_mart/common/widgets/premium/premium_button.dart';
 import 'package:sixam_mart/common/widgets/readmore_widget.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/location/controllers/location_controller.dart';
@@ -213,6 +216,72 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                       ],
                     ) : const SizedBox(),
 
+                    // Same-store similar items, fetched by ItemController's
+                    // _getSimilarItemList() right after the item loads. While the
+                    // fetch is in flight (list still null) a shimmer rail holds the
+                    // section's place, so it's visible the moment the screen opens
+                    // instead of popping in once the network responds.
+                    itemController.similarItemList == null ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('similar_products'.tr, style: robotoMedium),
+                        const SizedBox(height: Dimensions.paddingSizeSmall),
+
+                        SizedBox(
+                          height: 285,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: 3,
+                            itemBuilder: (context, index) => Padding(
+                              padding: const EdgeInsets.only(right: Dimensions.paddingSizeDefault),
+                              child: Shimmer(
+                                duration: const Duration(seconds: 2),
+                                child: Container(
+                                  width: 200,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: Dimensions.paddingSizeLarge),
+                      ],
+                    ) : itemController.similarItemList!.isNotEmpty ? Builder(builder: (context) {
+                      bool isFood = Get.find<SplashController>().module != null && Get.find<SplashController>().module!.moduleType.toString() == AppConstants.food;
+                      bool isShop = Get.find<SplashController>().module != null && Get.find<SplashController>().module!.moduleType.toString() == AppConstants.ecommerce;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('similar_products'.tr, style: robotoMedium),
+                          const SizedBox(height: Dimensions.paddingSizeSmall),
+
+                          SizedBox(
+                            height: 285,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: itemController.similarItemList!.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: Dimensions.paddingSizeDefault),
+                                  child: ItemCard(
+                                    item: itemController.similarItemList![index],
+                                    isFood: isFood, isShop: isShop,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: Dimensions.paddingSizeLarge),
+                        ],
+                      );
+                    }) : const SizedBox(),
+
                     (item.nutritionsName != null && item.nutritionsName!.isNotEmpty) ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -353,6 +422,13 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
                         Row(
                           children: [
+                            // The stepper only exists once the item is actually in the cart:
+                            // tapping Add To Cart brings it up, and minus-ing down past 1
+                            // removes the item (cartIndex becomes -1), collapsing back to
+                            // the full-width Add To Cart button. Campaign items are the
+                            // exception — they bypass the cart ("Order Now" → checkout), so
+                            // the stepper stays as their only pre-order quantity picker.
+                            if(itemController.cartIndex != -1 || item.availableDateStarts != null) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 4),
                               decoration: BoxDecoration(
@@ -366,6 +442,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                   if(itemController.cartIndex != -1) {
                                     if(cartController.cartList[itemController.cartIndex].quantity! > 1) {
                                       cartController.setQuantity(false, itemController.cartIndex, stock, cartController.cartList[itemController.cartIndex].quantity);
+                                    } else {
+                                      // Already in the cart at quantity 1 — mirror the cart screen's own
+                                      // stepper (cart_item_widget.dart), where decrementing past 1 removes
+                                      // the item, instead of leaving the customer stuck unable to go below 1.
+                                      cartController.removeFromCart(itemController.cartIndex, item: item);
                                     }
                                   }else {
                                     if(itemController.quantity! > 1) {
@@ -411,6 +492,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                               ),
                             ])),
                             const SizedBox(width: Dimensions.paddingSizeSmall),
+                            ],
 
                             Expanded(
                               child: Container(
@@ -451,7 +533,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                                 ? 'if_you_continue'.tr : 'if_you_continue_without_another_store'.tr,
                                             onYesPressed: () {
                                               Get.back();
-                                              cartController.clearCartOnline().then((success) async {
+                                              cartController.clearCartOnline(showNotification: true).then((success) async {
                                                 if(success) {
                                                   await cartController.addToCartOnline(cart!);
                                                   itemController.setExistInCart(item, null);

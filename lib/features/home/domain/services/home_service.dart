@@ -36,4 +36,14 @@ class HomeService implements HomeServiceInterface{
     return homeRepositoryInterface.getIsRestaurantRegistration();
   }
 
+  @override
+  Future<bool> saveUserRegistrationSuccessful(bool status) async {
+    return await homeRepositoryInterface.saveUserRegistrationSuccessful(status);
+  }
+
+  @override
+  bool getUserRegistrationSuccessful() {
+    return homeRepositoryInterface.getUserRegistrationSuccessful();
+  }
+
 }

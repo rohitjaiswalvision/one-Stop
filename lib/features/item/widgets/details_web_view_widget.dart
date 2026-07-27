@@ -457,7 +457,7 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                               ? 'if_you_continue'.tr : 'if_you_continue_without_another_store'.tr,
                                           onYesPressed: () {
                                             Get.back();
-                                            cartController.clearCartOnline().then((success) async {
+                                            cartController.clearCartOnline(showNotification: true).then((success) async {
                                               if(success) {
                                                 await cartController.addToCartOnline(widget.cart!);
                                                 itemController.setExistInCart(itemController.item, null);
@@ -585,7 +585,7 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                        ? 'if_you_continue'.tr : 'if_you_continue_without_another_store'.tr,
                                    onYesPressed: () {
                                      Get.back();
-                                     cartController.clearCartOnline().then((success) async {
+                                     cartController.clearCartOnline(showNotification: true).then((success) async {
                                        if(success) {
                                          await cartController.addToCartOnline(widget.cart!);
                                          itemController.setExistInCart(itemController.item, null);

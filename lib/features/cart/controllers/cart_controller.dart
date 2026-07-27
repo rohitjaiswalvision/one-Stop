@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/common/models/module_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
@@ -233,7 +234,7 @@ class CartController extends GetxController implements GetxService {
     if(Get.find<ItemController>().item != null) {
       Get.find<ItemController>().cartIndexSet();
     }
-
+    showCustomSnackBar('removed_from_cart'.tr, isError: false);
   }
 
   Future<void> clearCartList({bool canRemoveOnline = true}) async {
@@ -300,9 +301,16 @@ class CartController extends GetxController implements GetxService {
     update();
     bool success = await cartServiceInterface.updateCartQuantityOnline(cartId, price, quantity);
     if(success) {
+      // The local cart was already updated optimistically by setQuantity() before
+      // this call, so a success needs only a local totals recompute. The full
+      // getCartDataOnline() refetch (a second round trip) and the 200ms pause that
+      // used to sit here made every +/- tap feel sluggish for no gain.
+      calculationCart();
+    } else {
+      // Server rejected the change — resync so the optimistic local quantity
+      // rolls back to the server's truth.
       await getCartDataOnline();
       calculationCart();
-      await Future.delayed(const Duration(milliseconds: 200));
     }
     _isLoading = false;
     update();
@@ -337,12 +345,21 @@ class CartController extends GetxController implements GetxService {
     return success;
   }
 
-  Future<bool> clearCartOnline() async {
+  // showNotification is true only for the explicit "switch store" confirmation
+  // flows (item_details_screen.dart, details_web_view_widget.dart,
+  // item_bottom_sheet.dart, item_controller.dart) — those replace the whole cart
+  // on the user's own confirmation, so they alone get a "Cart cleared" toast.
+  // The silent checkout-success/logout callers of clearCartList() (which also
+  // routes here) keep their current behavior.
+  Future<bool> clearCartOnline({bool showNotification = false}) async {
     _isLoading = true;
     update();
     bool success = await cartServiceInterface.clearCartOnline();
     if(success) {
       await getCartDataOnline();
+      if(showNotification) {
+        showCustomSnackBar('cart_cleared'.tr, isError: false);
+      }
     }
     _isLoading = false;
     update();

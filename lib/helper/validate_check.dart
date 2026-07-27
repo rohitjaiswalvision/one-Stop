@@ -15,9 +15,9 @@ class ValidateCheck{
     final kEmailValid = RegExp(pattern);
     bool isValid = kEmailValid.hasMatch(value.toString());
     if (value!.isEmpty) {
-      return '\u26A0 ${'email_field_is_required'.tr}';
+      return 'email_field_is_required'.tr;
     } else if (isValid == false) {
-      return '\u26A0 ${"enter_valid_email_address".tr}';
+      return 'enter_valid_email_address'.tr;
     }
     return null;
   }

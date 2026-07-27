@@ -28,8 +28,10 @@ class NewPassScreen extends StatefulWidget {
 }
 
 class _NewPassScreenState extends State<NewPassScreen> {
+  final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final FocusNode _currentPasswordFocus = FocusNode();
   final FocusNode _newPasswordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
   final ScrollController _scrollController = ScrollController();
@@ -73,6 +75,23 @@ class _NewPassScreenState extends State<NewPassScreen> {
 
                   const SizedBox(height: Dimensions.paddingSizeExtraOverLarge),
 
+                  widget.fromPasswordChange ? Column(children: [
+                    CustomTextField(
+                      titleText: '8+characters'.tr,
+                      controller: _currentPasswordController,
+                      focusNode: _currentPasswordFocus,
+                      nextFocus: _newPasswordFocus,
+                      inputType: TextInputType.visiblePassword,
+                      prefixIcon: Icons.lock,
+                      isPassword: true,
+                      divider: false,
+                      required: true,
+                      labelText: 'current_password'.tr,
+                      validator: (value) => ValidateCheck.validateEmptyText(value, 'please_enter_current_password'.tr),
+                    ),
+                    const SizedBox(height: Dimensions.paddingSizeLarge),
+                  ]) : const SizedBox(),
+
                   CustomTextField(
                     titleText: '8+characters'.tr,
                     controller: _newPasswordController,
@@ -82,6 +101,7 @@ class _NewPassScreenState extends State<NewPassScreen> {
                     prefixIcon: Icons.lock,
                     isPassword: true,
                     divider: false,
+                    required: true,
                     labelText: 'new_password'.tr,
                     validator: (value) => ValidateCheck.validateEmptyText(value, 'please_enter_new_password'.tr),
                   ),
@@ -96,6 +116,7 @@ class _NewPassScreenState extends State<NewPassScreen> {
                     prefixIcon: Icons.lock,
                     isPassword: true,
                     onSubmit: (text) => GetPlatform.isWeb ? _onPressedPasswordChange() : null,
+                    required: true,
                     labelText: 'confirm_password'.tr,
                     validator: (value) => ValidateCheck.validateEmptyText(value, 'please_enter_confirm_password'.tr),
                   ),
@@ -123,9 +144,12 @@ class _NewPassScreenState extends State<NewPassScreen> {
   }
 
   void _onPressedPasswordChange() {
+    String currentPassword = _currentPasswordController.text.trim();
     String password = _newPasswordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
-    if (password.isEmpty) {
+    if (widget.fromPasswordChange && currentPassword.isEmpty) {
+      showCustomSnackBar('please_enter_current_password'.tr);
+    }else if (password.isEmpty) {
       showCustomSnackBar('enter_password'.tr);
     }else if (password.length < 6) {
       showCustomSnackBar('password_should_be'.tr);
@@ -133,17 +157,17 @@ class _NewPassScreenState extends State<NewPassScreen> {
       showCustomSnackBar('confirm_password_does_not_matched'.tr);
     }else {
       if(widget.fromPasswordChange) {
-        _changeUserPassword(password);
+        _changeUserPassword(currentPassword, password);
       }else {
         _resetUserPassword(password, confirmPassword);
       }
     }
   }
 
-  void _changeUserPassword(String password) {
+  void _changeUserPassword(String currentPassword, String password) {
     UserInfoModel user = Get.find<ProfileController>().userInfoModel!;
     user.password = password;
-    Get.find<ProfileController>().changePassword(user).then((response) {
+    Get.find<ProfileController>().changePassword(user, currentPassword: currentPassword).then((response) {
       if(response.isSuccess) {
         Get.back();
         showCustomSnackBar('password_updated_successfully'.tr, isError: false);

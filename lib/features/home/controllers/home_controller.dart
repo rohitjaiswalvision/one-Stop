@@ -55,4 +55,12 @@ class HomeController extends GetxController implements GetxService {
     return homeServiceInterface.getIsRestaurantRegistration();
   }
 
+  Future<bool> saveUserRegistrationSuccessfulSharedPref(bool status) async {
+    return await homeServiceInterface.saveUserRegistrationSuccessful(status);
+  }
+
+  bool getUserRegistrationSuccessfulSharedPref() {
+    return homeServiceInterface.getUserRegistrationSuccessful();
+  }
+
 }

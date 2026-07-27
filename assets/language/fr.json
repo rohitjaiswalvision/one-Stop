@@ -2365,5 +2365,13 @@
   "work_done": "Work done",
   "amount_can_not_be_less_than_the_total_amount": "Amount can not be less than the total amount",
   "price_decided_after_inspection": "Price will be decided by the service provider on arrival",
-  "rate_your_service": "Rate your service"
+  "rate_your_service": "Rate your service",
+  "please_agree_with_terms_and_conditions": "Please agree with the Terms & Conditions",
+  "registration_successful": "Registration successful",
+  "current_password": "Current Password",
+  "please_enter_current_password": "Please enter current password",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "similar_products": "Similar Products",
+  "cart_cleared": "Cart cleared"
 }

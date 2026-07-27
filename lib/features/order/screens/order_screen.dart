@@ -78,7 +78,16 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
       type = ['orders'];
     }
 
-    selectType = type.contains(widget.index) ? widget.index! : type.first;
+    // widget.index is the literal 'orders' from every current call site, so the
+    // fallback chain effectively picks the tab: prefer the module the user is
+    // actually in (the one a just-placed order belongs to) — landing on
+    // type.first regardless (the old behavior) opened the wrong module's tab
+    // and filtered a freshly placed order out of view.
+    final String? currentModuleType = Get.find<SplashController>().module?.moduleType
+        ?? Get.find<SplashController>().getCacheModule()?.moduleType;
+    selectType = type.contains(widget.index) ? widget.index!
+        : (currentModuleType != null && type.contains(currentModuleType)) ? currentModuleType
+        : type.first;
     _ensureTabController();
     haveTaxiModule = TaxiHelper.haveTaxiServiceRideModules();
 

@@ -13,6 +13,7 @@ import 'package:sixam_mart/features/auth/domain/models/signup_body_model.dart';
 import 'package:sixam_mart/features/auth/widgets/auth_dialog_widget.dart';
 import 'package:sixam_mart/features/auth/widgets/condition_check_box_widget.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
+import 'package:sixam_mart/features/home/controllers/home_controller.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
 import 'package:sixam_mart/features/location/controllers/location_controller.dart';
 import 'package:sixam_mart/features/profile/controllers/profile_controller.dart';
@@ -65,6 +66,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
     bool isDesktop = ResponsiveHelper.isDesktop(context);
     return Form(
       key: _formKeySignUp,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Container(
         width: context.width > 700 ? 700 : context.width,
         decoration: context.width > 700 ? BoxDecoration(
@@ -160,6 +162,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                         nextFocus: isDesktop ? _passwordFocus : _emailFocus,
                         inputType: TextInputType.phone,
                         isPhone: true,
+                        maxLength: 10,
                         onCountryChanged: (CountryCode countryCode) {
                           _countryDialCode = countryCode.dialCode;
                         },
@@ -201,7 +204,15 @@ class SignUpWidgetState extends State<SignUpWidget> {
                           inputType: TextInputType.visiblePassword,
                           prefixIcon: Icons.lock,
                           isPassword: true,
-                          validator: (value) => ValidateCheck.validateEmptyText(value, "please_enter_password".tr),
+                          validator: (value) => ValidateCheck.validatePassword(value, "please_enter_password".tr),
+                          // Re-validates confirm-password live as this field changes — its own
+                          // validator only checks itself, so a mismatch wouldn't otherwise
+                          // update until confirm-password itself is edited or submit is pressed.
+                          onChanged: (_) {
+                            if (_confirmPasswordController.text.isNotEmpty) {
+                              _formKeySignUp?.currentState?.validate();
+                            }
+                          },
                         ),
                       ]),
                     ),
@@ -271,7 +282,13 @@ class SignUpWidgetState extends State<SignUpWidget> {
                     fontSize: isDesktop ? Dimensions.fontSizeSmall : null,
                     buttonText: 'sign_up'.tr,
                     isLoading: authController.isLoading,
-                    onPressed: authController.acceptTerms ? () => _register(authController, _countryDialCode!) : null,
+                    onPressed: () {
+                      if (!authController.acceptTerms) {
+                        showCustomSnackBar('please_agree_with_terms_and_conditions'.tr);
+                      } else {
+                        _register(authController, _countryDialCode!);
+                      }
+                    },
                   ),
                   SizedBox(height: isDesktop ? Dimensions.paddingSizeExtraLarge : Dimensions.paddingSizeDefault),
 
@@ -329,6 +346,12 @@ class SignUpWidgetState extends State<SignUpWidget> {
     String email = _emailController.text.trim();
 
     if (status.isSuccess) {
+      // Persist a "just registered" flag instead of toasting right here — this
+      // handler runs mid-navigation (verification / location screens follow), so
+      // an immediate snackbar flashes on a screen that's being replaced. The
+      // dashboard reads and clears this flag to greet the user once they actually
+      // land inside the app.
+      Get.find<HomeController>().saveUserRegistrationSuccessfulSharedPref(true);
       if(ResponsiveHelper.isDesktop(context)) {
         Get.find<CartController>().getCartDataOnline();
       }

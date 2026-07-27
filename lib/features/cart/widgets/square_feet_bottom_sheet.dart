@@ -215,7 +215,7 @@ class _SquareFeetBottomSheetState extends State<SquareFeetBottomSheet> {
             ? 'if_you_continue'.tr : 'if_you_continue_without_another_store'.tr,
         onYesPressed: () {
           Get.back();
-          cartController.clearCartOnline().then((bool success) async {
+          cartController.clearCartOnline(showNotification: true).then((bool success) async {
             if (success) {
               await cartController.addToCartOnline(onlineCart);
               Get.find<ItemController>().setExistInCart(item, null);

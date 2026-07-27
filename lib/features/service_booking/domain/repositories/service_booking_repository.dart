@@ -60,3 +60,4 @@ class ServiceBookingRepository implements ServiceBookingRepositoryInterface {
     );
   }
 }
+

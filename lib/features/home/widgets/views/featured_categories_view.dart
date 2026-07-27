@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
+import 'package:sixam_mart/features/category/controllers/category_controller.dart';
+import 'package:sixam_mart/features/category/domain/models/category_model.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
-import 'package:sixam_mart/features/item/domain/models/basic_medicine_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/home/widgets/components/review_item_card_widget.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -11,24 +12,37 @@ import 'package:sixam_mart/util/styles.dart';
 class FeaturedCategoriesView extends StatelessWidget {
   const FeaturedCategoriesView({super.key});
 
+  /// True if [categoryId] is this category's own id, or belongs to one of its
+  /// subcategories at any depth — items are tagged with a leaf/subcategory id,
+  /// not the top-level parent's, so a direct `==` against the parent misses them.
+  bool _belongsToCategory(CategoryModel category, int? categoryId) {
+    if (categoryId == null) return false;
+    if (category.id == categoryId) return true;
+    for (final CategoryModel child in category.childes ?? <CategoryModel>[]) {
+      if (_belongsToCategory(child, categoryId)) return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return GetBuilder<ItemController>(
       builder: (itemController) {
-        List<Categories> categoryList = [];
-        List<Item>? products = [];
-        categoryList.add(Categories(id: 0, name: 'all'.tr));
-        if(itemController.featuredCategoriesItem != null) {
-          for(Categories category in itemController.featuredCategoriesItem!.categories!) {
-            categoryList.add(category);
-          }
+        // The full, top-level category list (with nested subcategories) — not the
+        // handful of categories incidentally present among the ~30 items fetched
+        // for this section, which is what left this row looking like a partial
+        // subcategory list instead of "all categories".
+        List<CategoryModel> categoryList = [CategoryModel(id: 0, name: 'all'.tr)];
+        categoryList.addAll(Get.find<CategoryController>().categoryList ?? <CategoryModel>[]);
 
+        List<Item> products = [];
+        if(itemController.featuredCategoriesItem != null) {
           for (Item product in itemController.featuredCategoriesItem!.items!) {
             if(itemController.selectedCategory == 0) {
               products.add(product);
-            }
-            if(categoryList[itemController.selectedCategory].id == product.categoryId){
+            } else if(itemController.selectedCategory < categoryList.length
+                && _belongsToCategory(categoryList[itemController.selectedCategory], product.categoryId)) {
               products.add(product);
             }
           }

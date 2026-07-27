@@ -7,4 +7,6 @@ abstract class HomeServiceInterface {
   Future<bool> saveIsRestaurantRegistration(bool status);
   bool getRegistrationSuccessful();
   bool getIsRestaurantRegistration();
+  Future<bool> saveUserRegistrationSuccessful(bool status);
+  bool getUserRegistrationSuccessful();
 }

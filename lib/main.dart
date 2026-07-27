@@ -30,6 +30,16 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+/// Suppresses the default Material blue overscroll glow (visible edge-to-edge on
+/// screens with a transparent/colored app bar, e.g. sign up) — this app doesn't
+/// use that indicator anywhere, so it only ever showed as an unstyled flash.
+class NoGlowScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+    return child;
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -170,7 +180,7 @@ class _MyAppState extends State<MyApp> {
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
             navigatorKey: Get.key,
-            scrollBehavior: const MaterialScrollBehavior().copyWith(
+            scrollBehavior: NoGlowScrollBehavior().copyWith(
               dragDevices: {PointerDeviceKind.mouse, PointerDeviceKind.touch},
             ),
             theme: themeController.darkTheme ? dark() : light(),

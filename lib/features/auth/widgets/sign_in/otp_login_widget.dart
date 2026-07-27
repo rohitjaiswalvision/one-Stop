@@ -39,6 +39,7 @@ class OtpLoginWidget extends StatelessWidget {
             inputAction: TextInputAction.done,
             inputType: TextInputType.phone,
             isPhone: true,
+            maxLength: 10,
             onCountryChanged: onCountryChanged,
             countryDialCode: countryDialCode ?? Get.find<LocalizationController>().locale.countryCode,
             labelText: 'phone'.tr,

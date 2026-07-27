@@ -1,6 +1,8 @@
 import 'package:just_the_tooltip/just_the_tooltip.dart';
+import 'package:sixam_mart/common/widgets/premium/premium_chip.dart';
 import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/coupon/controllers/coupon_controller.dart';
+import 'package:sixam_mart/features/coupon/domain/models/coupon_model.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -53,7 +55,7 @@ class _CouponScreenState extends State<CouponScreen> {
     bool isLoggedIn = AuthHelper.isLoggedIn();
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: CustomAppBar(title: 'coupon'.tr),
+      appBar: CustomAppBar(title: 'coupons'.tr),
       endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
       body: isLoggedIn ? GetBuilder<CouponController>(builder: (couponController) {
         return couponController.couponList != null && _availableToolTipControllerList != null ? couponController.couponList!.isNotEmpty && _availableToolTipControllerList!.isNotEmpty ? RefreshIndicator(
@@ -65,22 +67,59 @@ class _CouponScreenState extends State<CouponScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-                WebScreenTitleWidget(title: 'coupon'.tr),
-                Center(child: FooterView(
+                WebScreenTitleWidget(title: 'coupons'.tr),
+
+                if (couponController.couponStores.isNotEmpty) Center(child: SizedBox(
+                  width: Dimensions.webMaxWidth,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeSmall),
+                    child: SizedBox(
+                      height: 40,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: couponController.couponStores.length + 1,
+                        separatorBuilder: (_, _) => const SizedBox(width: Dimensions.paddingSizeSmall),
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return PremiumChip(
+                              label: 'all'.tr,
+                              selected: couponController.storeFilterId == null,
+                              onTap: () => couponController.setStoreFilter(null),
+                            );
+                          }
+                          final Store store = couponController.couponStores[index - 1];
+                          return PremiumChip(
+                            label: store.name ?? '',
+                            selected: couponController.storeFilterId == store.id,
+                            onTap: () => couponController.setStoreFilter(store.id),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                )),
+
+                couponController.filteredCouponList.isEmpty ? NoDataScreen(text: 'no_coupon_found'.tr, showFooter: false) : Center(child: FooterView(
                   child: SizedBox(width: Dimensions.webMaxWidth, child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: ResponsiveHelper.isDesktop(context) ? 3 : ResponsiveHelper.isTab(context) ? 2 : 1,
                       mainAxisSpacing: Dimensions.paddingSizeSmall, crossAxisSpacing: Dimensions.paddingSizeSmall,
                       childAspectRatio: ResponsiveHelper.isMobile(context) ? 3 : 3,
                     ),
-                    itemCount: couponController.couponList!.length,
+                    itemCount: couponController.filteredCouponList.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
                     itemBuilder: (context, index) {
+                      final CouponModel coupon = couponController.filteredCouponList[index];
+                      // The tooltip-controller list is sized/indexed to the full,
+                      // unfiltered coupon list — map back to that original index
+                      // (identity lookup: filteredCouponList holds the same
+                      // instances) so the right tooltip animates for this card.
+                      final int originalIndex = couponController.couponList!.indexOf(coupon);
                       return FadeSlideIn(index: index, child: JustTheTooltip(
                         backgroundColor: Get.isDarkMode ? Colors.white : Colors.black87,
-                        controller: _availableToolTipControllerList![index],
+                        controller: _availableToolTipControllerList![originalIndex],
                         preferredDirection: AxisDirection.up,
                         tailLength: 14,
                         tailBaseWidth: 20,
@@ -91,16 +130,16 @@ class _CouponScreenState extends State<CouponScreen> {
                         ),
                         child: InkWell(
                           onTap: () {
-                            _availableToolTipControllerList![index].showTooltip();
-                            Clipboard.setData(ClipboardData(text: couponController.couponList![index].code!));
+                            _availableToolTipControllerList![originalIndex].showTooltip();
+                            Clipboard.setData(ClipboardData(text: coupon.code!));
                             Future.delayed(const Duration(milliseconds: 750), () {
-                              _availableToolTipControllerList![index].hideTooltip();
+                              _availableToolTipControllerList![originalIndex].hideTooltip();
                             });
                             // if(!ResponsiveHelper.isDesktop(context)) {
                             //   showCustomSnackBar('coupon_code_copied'.tr, isError: false);
                             // }
                           },
-                          child: CouponCardWidget(coupon: couponController.couponList![index], index: index, toolTipController: _availableToolTipControllerList),
+                          child: CouponCardWidget(coupon: coupon, index: originalIndex, toolTipController: _availableToolTipControllerList),
                         ),
                       ));
                     },

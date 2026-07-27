@@ -119,8 +119,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen> with TickerProvi
                 gradient: LinearGradient(colors: [
                   Colors.blue,
                   Colors.orange
-          //           Color(0xFF1565C0), // Blue
-          // Color(0xFFFF9800), // Orange
+            
                 ])
               ),
             ),

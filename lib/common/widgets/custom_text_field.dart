@@ -23,6 +23,7 @@ class CustomTextField extends StatefulWidget {
   final Function? onSubmit;
   final bool isEnabled;
   final int maxLines;
+  final int? maxLength;
   final TextCapitalization capitalization;
   final String? prefixImage;
   final IconData? prefixIcon;
@@ -59,6 +60,7 @@ class CustomTextField extends StatefulWidget {
     this.inputType = TextInputType.text,
     this.inputAction = TextInputAction.next,
     this.maxLines = 1,
+    this.maxLength,
     this.onSubmit,
     this.onChanged,
     this.prefixImage,
@@ -108,12 +110,11 @@ class CustomTextFieldState extends State<CustomTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         widget.showTitle ? Text(widget.titleText, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)) : const SizedBox(),
         SizedBox(height: widget.showTitle ? ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeDefault : Dimensions.paddingSizeExtraSmall : 0),
-
         TextFormField(
           maxLines: widget.maxLines,
+          maxLength: widget.maxLength,
           controller: widget.controller,
           focusNode: widget.focusNode,
           textAlign: widget.textAlign,
@@ -174,6 +175,7 @@ border: GradientOutlineInputBorder(
               borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, color: Theme.of(context).disabledColor.withValues(alpha: 0.2)),
             ),
             isDense: true,
+            counterText: widget.maxLength != null ? '' : null,
             hintText: widget.hintText.isEmpty || !ResponsiveHelper.isDesktop(context) ? widget.titleText : widget.hintText,
             fillColor: Theme.of(context).cardColor,
             hintStyle: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).hintColor),

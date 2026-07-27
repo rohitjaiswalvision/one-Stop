@@ -252,14 +252,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
       // Skip the full-screen module grid landing: users should always land straight on a
-      // module's home. Whenever the modules are loaded but none is selected, auto-enter one
-      // — the pinned ModuleStripWidget then lets them switch between modules. Services is
-      // the default landing module (this is also what a fresh login resets to); fall back
-      // to the first module in the zone when services isn't offered there.
+      // module's home. Whenever the modules are loaded but none is selected, auto-enter
+      // the FIRST module in the zone's list (matching the module strip's order) — the
+      // pinned ModuleStripWidget then lets them switch between modules.
       if(splashController.moduleList != null && splashController.moduleList!.isNotEmpty
           && splashController.module == null && splashController.configModel?.module == null) {
-        int landingIndex = splashController.moduleList!.indexWhere((m) => m.moduleType.toString() == AppConstants.service);
-        splashController.switchModule(landingIndex != -1 ? landingIndex : 0, true);
+        splashController.switchModule(0, true);
       }
       bool showMobileModule = !ResponsiveHelper.isDesktop(context) && splashController.module == null && splashController.configModel!.module == null;
       // Only reserve the pinned module strip when there are at least two switchable modules

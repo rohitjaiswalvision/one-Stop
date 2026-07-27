@@ -1,5 +1,6 @@
 import 'package:sixam_mart/common/enums/data_source_enum.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
+import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
 import 'package:sixam_mart/features/item/domain/models/basic_medicine_model.dart';
@@ -646,13 +647,57 @@ class ItemController extends GetxController implements GetxService {
 
   Future<void> getItemDetails({required int itemId, CartModel? cart, bool isCampaign = false}) async {
     _item = null;
+    _similarItemList = null;
     _item = await itemServiceInterface.getItemDetails(itemId, isCampaign);
 
     if(_item != null) {
       initData(_item, cart);
       setExistInCart(_item, _selectedVariations);
+      _getSimilarItemList(_item!);
     }
 
+    update();
+  }
+
+  List<Item>? _similarItemList;
+  List<Item>? get similarItemList => _similarItemList;
+
+  /// "Similar products": other items sold by the SAME STORE as this item — shown
+  /// below the description on the item details page. Same store + same category
+  /// preferred; when the store has nothing else in that category, falls back to
+  /// the store's other items so the rail stays useful. Fired off after the item
+  /// loads and left unawaited by getItemDetails() so it never blocks or delays
+  /// the main details render; uses StoreController's service directly (not its
+  /// getStoreItemList()) so this doesn't clobber the store screen's own
+  /// paginated list/offset state.
+  Future<void> _getSimilarItemList(Item item) async {
+    final int? storeId = item.storeId;
+    if(storeId == null) {
+      _similarItemList = <Item>[];
+      update();
+      return;
+    }
+
+    List<Item> others(ItemModel? result) =>
+        (result?.items ?? <Item>[]).where((Item i) => i.id != item.id).toList();
+
+    // Both scopes are requested AT ONCE — serially awaiting the category-scoped
+    // call before deciding whether the store-wide fallback was needed doubled
+    // the wait for exactly the items that need the fallback. filter must be []
+    // (the store screen's own default), not null: null interpolates into the
+    // URL as the literal string "null", which the backend fails to parse —
+    // that's what left some products with no similar-items rail at all.
+    final storeService = Get.find<StoreController>().storeServiceInterface;
+    final List<ItemModel?> results = await Future.wait([
+      storeService.getStoreItemList(storeID: storeId, offset: 1, categoryID: item.categoryId ?? 0, type: 'all', filter: const []),
+      storeService.getStoreItemList(storeID: storeId, offset: 1, categoryID: 0, type: 'all', filter: const []),
+    ]);
+
+    // A newer item was opened while this fetch was in flight — drop the result.
+    if(_item?.id != item.id) return;
+
+    final List<Item> sameCategory = others(results[0]);
+    _similarItemList = sameCategory.isNotEmpty ? sameCategory : others(results[1]);
     update();
   }
 
@@ -858,7 +903,7 @@ class ItemController extends GetxController implements GetxService {
             description: Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText!
                 ? 'if_you_continue'.tr : 'if_you_continue_without_another_store'.tr,
             onYesPressed: () {
-              Get.find<CartController>().clearCartOnline().then((success) async {
+              Get.find<CartController>().clearCartOnline(showNotification: true).then((success) async {
                 if (success) {
                   await Get.find<CartController>().addToCartOnline(onlineCart);
                   Get.back();

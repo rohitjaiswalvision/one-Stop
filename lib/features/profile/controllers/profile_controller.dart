@@ -47,7 +47,12 @@ class ProfileController extends GetxController implements GetxService {
     }
     ResponseModel responseModel = await profileServiceInterface.updateProfile(updateUserModel, _pickedFile, token);
     if(!fromVerification) {
-      _updateProfileResponseHandle(responseModel, updateUserModel, token);
+      // Awaited so the button's loading state survives until the post-success
+      // navigation (getUserInfo() + Get.back()) inside this handler actually
+      // completes — otherwise isLoading flips off while that's still in flight,
+      // and the button flashes back to its idle "Update" state before the
+      // screen navigates away.
+      await _updateProfileResponseHandle(responseModel, updateUserModel, token);
     }
     _isLoading = false;
     update();
@@ -110,10 +115,10 @@ class ProfileController extends GetxController implements GetxService {
     }
   }
 
-  Future<ResponseModel> changePassword(UserInfoModel updatedUserModel) async {
+  Future<ResponseModel> changePassword(UserInfoModel updatedUserModel, {String? currentPassword}) async {
     _isLoading = true;
     update();
-    ResponseModel responseModel = await profileServiceInterface.changePassword(updatedUserModel);
+    ResponseModel responseModel = await profileServiceInterface.changePassword(updatedUserModel, currentPassword: currentPassword);
     _isLoading = false;
     update();
     return responseModel;
@@ -123,8 +128,8 @@ class ProfileController extends GetxController implements GetxService {
     _userInfoModel!.userInfo = user;
   }
 
-  void pickImage() async {
-    _pickedFile = await profileServiceInterface.pickImageFromGallery();
+  void pickImage({ImageSource source = ImageSource.gallery}) async {
+    _pickedFile = await profileServiceInterface.pickImageFromGallery(source: source);
     update();
   }
 

@@ -1,3 +1,4 @@
+import 'package:sixam_mart/common/widgets/premium/premium_button.dart';
 import 'package:sixam_mart/features/auth/widgets/sign_up_widget.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
@@ -32,22 +33,28 @@ class SignUpScreenState extends State<SignUpScreen> {
         }
       },
       child: Scaffold(
-        appBar: (ResponsiveHelper.isDesktop(context) ? null : !widget.exitFromApp ? AppBar(leading: IconButton(
-          onPressed: () {
-            if(Get.find<SplashController>().deeplinkRoute != null) {
-              Get.find<SplashController>().setDeeplink(null);
-              Get.offAllNamed(RouteHelper.getInitialRoute());
-            } else {
-              Get.back();
-            }
-          },
-          icon: Icon(Icons.arrow_back_ios_rounded, color: Theme.of(context).textTheme.bodyLarge!.color),
-        ), elevation: 0, backgroundColor: Colors.transparent,
+        appBar: (ResponsiveHelper.isDesktop(context) ? null : !widget.exitFromApp ? AppBar(
+          leading: PremiumIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () {
+              if(Get.find<SplashController>().deeplinkRoute != null) {
+                Get.find<SplashController>().setDeeplink(null);
+                Get.offAllNamed(RouteHelper.getInitialRoute());
+              } else {
+                Get.back();
+              }
+            },
+          ),
+          leadingWidth: 64,
+          elevation: 0, backgroundColor: Colors.transparent, surfaceTintColor: Colors.transparent,
           actions: const [SizedBox()],
         ) : null),
         backgroundColor: ResponsiveHelper.isDesktop(context) ? Colors.transparent : Theme.of(context).cardColor,
         endDrawer: const MenuDrawer(), endDrawerEnableOpenDragGesture: false,
-        body: SafeArea(
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: SafeArea(
           child: Center(
             child: Container(
               width: context.width > 700 ? 700 : context.width,
@@ -83,6 +90,7 @@ class SignUpScreenState extends State<SignUpScreen> {
               ),
 
             ),
+          ),
           ),
         ),
       ),

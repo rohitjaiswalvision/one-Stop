@@ -76,4 +76,14 @@ class HomeRepository implements HomeRepositoryInterface {
     return sharedPreferences.getBool(AppConstants.isRestaurantRegister) ?? false;
   }
 
+  @override
+  Future<bool> saveUserRegistrationSuccessful(bool status) async {
+    return await sharedPreferences.setBool(AppConstants.userRegisterSuccess, status);
+  }
+
+  @override
+  bool getUserRegistrationSuccessful() {
+    return sharedPreferences.getBool(AppConstants.userRegisterSuccess) ?? false;
+  }
+
 }

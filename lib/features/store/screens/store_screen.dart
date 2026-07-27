@@ -59,7 +59,6 @@ class _StoreScreenState extends State<StoreScreen> {
   @override
   void initState() {
     super.initState();
-
     initDataCall();
   }
 
@@ -301,22 +300,22 @@ class _StoreScreenState extends State<StoreScreen> {
                                         ]),
                                         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
                                         Text(
-                                          store.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          store.address ?? '', maxLines: 2, overflow: TextOverflow.ellipsis,
                                           style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall - (scrollingRate * 2), color: Theme.of(context).disabledColor),
                                         ),
                                         SizedBox(height: ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeExtraSmall : 0),
-                                        Row(children: [
-                                          Flexible(
-                                            child: Text('minimum_order'.tr, style: robotoRegular.copyWith(
-                                              fontSize: Dimensions.fontSizeExtraSmall - (scrollingRate * 2), color: Theme.of(context).disabledColor,
-                                            ), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                          ),
-                                          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                          Text(
-                                            PriceConverter.convertPrice(store.minimumOrder), textDirection: TextDirection.ltr,
-                                            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall - (scrollingRate * 2), color: Theme.of(context).primaryColor),
-                                          ),
-                                        ]),
+                                        // Row(children: [
+                                        //   Flexible(
+                                        //     child: Text('minimum_order'.tr, style: robotoRegular.copyWith(
+                                        //       fontSize: Dimensions.fontSizeExtraSmall - (scrollingRate * 2), color: Theme.of(context).disabledColor,
+                                        //     ), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                        //   ),
+                                        //   const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                                        //   Text(
+                                        //     PriceConverter.convertPrice(store.minimumOrder), textDirection: TextDirection.ltr,
+                                        //     style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall - (scrollingRate * 2), color: Theme.of(context).primaryColor),
+                                        //   ),
+                                        // ]),
                                       ])),
 
                                       GetBuilder<FavouriteController>(builder: (favouriteController) {

@@ -32,6 +32,7 @@ import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/common/widgets/cart_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_dialog.dart';
+import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/features/checkout/widgets/congratulation_dialogue.dart';
 import 'package:sixam_mart/features/dashboard/widgets/address_bottom_sheet_widget.dart';
 import 'package:sixam_mart/features/dashboard/widgets/parcel_bottom_sheet_widget.dart';
@@ -74,6 +75,7 @@ class DashboardScreenState extends State<DashboardScreen> {
     _isLogin = AuthHelper.isLoggedIn();
 
     _showRegistrationSuccessBottomSheet();
+    _showUserRegistrationSuccessMessage();
     if(!_isLogin && Get.find<SplashController>().showLoginSuggestion() && (GetPlatform.isAndroid || GetPlatform.isIOS)) {
       Future.delayed(const Duration(milliseconds: 3000), () {
         Get.bottomSheet(LoginSuggestionBottomSheet(), isScrollControlled: true).then((v) {
@@ -116,6 +118,18 @@ class DashboardScreenState extends State<DashboardScreen> {
       const OrderScreen(),
       const MenuScreen()
     ];
+  }
+
+  /// Greets a freshly registered customer once they actually land inside the app.
+  /// The flag is written by the sign-up flow (sign_up_widget._handleResponse) and
+  /// cleared here so the message shows exactly once.
+  void _showUserRegistrationSuccessMessage() {
+    if(_isLogin && Get.find<HomeController>().getUserRegistrationSuccessfulSharedPref()) {
+      Future.delayed(const Duration(seconds: 1), () {
+        showCustomSnackBar('registration_successful'.tr, isError: false);
+        Get.find<HomeController>().saveUserRegistrationSuccessfulSharedPref(false);
+      });
+    }
   }
 
   void _showRegistrationSuccessBottomSheet() {
@@ -364,6 +378,13 @@ class DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _setPage(int pageIndex) {
+    // The PageView keeps OrderScreen's State alive across tab switches, so its
+    // initState fetch only ever ran once — re-fetch on every visit to the Orders
+    // tab so a newly placed/updated order can't be shown from a stale list.
+    if(pageIndex == 3 && AuthHelper.isLoggedIn()) {
+      Get.find<OrderController>().getRunningOrders(1, isUpdate: true);
+      Get.find<OrderController>().getHistoryOrders(1, isUpdate: true);
+    }
     setState(() {
       _pageController!.jumpToPage(pageIndex);
       _pageIndex = pageIndex;

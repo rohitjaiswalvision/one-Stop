@@ -52,7 +52,7 @@ class _FooterViewState extends State<FooterView> {
 
               Expanded(flex: 4, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const SizedBox(height: Dimensions.paddingSizeExtraLarge),
-                Image.asset(Images.logo, width: 126, height: 40),
+                Image.asset(Images.logo, width: 126, height: 40, fit: BoxFit.contain),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
                 Text('subscribe_to_out_new_channel_to_get_latest_updates'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),

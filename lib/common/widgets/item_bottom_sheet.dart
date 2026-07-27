@@ -657,7 +657,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                                           ? 'if_you_continue'.tr : 'if_you_continue_without_another_store'.tr,
                                       onYesPressed: () {
                                         Get.back();
-                                        Get.find<CartController>().clearCartOnline().then((success) async {
+                                        Get.find<CartController>().clearCartOnline(showNotification: true).then((success) async {
                                           if(success) {
                                             await Get.find<CartController>().addToCartOnline(onlineCart);
                                             Get.back();

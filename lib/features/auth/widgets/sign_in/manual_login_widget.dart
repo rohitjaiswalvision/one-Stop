@@ -52,6 +52,10 @@ class ManualLoginWidget extends StatelessWidget {
           focusNode: phoneFocus,
           nextFocus: passwordFocus,
           inputType: TextInputType.emailAddress,
+          required: true,
+          // Cap at 10 digits only while the field holds a phone number — an email
+          // address in this same field can legitimately be longer.
+          maxLength: authController.isNumberLogin ? 10 : null,
           prefixImage: authController.isNumberLogin ? null : Images.emailWithPhoneIcon,
           onChanged: (String text){
             final numberRegExp = RegExp(r'^[+]?[0-9]+$');
@@ -217,6 +221,10 @@ class ManualLoginWidget extends StatelessWidget {
               nextFocus: passwordFocus,
               prefixImage: authController.isNumberLogin ? null : Images.emailWithPhoneIcon,
               inputType: TextInputType.emailAddress,
+              required: true,
+              // Cap at 10 digits only while the field holds a phone number — an email
+              // address in this same field can legitimately be longer.
+              maxLength: authController.isNumberLogin ? 10 : null,
               onChanged: (String text){
                 final numberRegExp = RegExp(r'^[+]?[0-9]+$');
 

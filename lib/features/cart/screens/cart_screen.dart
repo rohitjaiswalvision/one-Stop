@@ -473,6 +473,7 @@ children: [
                     },
                     child: Row(children: [
                       Icon(Icons.shopping_bag,color: Colors.blue,),
+                      SizedBox(width: 5,),
                       Expanded(child: Text('if_any_product_is_not_available'.tr, style: robotoMedium, maxLines: 2, overflow: TextOverflow.ellipsis)),
                       const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
                     ]),

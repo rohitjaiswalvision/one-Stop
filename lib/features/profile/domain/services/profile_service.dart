@@ -27,8 +27,8 @@ class ProfileService implements ProfileServiceInterface {
   }
 
   @override
-  Future<ResponseModel> changePassword(UserInfoModel userInfoModel) async {
-    return await profileRepositoryInterface.changePassword(userInfoModel);
+  Future<ResponseModel> changePassword(UserInfoModel userInfoModel, {String? currentPassword}) async {
+    return await profileRepositoryInterface.changePassword(userInfoModel, currentPassword: currentPassword);
   }
 
   @override
@@ -37,9 +37,9 @@ class ProfileService implements ProfileServiceInterface {
   }
 
   @override
-  Future<XFile?> pickImageFromGallery() async {
+  Future<XFile?> pickImageFromGallery({ImageSource source = ImageSource.gallery}) async {
     XFile? pickedFile;
-    XFile? pickLogo = await ImagePicker().pickImage(source: ImageSource.gallery);
+    XFile? pickLogo = await ImagePicker().pickImage(source: source);
     if(pickLogo != null) {
       await pickLogo.length().then((value) {
         if(value > 1000000) {

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/common/widgets/custom_loader.dart';
@@ -79,6 +80,47 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     super.dispose();
   }
 
+  void _showImageSourceSheet(ProfileController profileController) {
+    Get.bottomSheet(
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeDefault),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(Dimensions.radiusExtraLarge)),
+          color: Theme.of(context).cardColor,
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(height: 4, width: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+          const SizedBox(height: Dimensions.paddingSizeLarge),
+
+          ListTile(
+            leading: Icon(Icons.camera_alt, color: Theme.of(context).primaryColor),
+            title: Text('camera'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault)),
+            onTap: () {
+              Get.back();
+              profileController.pickImage(source: ImageSource.camera);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.photo_library, color: Theme.of(context).primaryColor),
+            title: Text('gallery'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault)),
+            onTap: () {
+              Get.back();
+              profileController.pickImage(source: ImageSource.gallery);
+            },
+          ),
+          const SizedBox(height: Dimensions.paddingSizeSmall),
+        ]),
+      ),
+      backgroundColor: Colors.transparent,
+    );
+  }
+
   void _splitPhoneNumber(String number) async {
     _isPhoneLoading = true;
     try{
@@ -130,7 +172,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             Positioned(
               bottom: 0, right: 0, top: 0, left: 0,
               child: InkWell(
-                onTap: () => profileController.pickImage(),
+                onTap: () => _showImageSourceSheet(profileController),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.3), shape: BoxShape.circle,
@@ -328,7 +370,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                       Positioned(
                         bottom: 0, right: 0, top: 0, left: 0,
                         child: InkWell(
-                          onTap: () => profileController.pickImage(),
+                          onTap: () => _showImageSourceSheet(profileController),
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.3), shape: BoxShape.circle,

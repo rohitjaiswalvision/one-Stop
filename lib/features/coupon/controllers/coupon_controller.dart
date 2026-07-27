@@ -36,6 +36,38 @@ class CouponController extends GetxController implements GetxService {
     }
   }
 
+  // Coupon list filter, by the store it belongs to — null means "All".
+  int? _storeFilterId;
+  int? get storeFilterId => _storeFilterId;
+
+  void setStoreFilter(int? storeId) {
+    _storeFilterId = storeId;
+    update();
+  }
+
+  /// Distinct stores present in the current coupon list, in first-seen order —
+  /// the pool of chips offered alongside "All". Coupons with no store (site-wide
+  /// coupons) are always included in "All" but don't get their own chip.
+  List<Store> get couponStores {
+    final List<Store> stores = <Store>[];
+    final Set<int> seenIds = <int>{};
+    for (final CouponModel coupon in _couponList ?? <CouponModel>[]) {
+      final Store? store = coupon.store;
+      if (store?.id != null && seenIds.add(store!.id!)) {
+        stores.add(store);
+      }
+    }
+    return stores;
+  }
+
+  List<CouponModel> get filteredCouponList {
+    final List<CouponModel> coupons = _couponList ?? <CouponModel>[];
+    if (_storeFilterId == null) {
+      return coupons;
+    }
+    return coupons.where((CouponModel coupon) => coupon.storeId == _storeFilterId).toList();
+  }
+
   Future<void> getCouponList() async {
     List<CouponModel>? couponList = await couponServiceInterface.getCouponList();
     if (couponList != null) {

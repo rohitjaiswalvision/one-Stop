@@ -15,8 +15,8 @@ class AppConstants {
   static const bool stopPolylineAnimation = false;
   static const String googleServerClientId = '491987943015-agln6biv84krpnngdphj87jkko7r9lb8.apps.googleusercontent.com';
   static const String pusherBroadcustUrl = '/api/v1/broadcasting/user-auth';
- static const String baseUrl = 'http://192.168.3.60:8001';
-  // static const String baseUrl = 'https://onestop.visionvivante.in';'
+//  static const String baseUrl = 'http://192.168.3.60:8001';
+ static const String baseUrl = 'https://onestop.visionvivante.in';
   static const String categoryUri = '/api/v1/categories';
   static const String bannerUri = '/api/v1/banners';
   static const String storeItemUri = '/api/v1/items/latest';
@@ -375,6 +375,7 @@ class AppConstants {
   static const String paymentIncompleteBottomSheet = '6ammart_payment_incomplete_bottomsheet';
   static const String dmRegisterSuccess = '6ammart_dm_registration_success';
   static const String isRestaurantRegister = '6ammart_store_registration';
+  static const String userRegisterSuccess = '6ammart_user_registration_success';
   static const String suggestLogin = '6ammart_login_suggestion';
 
   ///taxi

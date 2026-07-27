@@ -338,6 +338,9 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                             showRemoveIcon: true,
                           ),
                         ]) : Row(children: [
+                          // The minus never morphs into a trash can anymore — a dedicated,
+                          // always-visible small delete button sits at the end of the row
+                          // instead, so removal is one predictable tap at any quantity.
                           QuantityButton(
                             onTap: cartController.isLoading ? null : () {
                               if (widget.cart.quantity! > 1) {
@@ -347,7 +350,7 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                               }
                             },
                             isIncrement: false,
-                            showRemoveIcon: widget.cart.quantity! == 1,
+                            showRemoveIcon: false,
                           ),
 
                           Text(
@@ -362,6 +365,22 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                             },
                             isIncrement: true,
                             color: cartController.isLoading ? Theme.of(context).disabledColor : null,
+                          ),
+
+                          InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: cartController.isLoading ? null : () {
+                              Get.find<CartController>().removeFromCart(widget.cartIndex, item: widget.cart.item);
+                            },
+                            child: Container(
+                              height: 20, width: 20,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                              ),
+                              child: Image.asset(Images.delete, height: 11, color: Theme.of(context).colorScheme.error),
+                            ),
                           ),
                         ]),
 
