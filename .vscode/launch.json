@@ -6,6 +6,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "one-Stop (Flutter RMX3782)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "FENF89GAV8JRR4W8",
+      "program": "lib/main.dart"
+    },
+    {
       "name": "User app and web (Flutter RMX3782)",
       "request": "launch",
       "type": "dart",

@@ -465,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   /// Search Button
                   !showMobileModule && !isTaxi && !isRide ? SliverPersistentHeader(
-                    pinned: true,
+                    // pinned: true,
                     delegate: SliverDelegate(callback: (val){}, child: Center(child: Container(
                       height: 50, width: Dimensions.webMaxWidth,
                       color: searchBgShow ? Get.find<ThemeController>().darkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).cardColor : null,

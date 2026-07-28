@@ -44,7 +44,9 @@ class ItemCard extends StatelessWidget {
       isItem: true,
       child: Stack(children: [
         Container(
-          width: 200,
+          // Compact Zepto/Blinkit-style card: narrow footprint, image-dominant,
+          // so rails and grids fit more products per screen.
+          width: 140,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
             color: Theme.of(context).cardColor,
@@ -56,7 +58,7 @@ class ItemCard extends StatelessWidget {
               builder: (isHovered) {
                 return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Expanded(
-                    flex: 5,
+                    flex: 6,
                     child: Stack(children: [
                       Padding(
                         padding: EdgeInsets.only(top: isPopularItem ? Dimensions.paddingSizeExtraSmall : 0,
@@ -79,10 +81,10 @@ class ItemCard extends StatelessWidget {
                       ),
 
                       item.isStoreHalalActive! && item.isHalalItem! ? const Positioned(
-                        top: 40, right: 15,
+                        top: 30, right: 10,
                         child: CustomAssetImageWidget(
                           Images.halalTag,
-                          height: 20, width: 20,
+                          height: 16, width: 16,
                         ),
                       ) : const SizedBox(),
 
@@ -110,7 +112,7 @@ class ItemCard extends StatelessWidget {
                       ) : const SizedBox(),
 
                       isShop ? const SizedBox() : Positioned(
-                        bottom: 10, right: 20,
+                        bottom: 6, right: 10,
                         child: CartCountView(
                           item: item,
                           index: index,
@@ -128,7 +130,7 @@ class ItemCard extends StatelessWidget {
                   Expanded(
                     flex: 5,
                     child: Padding(
-                      padding: EdgeInsets.only(left: Dimensions.paddingSizeSmall, right: isShop ? 0 : Dimensions.paddingSizeSmall, top: Dimensions.paddingSizeSmall, bottom: isShop ? 0 : Dimensions.paddingSizeSmall),
+                      padding: EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall + 2, right: isShop ? 0 : Dimensions.paddingSizeExtraSmall + 2, top: Dimensions.paddingSizeExtraSmall, bottom: isShop ? 0 : Dimensions.paddingSizeExtraSmall),
                       child: Stack(clipBehavior: Clip.none, children: [
 
                         Align(
@@ -138,13 +140,13 @@ class ItemCard extends StatelessWidget {
                             (isFood || isShop) ? Row(
                               children: [
                                 Flexible(
-                                  child: Text(item.storeName ?? '', style: robotoRegular.copyWith(color: Theme.of(context).disabledColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  child: Text(item.storeName ?? '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor), maxLines: 1, overflow: TextOverflow.ellipsis),
                                 ),
                                 const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                item.verifiedSeller == 1 ? Image.asset(Images.verifiedBadge, width: 14, height: 14) : SizedBox.shrink()
+                                item.verifiedSeller == 1 ? Image.asset(Images.verifiedBadge, width: 12, height: 12) : SizedBox.shrink()
                               ],
                             )
-                                : Text(item.name ?? '', style: robotoBold, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                : Text(item.name ?? '', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall), maxLines: 1, overflow: TextOverflow.ellipsis),
 
                             // Which part of the catalogue this service belongs to, e.g.
                             // "Coloring" under a root-touch-up. Built inside a
@@ -173,27 +175,27 @@ class ItemCard extends StatelessWidget {
                             (isFood || isShop) ? Flexible(
                               child: Text(
                                 item.name ?? '',
-                                style: robotoBold, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall), maxLines: 1, overflow: TextOverflow.ellipsis,
                               ),
                             ) : item.ratingCount! > 0 ? Row(mainAxisAlignment: isPopularItem ? MainAxisAlignment.center : MainAxisAlignment.start, children: [
-                              Icon(Icons.star, size: 14, color: Colors.orange),
+                              Icon(Icons.star, size: 12, color: Colors.orange),
                               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                              Text(item.avgRating!.toStringAsFixed(1), style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                              Text(item.avgRating!.toStringAsFixed(1), style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall)),
                               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                              Text("(${item.ratingCount})", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor)),
+                              Text("(${item.ratingCount})", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor)),
                             ]) : const SizedBox(),
 
                             // showUnitOrRattings(context);
                             (isFood || isShop) ? item.ratingCount! > 0 ? Row(mainAxisAlignment: isPopularItem ? MainAxisAlignment.center : MainAxisAlignment.start, children: [
-                              Icon(Icons.star, size: 14, color: Colors.orange),
+                              Icon(Icons.star, size: 12, color: Colors.orange),
                               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                              Text(item.avgRating!.toStringAsFixed(1), style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                              Text(item.avgRating!.toStringAsFixed(1), style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall)),
                               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                              Text("(${item.ratingCount})", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor)),
+                              Text("(${item.ratingCount})", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).disabledColor)),
 
                             ]) : const SizedBox() : (Get.find<SplashController>().configModel!.moduleConfig!.module!.unit! && item.unitType != null) ? Text(
                               '(${ item.unitType ?? ''})',
@@ -214,10 +216,10 @@ class ItemCard extends StatelessWidget {
                                 Get.find<ItemController>().getStartingPrice(item), discount: discount,
                                 discountType: discountType,
                               )}${SquareFeetHelper.perUnitSuffix(item)}',
-                              textDirection: TextDirection.ltr, style: robotoMedium,
+                              textDirection: TextDirection.ltr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall),
                             ),
 
-                            const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                            const SizedBox(height: 2),
 
                           ]),
                         ),
@@ -228,7 +230,7 @@ class ItemCard extends StatelessWidget {
                             item: item,
                             index: index,
                             child: Container(
-                              height: 35, width: 38,
+                              height: 28, width: 32,
                               decoration: BoxDecoration(
                                 color: Theme.of(context).primaryColor,
                                 borderRadius: const BorderRadius.only(
@@ -236,7 +238,7 @@ class ItemCard extends StatelessWidget {
                                   bottomRight: Radius.circular(Dimensions.radiusLarge),
                                 ),
                               ),
-                              child: Icon(isPopularItemCart ? Icons.add_shopping_cart : Icons.add, color: Theme.of(context).cardColor, size: 20),
+                              child: Icon(isPopularItemCart ? Icons.add_shopping_cart : Icons.add, color: Theme.of(context).cardColor, size: 16),
                             ),
                           ),
                         ) : const SizedBox(),

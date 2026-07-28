@@ -228,7 +228,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         const SizedBox(height: Dimensions.paddingSizeSmall),
 
                         SizedBox(
-                          height: 285,
+                          height: 230,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             physics: const NeverScrollableScrollPhysics(),
@@ -238,7 +238,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                               child: Shimmer(
                                 duration: const Duration(seconds: 2),
                                 child: Container(
-                                  width: 200,
+                                  width: 140,
                                   decoration: BoxDecoration(
                                     color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
@@ -261,7 +261,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                           const SizedBox(height: Dimensions.paddingSizeSmall),
 
                           SizedBox(
-                            height: 285,
+                            height: 230,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               physics: const BouncingScrollPhysics(),

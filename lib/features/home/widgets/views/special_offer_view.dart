@@ -36,7 +36,7 @@ class SpecialOfferView extends StatelessWidget {
             ),
 
             SizedBox(
-              height: 285, width: Get.width,
+              height: 230, width: Get.width,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -78,7 +78,7 @@ class ItemShimmerView extends StatelessWidget {
           ),
 
           SizedBox(
-            height: 285, width: Get.width,
+            height: 230, width: Get.width,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
@@ -92,7 +92,7 @@ class ItemShimmerView extends StatelessWidget {
                     enabled: true,
                     child: Container(
                       padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                      height: 285, width: 200,
+                      height: 230, width: 140,
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
@@ -100,7 +100,7 @@ class ItemShimmerView extends StatelessWidget {
                       child: Column(children: [
 
                         Container(
-                          height: 150, width: double.infinity,
+                          height: 105, width: double.infinity,
                           decoration: BoxDecoration(
                             color: Theme.of(context).shadowColor,
                             borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
@@ -116,7 +116,7 @@ class ItemShimmerView extends StatelessWidget {
                                 color: Theme.of(context).shadowColor,
                                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                               ),
-                              height: 15, width: 100,
+                              height: 12, width: 80,
                             ),
                             const SizedBox(height: Dimensions.paddingSizeSmall),
 
@@ -125,12 +125,12 @@ class ItemShimmerView extends StatelessWidget {
                                 color: Theme.of(context).shadowColor,
                                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                               ),
-                              height: 20, width: 200,
+                              height: 14, width: 110,
                             ),
                             const SizedBox(height: Dimensions.paddingSizeSmall),
 
                             Container(
-                              height: 15, width: 100,
+                              height: 12, width: 80,
                               decoration: BoxDecoration(
                                 color: Theme.of(context).shadowColor,
                                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
