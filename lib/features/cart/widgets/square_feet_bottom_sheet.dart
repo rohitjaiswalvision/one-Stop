@@ -199,6 +199,12 @@ class _SquareFeetBottomSheetState extends State<SquareFeetBottomSheet> {
       _squareFeet, [], [], [], 'Item', area: _squareFeet,
     );
 
+    final int? quantityLimit = item.quantityLimit;
+    if (quantityLimit != null && quantityLimit != 0 && _squareFeet > quantityLimit) {
+      showCustomSnackBar('${'maximum_quantity_limit'.tr} $quantityLimit', getXSnackBar: true);
+      return;
+    }
+
     if (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && (item.stock ?? 0) <= 0) {
       showCustomSnackBar('out_of_stock'.tr, getXSnackBar: true);
       return;

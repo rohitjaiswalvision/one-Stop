@@ -159,11 +159,12 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     }
     Get.find<CheckoutController>().pickPrescriptionImage(isRemove: true, isCamera: false);
     _isWalletActive = Get.find<SplashController>().configModel!.customerWalletStatus == 1;
-    Get.find<CheckoutController>().updateTips(
-      Get.find<CheckoutController>().getSharedPrefDmTipIndex().isNotEmpty ? int.parse(Get.find<CheckoutController>().getSharedPrefDmTipIndex()) : 0,
-      notify: false,
-    );
-    Get.find<CheckoutController>().tipController.text = Get.find<CheckoutController>().selectedTips != -1 ? AppConstants.tips[Get.find<CheckoutController>().selectedTips] : '';
+    int savedTipIndex = Get.find<CheckoutController>().getSharedPrefDmTipIndex().isNotEmpty ? int.parse(Get.find<CheckoutController>().getSharedPrefDmTipIndex()) : -1;
+    if(savedTipIndex >= AppConstants.tips.length) {
+      savedTipIndex = -1;
+    }
+    Get.find<CheckoutController>().updateTips(savedTipIndex, notify: false);
+    Get.find<CheckoutController>().tipController.text = (Get.find<CheckoutController>().selectedTips != -1 && Get.find<CheckoutController>().selectedTips != AppConstants.tips.length - 1) ? AppConstants.tips[Get.find<CheckoutController>().selectedTips] : '';
   }
 
   void _setSinglePaymentActive() {
@@ -324,7 +325,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                       && Get.find<CouponController>().freeDelivery)) ? Get.find<CouponController>().coupon!.code : null,
                   storeId: (widget.storeId == null) ? _cartList![0]!.item!.storeId : widget.storeId,
                   discountAmount: discount, receiverDetails: null, parcelCategoryId: null,
-                  chargePayer: null, dmTips: (checkoutController.orderType == 'take_away' || checkoutController.tipController.text == 'not_now') ? '' : checkoutController.tipController.text.trim(),
+                  chargePayer: null, dmTips: (checkoutController.orderType == 'take_away' || checkoutController.tipController.text == 'not_now' || checkoutController.tipController.text == '0' || checkoutController.tipController.text == '0.0') ? '' : checkoutController.tipController.text.trim(),
                   cutlery: Get.find<CartController>().addCutlery ? 1 : 0,
                   unavailableItemNote: Get.find<CartController>().notAvailableIndex != -1 ? Get.find<CartController>().notAvailableList[Get.find<CartController>().notAvailableIndex] : '',
                   deliveryInstruction: checkoutController.selectedInstruction != -1 ? AppConstants.deliveryInstructionList[checkoutController.selectedInstruction] : '',
@@ -765,7 +766,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 house: isGuestLogIn ? finalAddress.house ?? '' : checkoutController.houseController.text.trim(),
                 floor: isGuestLogIn ? finalAddress.floor ?? '' : checkoutController.floorController.text.trim(),
                 discountAmount: discount, taxAmount: tax, receiverDetails: null, parcelCategoryId: null,
-                chargePayer: null, dmTips: (checkoutController.orderType == 'take_away' || checkoutController.tipController.text == 'not_now') ? '' : checkoutController.tipController.text.trim(),
+                chargePayer: null, dmTips: (checkoutController.orderType == 'take_away' || checkoutController.tipController.text == 'not_now' || checkoutController.tipController.text == '0' || checkoutController.tipController.text == '0.0') ? '' : checkoutController.tipController.text.trim(),
                 cutlery: Get.find<CartController>().addCutlery ? 1 : 0,
                 unavailableItemNote: Get.find<CartController>().notAvailableIndex != -1 ? Get.find<CartController>().notAvailableList[Get.find<CartController>().notAvailableIndex] : '',
                 deliveryInstruction: checkoutController.selectedInstruction != -1 ? AppConstants.deliveryInstructionList[checkoutController.selectedInstruction] : '',

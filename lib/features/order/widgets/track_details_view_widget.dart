@@ -48,28 +48,37 @@ class TrackDetailsViewWidget extends StatelessWidget {
         Text('trip_route'.tr, style: robotoMedium),
         const SizedBox(height: Dimensions.paddingSizeLarge),
 
-        Row(children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                takeAway ? track.deliveryAddress?.address ?? '' : track.deliveryMan?.location ?? '',
+                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+                maxLines: 4, overflow: TextOverflow.ellipsis,
+              ),
+            ),
 
-          Expanded(flex: 3, child: Text(
-            takeAway ? track.deliveryAddress?.address ?? '' : track.deliveryMan?.location ?? '',
-            style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
-            maxLines: 5, overflow: TextOverflow.ellipsis,
-          )),
-          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(width: 35, child: CustomDivider(color: Theme.of(context).primaryColor, height: 2)),
+                  Container(height: 8, width: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).primaryColor)),
+                ],
+              ),
+            ),
 
-          SizedBox(width: 80, child: CustomDivider(color: Theme.of(context).primaryColor, height: 2)),
-
-          Container(height: 10, width: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).primaryColor)),
-          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-
-          Expanded(
-            flex: 5,
-            child: (takeAway && track.orderType != 'parcel') ? Text(track.store != null ? track.store!.address! : '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
-              maxLines: 2, overflow: TextOverflow.ellipsis,
-            ) : (track.orderType == 'parcel' && status == 'picked_up') ? AddressDetailsWidget(addressDetails: track.receiverDetails)
-                : AddressDetailsWidget(addressDetails: track.deliveryAddress),
-          ),
-        ]),
+            Expanded(
+              child: (takeAway && track.orderType != 'parcel') ? Text(
+                track.store != null ? track.store!.address! : '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+                maxLines: 4, overflow: TextOverflow.ellipsis,
+              ) : (track.orderType == 'parcel' && status == 'picked_up') ? AddressDetailsWidget(addressDetails: track.receiverDetails)
+                  : AddressDetailsWidget(addressDetails: track.deliveryAddress),
+            ),
+          ],
+        ),
         const SizedBox(height: Dimensions.paddingSizeSmall),
 
         takeAway ? InkWell(

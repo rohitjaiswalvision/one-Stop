@@ -1,3 +1,4 @@
+import 'package:sixam_mart/common/widgets/cart_snackbar.dart';
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_tool_tip_widget.dart';
 import 'package:sixam_mart/common/widgets/item_bottom_sheet_shimmer.dart';
@@ -573,9 +574,10 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                           return CustomButton(
                             width: ResponsiveHelper.isDesktop(context) ? MediaQuery.of(context).size.width / 2.0 : null,
                             isLoading: cartController.isLoading,
+                            icon: (widget.cart != null || itemController.cartIndex != -1) ? Icons.shopping_cart_outlined : null,
                             buttonText: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0)
                                 ? 'out_of_stock'.tr : widget.isCampaign ? 'order_now'.tr
-                                : (widget.cart != null || itemController.cartIndex != -1) ? 'update_in_cart'.tr : 'add_to_cart'.tr,
+                                : (widget.cart != null || itemController.cartIndex != -1) ? 'view_cart'.tr : 'add_to_cart'.tr,
                             onPressed: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0) ? null : () async {
                               String? invalid;
 
@@ -661,28 +663,38 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                                           if(success) {
                                             await Get.find<CartController>().addToCartOnline(onlineCart);
                                             Get.back();
-                                            //showCartSnackBar();
                                           }
                                         });
-
                                       },
                                     ), barrierDismissible: false);
                                   } else {
-                                    if(widget.cart != null || itemController.cartIndex != -1){
+                                    if(widget.cart != null){
+                                      int? limit = item.quantityLimit;
+                                      if(limit != null && limit != 0 && (itemController.quantity ?? 1) > limit) {
+                                        showCustomSnackBar('${'maximum_quantity_limit'.tr} $limit', getXSnackBar: true);
+                                        return;
+                                      }
                                       await Get.find<CartController>().updateCartOnline(onlineCart).then((success) {
                                         if(success) {
                                           Get.back();
                                         }
                                       });
+                                    } else if(itemController.cartIndex != -1) {
+                                      Get.back();
+                                      Get.toNamed(RouteHelper.getCartRoute());
                                     } else {
+                                      int? limit = item.quantityLimit;
+                                      if(limit != null && limit != 0 && (itemController.quantity ?? 1) > limit) {
+                                        showCustomSnackBar('${'maximum_quantity_limit'.tr} $limit', getXSnackBar: true);
+                                        return;
+                                      }
                                       await Get.find<CartController>().addToCartOnline(onlineCart).then((success) {
                                         if(success) {
                                           Get.back();
+                                          showCartSnackBar(onAddMore: () => Get.find<CartController>().addToCartOnline(onlineCart));
                                         }
                                       });
                                     }
-
-                                    //showCartSnackBar();
                                   }
                                 }
                               }

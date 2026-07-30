@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/common/widgets/add_favourite_view.dart';
 import 'package:sixam_mart/common/widgets/custom_ink_well.dart';
 import 'package:sixam_mart/common/widgets/hover/text_hover.dart';
+import 'package:sixam_mart/common/widgets/item_bottom_sheet.dart';
 import 'package:sixam_mart/common/widgets/not_available_widget.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
+import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -91,31 +93,50 @@ class VisitAgainCard extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     itemBuilder: (context, index) {
+                      final item = store.items![index];
                       return Padding(
                         padding: const EdgeInsets.only(right: Dimensions.paddingSizeExtraSmall),
-                        child: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular((isPharmacy || isFood) ? 100 : Dimensions.radiusSmall),
-                              child: CustomImage(
-                                image: '${store.items![index].imageFullUrl}',
-                                  fit: BoxFit.cover, height: 25, width: 25,
-                              ),
-                            ),
-
-                            index == store.items!.length -1 ? Positioned(
-                              top: 0, left: 0,right: 0, bottom: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular((isPharmacy || isFood) ? 100 : Dimensions.radiusSmall),
-                                  color: Colors.black.withValues(alpha: 0.5),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular((isPharmacy || isFood) ? 100 : Dimensions.radiusSmall),
+                          onTap: () {
+                            if (item.id != null) {
+                              if (ResponsiveHelper.isDesktop(context)) {
+                                Get.dialog(
+                                  Dialog(child: ItemBottomSheet(itemId: item.id!, inStorePage: false)),
+                                );
+                              } else {
+                                Get.bottomSheet(
+                                  ItemBottomSheet(itemId: item.id!, inStorePage: false),
+                                  backgroundColor: Colors.transparent,
+                                  isScrollControlled: true,
+                                );
+                              }
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular((isPharmacy || isFood) ? 100 : Dimensions.radiusSmall),
+                                child: CustomImage(
+                                  image: '${item.imageFullUrl}',
+                                    fit: BoxFit.cover, height: 25, width: 25,
                                 ),
-                                child: Center(child: Text(
-                                  (store.itemCount! > 20) ? '20+' : '${store.itemCount}', style: robotoMedium.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeExtraSmall),
-                                )),
                               ),
-                            ) : const SizedBox(),
-                          ],
+
+                              index == store.items!.length -1 ? Positioned(
+                                top: 0, left: 0,right: 0, bottom: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular((isPharmacy || isFood) ? 100 : Dimensions.radiusSmall),
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                  ),
+                                  child: Center(child: Text(
+                                    (store.itemCount! > 20) ? '20+' : '${store.itemCount}', style: robotoMedium.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeExtraSmall),
+                                  )),
+                                ),
+                              ) : const SizedBox(),
+                            ],
+                          ),
                         ),
                       );
                     },

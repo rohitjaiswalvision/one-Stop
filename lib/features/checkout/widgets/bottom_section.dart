@@ -224,7 +224,7 @@ class BottomSection extends StatelessWidget {
             ]),
             SizedBox(height: ((checkoutController.taxIncluded == null) || taxIncluded || (checkoutController.orderTax == 0)) ? 0 : Dimensions.paddingSizeSmall),
 
-            (!takeAway && Get.find<SplashController>().configModel!.dmTipsStatus == 1) ? Row(
+            (!takeAway && Get.find<SplashController>().configModel!.dmTipsStatus == 1 && checkoutController.tips > 0) ? Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
@@ -239,7 +239,7 @@ class BottomSection extends StatelessWidget {
 
               ],
             ) : const SizedBox.shrink(),
-            SizedBox(height: !takeAway && Get.find<SplashController>().configModel!.dmTipsStatus == 1 ? Dimensions.paddingSizeSmall : 0.0),
+            SizedBox(height: !takeAway && Get.find<SplashController>().configModel!.dmTipsStatus == 1 && checkoutController.tips > 0 ? Dimensions.paddingSizeSmall : 0.0),
 
             storeId == null ? (checkoutController.store!.extraPackagingStatus! && Get.find<CartController>().needExtraPackage) ? Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

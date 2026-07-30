@@ -48,6 +48,7 @@ class CustomTextField extends StatefulWidget {
   final Function()? suffixOnPressed;
   final bool divider;
   final bool fromUpdateProfile;
+  final AutovalidateMode? autovalidateMode;
 
   const CustomTextField({
     super.key,
@@ -88,6 +89,7 @@ class CustomTextField extends StatefulWidget {
     this.suffixImage,
     this.divider = false,
     this.fromUpdateProfile = false,
+    this.autovalidateMode,
   });
 
   @override
@@ -113,6 +115,7 @@ class CustomTextFieldState extends State<CustomTextField> {
         widget.showTitle ? Text(widget.titleText, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)) : const SizedBox(),
         SizedBox(height: widget.showTitle ? ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeDefault : Dimensions.paddingSizeExtraSmall : 0),
         TextFormField(
+          autovalidateMode: widget.autovalidateMode ?? AutovalidateMode.onUserInteraction,
           maxLines: widget.maxLines,
           maxLength: widget.maxLength,
           controller: widget.controller,

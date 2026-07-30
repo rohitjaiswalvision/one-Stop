@@ -44,26 +44,59 @@ class _DeliveryManTipsSectionState extends State<DeliveryManTipsSection> {
               padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge, horizontal: Dimensions.paddingSizeLarge),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                Row(children: [
-                  Text('delivery_man_tips'.tr, style: robotoMedium),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      Text('delivery_man_tips'.tr, style: robotoMedium),
+                      const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                  JustTheTooltip(
-                    backgroundColor: Colors.black87,
-                    controller: widget.tooltipController3,
-                    preferredDirection: AxisDirection.right,
-                    tailLength: 14,
-                    tailBaseWidth: 20,
-                    content: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('it_s_a_great_way_to_show_your_appreciation_for_their_hard_work'.tr,style: robotoRegular.copyWith(color: Colors.white)),
-                    ),
-                    child: InkWell(
-                      onTap: () => widget.tooltipController3.showTooltip(),
-                      child: const Icon(Icons.info_outline),
-                    ),
-                  ),
+                      JustTheTooltip(
+                        backgroundColor: Colors.black87,
+                        controller: widget.tooltipController3,
+                        preferredDirection: AxisDirection.right,
+                        tailLength: 14,
+                        tailBaseWidth: 20,
+                        content: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('it_s_a_great_way_to_show_your_appreciation_for_their_hard_work'.tr,style: robotoRegular.copyWith(color: Colors.white)),
+                        ),
+                        child: InkWell(
+                          onTap: () => widget.tooltipController3.showTooltip(),
+                          child: const Icon(Icons.info_outline, size: 18),
+                        ),
+                      ),
+                    ]),
 
-                ]),
+                    if (checkoutController.selectedTips != -1 || checkoutController.tips > 0)
+                      InkWell(
+                        onTap: () {
+                          total = total - checkoutController.tips;
+                          checkoutController.updateTips(-1);
+                          checkoutController.addTips(0.0);
+                          checkoutController.tipController.text = '';
+                          if (checkoutController.canShowTipsField) {
+                            checkoutController.showTipsField();
+                          }
+                          if (checkoutController.isPartialPay || checkoutController.paymentMethodIndex == 1) {
+                            checkoutController.checkBalanceStatus(total, 0);
+                          }
+                          widget.onTotalChange(total);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                          ),
+                          child: Text(
+                            'clear_tip'.tr,
+                            style: robotoMedium.copyWith(color: Colors.red, fontSize: Dimensions.fontSizeSmall),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
                 SizedBox(
@@ -77,25 +110,34 @@ class _DeliveryManTipsSectionState extends State<DeliveryManTipsSection> {
                     itemCount: AppConstants.tips.length,
                     itemBuilder: (context, index) {
                       return TipsWidget(
-                        title: AppConstants.tips[index] == '0' ? 'not_now'.tr : (index != AppConstants.tips.length -1) ? PriceConverter.convertPrice(double.parse(AppConstants.tips[index].toString()), forDM: true) : AppConstants.tips[index].tr,
+                        title: (index != AppConstants.tips.length - 1) ? PriceConverter.convertPrice(double.parse(AppConstants.tips[index].toString()), forDM: true) : AppConstants.tips[index].tr,
                         isSelected: checkoutController.selectedTips == index,
-                        isSuggested: index != 0 && AppConstants.tips[index] == checkoutController.mostDmTipAmount.toString(),
+                        isSuggested: AppConstants.tips[index] == checkoutController.mostDmTipAmount.toString(),
                         onTap: () async {
                           total = total - checkoutController.tips;
-                          checkoutController.updateTips(index);
-                          if(checkoutController.selectedTips != AppConstants.tips.length-1) {
-                            checkoutController.addTips(double.parse(AppConstants.tips[index]));
+                          if (checkoutController.selectedTips == index) {
+                            checkoutController.updateTips(-1);
+                            checkoutController.addTips(0.0);
+                            checkoutController.tipController.text = '';
+                            if (index == AppConstants.tips.length - 1 && checkoutController.canShowTipsField) {
+                              checkoutController.showTipsField();
+                            }
+                          } else {
+                            checkoutController.updateTips(index);
+                            if (checkoutController.selectedTips != AppConstants.tips.length - 1) {
+                              checkoutController.addTips(double.parse(AppConstants.tips[index]));
+                            }
+                            if (checkoutController.selectedTips == AppConstants.tips.length - 1) {
+                              checkoutController.showTipsField();
+                            }
+                            checkoutController.tipController.text = checkoutController.tips > 0
+                                ? (checkoutController.tips % 1 == 0 ? checkoutController.tips.toInt().toString() : checkoutController.tips.toString())
+                                : '';
                           }
-                          if(checkoutController.selectedTips == AppConstants.tips.length-1) {
-                            checkoutController.showTipsField();
-                          }
-                          checkoutController.tipController.text = checkoutController.tips.toString();
 
-                          if(checkoutController.isPartialPay || checkoutController.paymentMethodIndex == 1) {
-
+                          if (checkoutController.isPartialPay || checkoutController.paymentMethodIndex == 1) {
                             checkoutController.checkBalanceStatus((total + checkoutController.tips), 0);
                           }
-
                         },
                       );
                     },
@@ -111,7 +153,7 @@ class _DeliveryManTipsSectionState extends State<DeliveryManTipsSection> {
                     value: checkoutController.isDmTipSave,
                     onChanged: (bool? isChecked) => checkoutController.toggleDmTipSave(),
                   ),
-                  title: Text('save_for_later'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor)),
+                  title: Text('save_for_future_orders'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor)),
                   contentPadding: EdgeInsets.zero,
                   visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
                   dense: true,
@@ -165,7 +207,7 @@ class _DeliveryManTipsSectionState extends State<DeliveryManTipsSection> {
 
                   InkWell(
                     onTap: () {
-                      checkoutController.updateTips(0);
+                      checkoutController.updateTips(-1);
                       checkoutController.showTipsField();
                       if(checkoutController.isPartialPay) {
                         checkoutController.changePartialPayment();

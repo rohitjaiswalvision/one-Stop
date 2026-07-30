@@ -894,6 +894,17 @@ class ItemController extends GetxController implements GetxService {
         );
         if(Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && _item!.stock! <= 0){
           showCustomSnackBar('out_of_stock'.tr);
+        } else if(() {
+          int cartIndex = Get.find<CartController>().isExistInCart(_item!.id, '', false, null);
+          int currentQty = cartIndex != -1 ? (Get.find<CartController>().cartList[cartIndex].quantity ?? 0) : 0;
+          int? limit = _item?.quantityLimit;
+          if(limit != null && limit != 0 && currentQty >= limit) {
+            showCustomSnackBar('${'maximum_quantity_limit'.tr} $limit');
+            return true;
+          }
+          return false;
+        }()) {
+          return;
         }
         else if (Get.find<CartController>().existAnotherStoreItem(cartModel.item!.storeId, ModuleHelper.getModule() != null
             ? ModuleHelper.getModule()?.id : ModuleHelper.getCacheModule()?.id)) {
@@ -907,7 +918,7 @@ class ItemController extends GetxController implements GetxService {
                 if (success) {
                   await Get.find<CartController>().addToCartOnline(onlineCart);
                   Get.back();
-                  showCartSnackBar();
+                  showCartSnackBar(onAddMore: () => Get.find<CartController>().addToCartOnline(onlineCart));
                 }
               });
             },
@@ -915,7 +926,7 @@ class ItemController extends GetxController implements GetxService {
         } else {
           void doAdd() {
             Get.find<CartController>().addToCartOnline(onlineCart);
-            showCartSnackBar();
+            showCartSnackBar(onAddMore: () => doAdd());
           }
           // Adding a service straight from the "+" — offer the optional work note first.
           if(ModuleHelper.isService(moduleType: _item?.moduleType)) {

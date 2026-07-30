@@ -215,7 +215,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   margin: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                   child: Column(children: [
                     PortionWidget(
-                      icon: Images.couponIcon, title: 'coupon'.tr, route: RouteHelper.getCouponRoute(),
+                      icon: Images.couponIcon, title: 'coupons'.tr, route: RouteHelper.getCouponRoute(),
                       hideDivider: Get.find<SplashController>().configModel!.loyaltyPointStatus == 1 || Get.find<SplashController>().configModel!.customerWalletStatus == 1 ? false : true,
                     ),
 

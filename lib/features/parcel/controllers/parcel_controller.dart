@@ -107,7 +107,7 @@ class ParcelController extends GetxController implements GetxService {
   double _tips = 0.0;
   double get tips => _tips;
 
-  int _selectedTips = 0;
+  int _selectedTips = -1;
   int get selectedTips => _selectedTips;
 
   bool _canShowTipsField = false;
@@ -355,7 +355,7 @@ class ParcelController extends GetxController implements GetxService {
 
   void updateTips(int index, {bool notify = true}) {
     _selectedTips = index;
-    if(_selectedTips == 0 || _selectedTips == 5) {
+    if(_selectedTips == -1 || _selectedTips == AppConstants.tips.length - 1) {
       _tips = 0;
     }else {
       _tips = double.parse(AppConstants.tips[index]);

@@ -501,7 +501,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                 child: PremiumButton(
                                   isLoading: cartController.isLoading,
                                   text: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0) ? 'out_of_stock'.tr
-                                      : item.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'update_in_cart'.tr : 'add_to_cart'.tr,
+                                      : item.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'view_cart'.tr : 'add_to_cart'.tr,
+                                  icon: itemController.cartIndex != -1 ? Icons.shopping_cart_outlined : null,
                                   height: 52,
                                   onPressed: (!Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! || stock! > 0) ?  () async {
 
@@ -537,19 +538,23 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                                 if(success) {
                                                   await cartController.addToCartOnline(cart!);
                                                   itemController.setExistInCart(item, null);
-                                                  showCartSnackBar();
+                                                  showCartSnackBar(onAddMore: () => cartController.addToCartOnline(cart!));
                                                 }
                                               });
-
                                             },
                                           ), barrierDismissible: false);
                                         } else {
                                           if(itemController.cartIndex == -1) {
                                             Future<void> doAdd() async {
+                                              int? limit = item.quantityLimit;
+                                              if(limit != null && limit != 0 && (itemController.quantity ?? 1) > limit) {
+                                                showCustomSnackBar('${'maximum_quantity_limit'.tr} $limit');
+                                                return;
+                                              }
                                               await cartController.addToCartOnline(cart!).then((success) {
                                                 if(success){
                                                   itemController.setExistInCart(item, null);
-                                                  showCartSnackBar();
+                                                  showCartSnackBar(onAddMore: () => cartController.addToCartOnline(cart!));
                                                   _key.currentState!.shake();
                                                 }
                                               });
@@ -562,12 +567,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                               await doAdd();
                                             }
                                           } else {
-                                            await cartController.updateCartOnline(cart!).then((success) {
-                                              if(success) {
-                                                showCartSnackBar();
-                                                _key.currentState!.shake();
-                                              }
-                                            });
+                                            Get.toNamed(RouteHelper.getCartRoute());
                                           }
 
                                         }

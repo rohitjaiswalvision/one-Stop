@@ -18,6 +18,7 @@ import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/cart_snackbar.dart';
+import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/common/widgets/confirmation_dialog.dart';
 import 'package:sixam_mart/common/widgets/custom_button.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
@@ -430,8 +431,9 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                   CustomButton(
                                     width: 300,
                                     isLoading: cartController.isLoading,
+                                    icon: itemController.cartIndex != -1 ? Icons.shopping_cart_outlined : null,
                                     buttonText: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && widget.stock! <= 0) ? 'out_of_stock'.tr
-                                        : itemController.item!.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'update_in_cart'.tr : 'add_to_cart'.tr,
+                                        : itemController.item!.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'view_cart'.tr : 'add_to_cart'.tr,
                                     onPressed: (!Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! || widget.stock! > 0) ?  () async {
                                       if(AddressHelper.getUserAddressFromSharedPref() == null) {
                                         Get.dialog(ZoneWarningDialog(
@@ -441,8 +443,6 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                           Get.find<LocationController>().navigateToLocationScreen('home', canRoute: true);
                                         },
                                         ));
-                                        //   Get.back();
-                                        // Get.find<LocationController>().navigateToLocationScreen('home', canRoute: true);
                                         return;
                                       }
                                       if(itemController.item!.availableDateStarts != null) {
@@ -461,25 +461,26 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                               if(success) {
                                                 await cartController.addToCartOnline(widget.cart!);
                                                 itemController.setExistInCart(itemController.item, null);
-                                                showCartSnackBar();
+                                                showCartSnackBar(onAddMore: () => cartController.addToCartOnline(widget.cart!));
                                               }
                                             });
                                           },
                                         ), barrierDismissible: false);
                                       } else {
                                         if(itemController.cartIndex == -1) {
+                                          int? limit = itemController.item?.quantityLimit;
+                                          if(limit != null && limit != 0 && (itemController.quantity ?? 1) > limit) {
+                                            showCustomSnackBar('${'maximum_quantity_limit'.tr} $limit');
+                                            return;
+                                          }
                                           await cartController.addToCartOnline(widget.cart!).then((success) {
                                             if(success){
                                               itemController.setExistInCart(itemController.item, null);
-                                              showCartSnackBar();
+                                              showCartSnackBar(onAddMore: () => cartController.addToCartOnline(widget.cart!));
                                             }
                                           });
                                         } else {
-                                          await cartController.updateCartOnline(widget.cart!).then((success) {
-                                            if(success) {
-                                              showCartSnackBar();
-                                            }
-                                          });
+                                          Get.toNamed(RouteHelper.getCartRoute());
                                         }
                                       }
                                     } : null,
@@ -559,8 +560,9 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                            return CustomButton(
                              width: 300,
                              isLoading: cartController.isLoading,
+                             icon: itemController.cartIndex != -1 ? Icons.shopping_cart_outlined : null,
                              buttonText: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && widget.stock! <= 0) ? 'out_of_stock'.tr
-                                 : itemController.item!.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'update_in_cart'.tr : 'add_to_cart'.tr,
+                                 : itemController.item!.availableDateStarts != null ? 'order_now'.tr : itemController.cartIndex != -1 ? 'view_cart'.tr : 'add_to_cart'.tr,
                              onPressed: (!Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! || widget.stock! > 0) ?  () async {
                                if(AddressHelper.getUserAddressFromSharedPref() == null) {
                                  Get.dialog(ZoneWarningDialog(
@@ -589,7 +591,7 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                        if(success) {
                                          await cartController.addToCartOnline(widget.cart!);
                                          itemController.setExistInCart(itemController.item, null);
-                                         showCartSnackBar();
+                                         showCartSnackBar(onAddMore: () => cartController.addToCartOnline(widget.cart!));
                                        }
                                      });
                                    },
@@ -599,15 +601,11 @@ class _DetailsWebViewWidgetState extends State<DetailsWebViewWidget> {
                                    await cartController.addToCartOnline(widget.cart!).then((success) {
                                      if(success){
                                        itemController.setExistInCart(itemController.item, null);
-                                       showCartSnackBar();
+                                       showCartSnackBar(onAddMore: () => cartController.addToCartOnline(widget.cart!));
                                      }
                                    });
                                  } else {
-                                   await cartController.updateCartOnline(widget.cart!).then((success) {
-                                     if(success) {
-                                       showCartSnackBar();
-                                     }
-                                   });
+                                    Get.toNamed(RouteHelper.getCartRoute());
                                  }
                                }
                              } : null,

@@ -66,7 +66,6 @@ class SignUpWidgetState extends State<SignUpWidget> {
     bool isDesktop = ResponsiveHelper.isDesktop(context);
     return Form(
       key: _formKeySignUp,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Container(
         width: context.width > 700 ? 700 : context.width,
         decoration: context.width > 700 ? BoxDecoration(
@@ -205,14 +204,6 @@ class SignUpWidgetState extends State<SignUpWidget> {
                           prefixIcon: Icons.lock,
                           isPassword: true,
                           validator: (value) => ValidateCheck.validatePassword(value, "please_enter_password".tr),
-                          // Re-validates confirm-password live as this field changes — its own
-                          // validator only checks itself, so a mismatch wouldn't otherwise
-                          // update until confirm-password itself is edited or submit is pressed.
-                          onChanged: (_) {
-                            if (_confirmPasswordController.text.isNotEmpty) {
-                              _formKeySignUp?.currentState?.validate();
-                            }
-                          },
                         ),
                       ]),
                     ),

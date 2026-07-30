@@ -221,7 +221,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
               ),
 
               Positioned(
-                right: 15, bottom: isService ? 15 : track.orderType != 'take_away' && track.deliveryMan == null ? 150 : 220,
+                right: 15, bottom: isService ? (MediaQuery.of(context).padding.bottom + 25) : track.orderType != 'take_away' && track.deliveryMan == null ? (MediaQuery.of(context).padding.bottom + 165) : (MediaQuery.of(context).padding.bottom + 250),
                 child: InkWell(
                   onTap: () => _checkPermission(() async {
                     AddressModel address = await Get.find<LocationController>().getCurrentLocation(false, mapController: _controller);
@@ -248,7 +248,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
               // the staff has added to the booking so far (live-synced extra
               // services + completion note). Renders nothing until extras exist.
               if(isService) Positioned(
-                bottom: Dimensions.paddingSizeSmall, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
+                bottom: MediaQuery.of(context).padding.bottom + Dimensions.paddingSizeLarge, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.35),
                   child: SingleChildScrollView(
@@ -261,7 +261,7 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
               ),
 
               if(!isService) Positioned(
-                bottom: Dimensions.paddingSizeSmall, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
+                bottom: MediaQuery.of(context).padding.bottom + Dimensions.paddingSizeLarge, left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
                 child: TrackDetailsViewWidget(status: track.orderStatus, track: track, showChatPermission: showChatPermission, callback: () async{
                   bool takeAway = track?.orderType == 'take_away';
                   _timer?.cancel();

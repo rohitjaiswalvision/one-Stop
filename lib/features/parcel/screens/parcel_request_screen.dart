@@ -95,9 +95,11 @@ class _ParcelRequestScreenState extends State<ParcelRequestScreen> {
       if (Get.find<ProfileController>().userInfoModel == null && _isLoggedIn) {
         Get.find<ProfileController>().getUserInfo();
       }
-      Get.find<ParcelController>().updateTips(
-        Get.find<AuthController>().getDmTipIndex().isNotEmpty ? int.parse(Get.find<AuthController>().getDmTipIndex()) : 0, notify: false,
-      );
+      int savedTipIndex = Get.find<AuthController>().getDmTipIndex().isNotEmpty ? int.parse(Get.find<AuthController>().getDmTipIndex()) : -1;
+      if(savedTipIndex >= AppConstants.tips.length) {
+        savedTipIndex = -1;
+      }
+      Get.find<ParcelController>().updateTips(savedTipIndex, notify: false);
 
     if(Get.find<CheckoutController>().isCreateAccount) {
       Get.find<CheckoutController>().toggleCreateAccount(willUpdate: false);
@@ -264,7 +266,34 @@ class _ParcelRequestScreenState extends State<ParcelRequestScreen> {
                       // padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge, horizontal: Dimensions.paddingSizeSmall),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                        Text('delivery_man_tips'.tr, style: robotoMedium),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('delivery_man_tips'.tr, style: robotoMedium),
+                            if (parcelController.selectedTips != -1 || parcelController.tips > 0)
+                              InkWell(
+                                onTap: () {
+                                  parcelController.updateTips(-1);
+                                  parcelController.addTips(0.0);
+                                  _tipController.text = '';
+                                  if (parcelController.canShowTipsField) {
+                                    parcelController.showTipsField();
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                                  ),
+                                  child: Text(
+                                    'clear_tip'.tr,
+                                    style: robotoMedium.copyWith(color: Colors.red, fontSize: Dimensions.fontSizeSmall),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                         const SizedBox(height: Dimensions.paddingSizeSmall),
 
                         SizedBox(
@@ -276,20 +305,31 @@ class _ParcelRequestScreenState extends State<ParcelRequestScreen> {
                             itemCount: AppConstants.tips.length,
                             itemBuilder: (context, index) {
                               return TipsWidget(
-                                title: AppConstants.tips[index] == '0' ? 'not_now'.tr : (index != AppConstants.tips.length -1)
+                                title: (index != AppConstants.tips.length - 1)
                                     ? PriceConverter.convertPrice(double.parse(AppConstants.tips[index].toString()), forDM: true)
                                     : AppConstants.tips[index].tr,
                                 isSelected: parcelController.selectedTips == index,
-                                isSuggested: index != 0 && AppConstants.tips[index] == parcelController.mostDmTipAmount.toString(),
+                                isSuggested: AppConstants.tips[index] == parcelController.mostDmTipAmount.toString(),
                                 onTap: () {
-                                  parcelController.updateTips(index);
-                                  if(parcelController.selectedTips != 0 && parcelController.selectedTips != AppConstants.tips.length-1){
-                                    parcelController.addTips(double.parse(AppConstants.tips[index]));
+                                  if (parcelController.selectedTips == index) {
+                                    parcelController.updateTips(-1);
+                                    parcelController.addTips(0.0);
+                                    _tipController.text = '';
+                                    if (index == AppConstants.tips.length - 1 && parcelController.canShowTipsField) {
+                                      parcelController.showTipsField();
+                                    }
+                                  } else {
+                                    parcelController.updateTips(index);
+                                    if (parcelController.selectedTips != AppConstants.tips.length - 1) {
+                                      parcelController.addTips(double.parse(AppConstants.tips[index]));
+                                    }
+                                    if (parcelController.selectedTips == AppConstants.tips.length - 1) {
+                                      parcelController.showTipsField();
+                                    }
+                                    _tipController.text = parcelController.tips > 0
+                                        ? (parcelController.tips % 1 == 0 ? parcelController.tips.toInt().toString() : parcelController.tips.toString())
+                                        : '';
                                   }
-                                  if(parcelController.selectedTips == AppConstants.tips.length-1){
-                                    parcelController.showTipsField();
-                                  }
-                                  _tipController.text = parcelController.tips.toString();
                                 },
                               );
                             },
@@ -348,7 +388,7 @@ class _ParcelRequestScreenState extends State<ParcelRequestScreen> {
 
                           InkWell(
                             onTap: (){
-                              parcelController.updateTips(0);
+                              parcelController.updateTips(-1);
                               parcelController.showTipsField();
                             },
                             child: Container(
@@ -589,9 +629,9 @@ class _ParcelRequestScreenState extends State<ParcelRequestScreen> {
                             style: robotoRegular.copyWith(color: parcelController.distance == -1 ? Colors.red : Theme.of(context).textTheme.bodyMedium!.color),
                           ),
                         ]),
-                        SizedBox(height: Get.find<SplashController>().configModel!.dmTipsStatus == 1 ? Dimensions.paddingSizeSmall : 0.0),
+                        SizedBox(height: Get.find<SplashController>().configModel!.dmTipsStatus == 1 && dmTips > 0 ? Dimensions.paddingSizeSmall : 0.0),
 
-                        (Get.find<SplashController>().configModel!.dmTipsStatus == 1) ? Row(
+                        (Get.find<SplashController>().configModel!.dmTipsStatus == 1 && dmTips > 0) ? Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('delivery_man_tips'.tr, style: robotoRegular),

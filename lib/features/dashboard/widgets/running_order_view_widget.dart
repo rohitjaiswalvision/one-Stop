@@ -51,39 +51,32 @@ class RunningOrderViewWidget extends StatelessWidget {
               String? orderStatus = reversOrder[index].status;
               int status = 0;
               String orderType = reversOrder[index].orderType!;
+              String displayType = (orderType == 'delivery' || orderType == 'order') ? 'order'.tr : orderType.tr;
 
-              if(orderStatus == AppConstants.pending){
+              if(orderStatus == AppConstants.pending || orderStatus == AppConstants.accepted){
                 status = 1;
-              }else if(orderStatus == AppConstants.accepted || orderStatus == AppConstants.processing || orderStatus == AppConstants.confirmed){
+              }else if(orderStatus == AppConstants.processing || orderStatus == AppConstants.confirmed){
                 status = 2;
               }else if(orderStatus == AppConstants.handover || orderStatus == AppConstants.pickedUp){
                 status = 3;
+              }else if(orderStatus == AppConstants.delivered){
+                status = 4;
               }
 
               return InkWell(
-                onTap: () async {
-                  // await Get.toNamed(
-                  //   RouteHelper.getOrderDetailsRoute(reversOrder[index].id),
-                  //   arguments: OrderDetailsScreen(
-                  //     orderId: reversOrder[index].id,
-                  //     orderModel: reversOrder[index],
-                  //   ),
-                  // );
-
-                  if(orderType == 'order') {
-                    await Get.toNamed(
-                      RouteHelper.getOrderDetailsRoute(reversOrder[index].id),
-                      // arguments: OrderDetailsScreen(
-                      //   orderId: reversOrder[index].id,
-                      //   orderModel: reversOrder[index],
-                      // ),
-                    );
-                  } else if(orderType == 'ride') {
-                    await Get.find<RideController>().getCurrentRideStatus(fromRefresh: true, showCustomLoader: true);
-                  }
-
+                onTap: () {
+                  // Close the expandable sheet first, then navigate after the frame
                   if(orderController.showBottomSheet){
                     orderController.showRunningOrders();
+                  }
+                  if(orderType == 'order') {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Get.toNamed(RouteHelper.getOrderDetailsRoute(reversOrder[index].id));
+                    });
+                  } else if(orderType == 'ride') {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Get.find<RideController>().getCurrentRideStatus(fromRefresh: true, showCustomLoader: true);
+                    });
                   }
                 },
                 child: Container(
@@ -95,12 +88,13 @@ class RunningOrderViewWidget extends StatelessWidget {
 
                       Center(
                         child: SizedBox(
-                          height: orderStatus == AppConstants.pending ? 50 : 60, width: orderStatus == AppConstants.pending ? 50 : 60,
+                          height: (orderStatus == AppConstants.pending || orderStatus == AppConstants.accepted) ? 50 : 60,
+                          width: (orderStatus == AppConstants.pending || orderStatus == AppConstants.accepted) ? 50 : 60,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Image.asset( status == 2 ? orderStatus == AppConstants.confirmed || orderStatus == AppConstants.accepted ? Images.confirmedGif
-                                : Images.processingGif : status == 3
-                                ? orderStatus == AppConstants.handover ? Images.handoverGif : Images.onTheWayGif : Images.pendingGif,
+                            child: Image.asset( status == 1 ? orderStatus == AppConstants.accepted ? Images.confirmedGif : Images.pendingGif
+                                : status == 2 ? orderStatus == AppConstants.confirmed ? Images.confirmedGif : Images.processingGif
+                                : status == 3 ? orderStatus == AppConstants.handover ? Images.handoverGif : Images.onTheWayGif : Images.pendingGif,
                         height: 60, width: 60, fit: BoxFit.fill),
                           ),
                         ),
@@ -113,7 +107,7 @@ class RunningOrderViewWidget extends StatelessWidget {
                             crossAxisAlignment: isFirstOrder ? CrossAxisAlignment.center : CrossAxisAlignment.start, children: [
                               Row( mainAxisAlignment: isFirstOrder ? MainAxisAlignment.center : MainAxisAlignment.start, children: [
 
-                                Text('${'your'.tr} ${orderType.tr} ${'is'.tr} ', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
+                                Text('${'your'.tr} $displayType ${'is'.tr} ', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
                                 Text(reversOrder[index].status!.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor)),
                               ]) ,
                               const SizedBox(height: Dimensions.paddingSizeExtraSmall),
@@ -145,17 +139,53 @@ class RunningOrderViewWidget extends StatelessWidget {
                             ]),
                       ),
 
-                      Container(
-                        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                        decoration: BoxDecoration(color: Theme.of(context).primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
-                        child: isFirstOrder ? !(reversOrder.length < 2) ? InkWell(
-                          onTap: () => onOrderTap(),
-                          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                Text('+${reversOrder.length - 1}', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor)),
-                                Text('more'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor)),
-                              ]),
-                            ) : Icon(Icons.arrow_forward, size: 18, color: Theme.of(context).primaryColor)
-                            : Icon(Icons.arrow_forward, size: 18, color: Theme.of(context).primaryColor),
+                      GestureDetector(
+                        onTap: () {}, // absorbs touch so parent InkWell doesn't fire
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+                          child: isFirstOrder ? !(reversOrder.length < 2) ? InkWell(
+                            onTap: () => onOrderTap(),
+                            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                  Text('+${reversOrder.length - 1}', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor)),
+                                  Text('more'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor)),
+                                ]),
+                              ) : InkWell(
+                                onTap: () {
+                                  if(orderController.showBottomSheet){
+                                    orderController.showRunningOrders();
+                                  }
+                                  if(orderType == 'order') {
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      Get.toNamed(RouteHelper.getOrderTrackingRoute(reversOrder[index].id, null));
+                                    });
+                                  } else if(orderType == 'ride') {
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      Get.find<RideController>().getCurrentRideStatus(fromRefresh: true, showCustomLoader: true);
+                                    });
+                                  }
+                                },
+                                child: Icon(Icons.arrow_forward, size: 18, color: Theme.of(context).primaryColor),
+                              )
+                              : InkWell(
+                                onTap: () {
+                                  if(orderController.showBottomSheet){
+                                    orderController.showRunningOrders();
+                                  }
+                                  if(orderType == 'order') {
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      Get.toNamed(RouteHelper.getOrderTrackingRoute(reversOrder[index].id, null));
+                                    });
+                                  } else if(orderType == 'ride') {
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      Get.find<RideController>().getCurrentRideStatus(fromRefresh: true, showCustomLoader: true);
+                                    });
+                                  }
+                                },
+                                child: Icon(Icons.arrow_forward, size: 18, color: Theme.of(context).primaryColor),
+                              ),
+                        ),
                       ),
 
                     ]),

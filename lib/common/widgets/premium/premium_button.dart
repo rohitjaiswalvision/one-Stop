@@ -101,14 +101,14 @@ class PremiumIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressableScale(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         height: size, width: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: background ?? PremiumTokens.glassSurface(context),
-          border: Border.all(color: PremiumTokens.glassBorder(context)),
-          boxShadow: PremiumTokens.softShadow(context, strength: 0.5),
-        ),
+        // decoration: BoxDecoration(
+        //   // shape: BoxShape.circle,
+        //   // color: background ?? PremiumTokens.glassSurface(context),
+        //   // border: Border.all(color: PremiumTokens.glassBorder(context)),
+        //   boxShadow: PremiumTokens.softShadow(context, strength: 0.5),
+        // ),
         child: Icon(icon, size: size * 0.46, color: iconColor ?? Theme.of(context).textTheme.bodyLarge!.color),
       ),
     );

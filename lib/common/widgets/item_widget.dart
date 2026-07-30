@@ -162,7 +162,7 @@ class ItemWidget extends StatelessWidget {
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.start, children: [
 
                           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                            Expanded(child: Text(
+                            Flexible(child: Text(
                               isStore ? store!.name! : item!.name!,
                               style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall),
                               maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -184,8 +184,6 @@ class ItemWidget extends StatelessWidget {
 
                             !isStore && item!.isStoreHalalActive! && item!.isHalalItem!
                                 ? const CustomAssetImageWidget(Images.halalTag, height: 13, width: 13) : const SizedBox(),
-
-                            SizedBox(width: ResponsiveHelper.isDesktop(context) ? 20 : 20),
                           ]),
                           const SizedBox(height: 3),
 

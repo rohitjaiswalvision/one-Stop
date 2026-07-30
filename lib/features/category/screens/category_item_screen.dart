@@ -218,7 +218,8 @@ class CategoryItemScreenState extends State<CategoryItemScreen> with TickerProvi
             child: FooterView(
               child: Center(child: SizedBox(
                 width: Dimensions.webMaxWidth,
-                child: Column(children: [
+                child: Column(
+                  children: [
 
                   (catController.subCategoryList != null && !catController.isSearching) ? Center(child: Container(
                     height: 40, width: Dimensions.webMaxWidth, color: Theme.of(context).cardColor,
