@@ -4,7 +4,6 @@ import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/common/widgets/premium/premium_motion.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/theme/premium_tokens.dart';
-import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
@@ -21,15 +20,7 @@ class ModuleStripWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
-      final List<int> moduleIndices = <int>[];
-      if (splashController.moduleList != null) {
-        for (int i = 0; i < splashController.moduleList!.length; i++) {
-          final String type = splashController.moduleList![i].moduleType.toString();
-          if (type != AppConstants.taxi && type != AppConstants.pharmacy) {
-            moduleIndices.add(i);
-          }
-        }
-      }
+      final List<int> moduleIndices = splashController.selectableModuleIndexes;
 
       // Nothing to switch between: hide the strip entirely so single-module zones look normal.
       if (moduleIndices.length < 2) {

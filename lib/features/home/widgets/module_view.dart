@@ -12,7 +12,6 @@ import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
-import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/common/widgets/custom_loader.dart';
 import 'package:sixam_mart/common/widgets/title_widget.dart';
@@ -38,15 +37,7 @@ class ModuleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<int> moduleIndices = [];
-    if (splashController.moduleList != null) {
-      for (int i = 0; i < splashController.moduleList!.length; i++) {
-        if (splashController.moduleList![i].moduleType.toString() != AppConstants.taxi && 
-            splashController.moduleList![i].moduleType.toString() != AppConstants.pharmacy) {
-          moduleIndices.add(i);
-        }
-      }
-    }
+    final List<int> moduleIndices = splashController.selectableModuleIndexes;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 

@@ -23,6 +23,12 @@ class ApiClient extends GetxService {
   static final String noInternetMessage = 'connection_to_api_server_failed'.tr;
   final int timeoutInSeconds = 60;
 
+  /// Marks a response the client dropped because the active module changed while the
+  /// request was in flight. Not a real HTTP status — [ApiChecker] stays silent on it and
+  /// every repository already skips anything that is not 200, which leaves the freshly
+  /// cleared list alone instead of filling it with the previous module's content.
+  static const int staleModuleStatusCode = 499;
+
   String? token;
   late Map<String, String> _mainHeaders;
 
@@ -72,13 +78,40 @@ class ApiClient extends GetxService {
 
   Map<String, String> getHeader() => _mainHeaders;
 
+  /// Whether a response that went out under [requestModuleId] is still worth reading.
+  ///
+  /// Switching modules clears every home list and re-fires the whole home feed, but the
+  /// previous module's requests — around eighteen of them, each up to a second — are still
+  /// in flight. Left alone they land after the switch and repopulate the lists, so the new
+  /// module renders the old module's stores and items until (and only if) its own responses
+  /// arrive. A body fetched under a module the user has already left is not the answer to
+  /// any question the UI is still asking, so it is dropped.
+  ///
+  /// Only requests that rode [_mainHeaders] are checked. A caller that passes its own
+  /// headers is deliberately addressing a specific module — store details opened from the
+  /// cart or a slug deeplink do exactly that — and must not be second-guessed here.
+  bool _isStaleModuleResponse(String? requestModuleId, Map<String, String>? explicitHeaders) {
+    if (explicitHeaders != null || requestModuleId == null) {
+      return false;
+    }
+    final String? currentModuleId = _mainHeaders[AppConstants.moduleId];
+    return currentModuleId != null && currentModuleId != requestModuleId;
+  }
+
   Future<Response> getData(String uri, {Map<String, dynamic>? query, Map<String, String>? headers, bool handleError = true}) async {
     try {
       if (kDebugMode) {
         log('====> API Call: $uri\nHeader: ${headers ?? _mainHeaders}');
       }
       String url = uri.startsWith('http') ? uri : appBaseUrl + uri;
+      final String? requestModuleId = (headers ?? _mainHeaders)[AppConstants.moduleId];
       http.Response response = await http.get(Uri.parse(url), headers: headers ?? _mainHeaders).timeout(Duration(seconds: timeoutInSeconds));
+      if (_isStaleModuleResponse(requestModuleId, headers)) {
+        if (kDebugMode) {
+          log('====> Dropped stale response (module $requestModuleId, now ${_mainHeaders[AppConstants.moduleId]}): $uri');
+        }
+        return Response(statusCode: staleModuleStatusCode, statusText: 'stale_module_response');
+      }
       return handleResponse(response, uri, handleError);
     } catch (e) {
       if (kDebugMode) {

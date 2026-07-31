@@ -141,9 +141,9 @@ class AuthController extends GetxController implements GetxService {
       Get.find<ProfileController>().getUserInfo();
       Get.find<CartController>().getCartDataOnline();
       Get.find<HomeController>().getCashBackOfferList();
-      // Every completed login (manual/OTP/social) lands the customer on the services
-      // module. Clearing the selection re-triggers Home's auto-landing logic, which
-      // resolves to services first (falling back to whatever the zone actually has).
+      // Clearing the selection on every completed login (manual/OTP/social) re-triggers
+      // Home's auto-landing, so the customer comes up in the first module their zone
+      // actually offers rather than whatever was cached from before they signed in.
       Get.find<SplashController>().setModule(null);
     }
   }

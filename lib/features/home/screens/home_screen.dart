@@ -140,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool searchBgShow = false;
   final GlobalKey _headerKey = GlobalKey();
   bool _isScrolling = false;
+  bool _enteringModule = false;
 
   @override
   void initState() {
@@ -180,6 +181,43 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     super.dispose();
     _scrollController.dispose();
+  }
+
+  /// Skip the full-screen module grid landing: a fresh install and every completed login
+  /// clear the selection, and the user should still come up inside a module rather than on
+  /// the grid. Enter the first module the zone actually offers — [selectableModuleIndexes]
+  /// skips taxi and pharmacy, which the grid and the module strip both hide, so landing on
+  /// one of those would leave the user with no way to switch out. The pinned
+  /// ModuleStripWidget then handles moving between the rest.
+  ///
+  /// Re-lands as well whenever the selected module is absent from the current list. The list
+  /// is fetched twice on a fresh install: once globally while on-boarding (no zone header, so
+  /// it carries modules the zone may not serve) and again with the zone headers once the
+  /// address resolves. Landing off the first list can strand the user inside a module their
+  /// zone does not offer — every request goes out with its id and comes back empty, and the
+  /// strip cannot switch back to it because the list no longer contains it.
+  ///
+  /// Runs after the frame: switchModule notifies its listeners, which is not allowed while
+  /// this build is still in progress.
+  void _autoEnterFirstModule(SplashController splashController) {
+    if(_enteringModule || splashController.configModel?.module != null) {
+      return;
+    }
+    final List<int> selectable = splashController.selectableModuleIndexes;
+    if(selectable.isEmpty) {
+      return;
+    }
+    final current = splashController.module;
+    if(current != null && splashController.moduleList!.any((module) => module.id == current.id)) {
+      return;
+    }
+    _enteringModule = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(mounted) {
+        await splashController.switchModule(selectable.first, true);
+      }
+      _enteringModule = false;
+    });
   }
 
   void _showReferBottomSheet() {
@@ -251,21 +289,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
-      // Skip the full-screen module grid landing: users should always land straight on a
-      // module's home. Whenever the modules are loaded but none is selected, auto-enter
-      // the FIRST module in the zone's list (matching the module strip's order) — the
-      // pinned ModuleStripWidget then lets them switch between modules.
-      if(splashController.moduleList != null && splashController.moduleList!.isNotEmpty
-          && splashController.module == null && splashController.configModel?.module == null) {
-        splashController.switchModule(0, true);
-      }
+      _autoEnterFirstModule(splashController);
       bool showMobileModule = !ResponsiveHelper.isDesktop(context) && splashController.module == null && splashController.configModel!.module == null;
       // Only reserve the pinned module strip when there are at least two switchable modules
       // (mirrors the exclusions in ModuleStripWidget), so single-module zones show no empty band.
-      int switchableModuleCount = splashController.moduleList == null ? 0 : splashController.moduleList!.where(
-        (m) => m.moduleType.toString() != AppConstants.taxi && m.moduleType.toString() != AppConstants.pharmacy,
-      ).length;
-      bool showModuleStrip = switchableModuleCount >= 2;
+      bool showModuleStrip = splashController.selectableModuleIndexes.length >= 2;
       bool isParcel = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.parcel;
       bool isPharmacy = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.pharmacy;
       bool isFood = splashController.module != null && splashController.module!.moduleType.toString() == AppConstants.food;

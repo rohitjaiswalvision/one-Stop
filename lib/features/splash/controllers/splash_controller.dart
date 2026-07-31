@@ -322,7 +322,25 @@ class SplashController extends GetxController implements GetxService {
     }
   }
 
-  void switchModule(int index, bool fromPhone) async {
+  /// Indexes into [moduleList] of the modules the user can actually reach: taxi and
+  /// pharmacy are hidden from both the module grid and the module strip, so they are
+  /// never a valid landing target — dropping someone there strands them in a module
+  /// they cannot switch away from. ModuleView, ModuleStripWidget and the auto-landing
+  /// on Home all read this so the three stay in sync.
+  List<int> get selectableModuleIndexes {
+    final List<int> indexes = [];
+    if(_moduleList != null) {
+      for(int i = 0; i < _moduleList!.length; i++) {
+        final String type = _moduleList![i].moduleType.toString();
+        if(type != AppConstants.taxi && type != AppConstants.pharmacy) {
+          indexes.add(i);
+        }
+      }
+    }
+    return indexes;
+  }
+
+  Future<void> switchModule(int index, bool fromPhone) async {
     if(_module == null || _module!.id != _moduleList![index].id) {
       // ShadowRouterHelper.updateParameter('module_id', _moduleList![index].id.toString());
 
