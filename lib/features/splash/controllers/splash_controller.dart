@@ -37,62 +37,42 @@ import '../domain/models/app_download_section_model.dart';
 class SplashController extends GetxController implements GetxService {
   final SplashServiceInterface splashServiceInterface;
   SplashController({required this.splashServiceInterface});
-
   ConfigModel? _configModel;
   ConfigModel? get configModel => _configModel;
-
   bool _firstTimeConnectionCheck = true;
   bool get firstTimeConnectionCheck => _firstTimeConnectionCheck;
-
   bool _hasConnection = true;
   bool get hasConnection => _hasConnection;
-
   ModuleModel? _module;
   ModuleModel? get module => _module;
-
   ModuleModel? _cacheModule;
   ModuleModel? get cacheModule => _cacheModule;
-
   List<ModuleModel>? _moduleList;
   List<ModuleModel>? get moduleList => _moduleList;
-
   int _moduleIndex = 0;
   int get moduleIndex => _moduleIndex;
-
   Map<String, dynamic>? _data = {};
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-
   int _selectedModuleIndex = 0;
   int get selectedModuleIndex => _selectedModuleIndex;
-
   LandingModel? _landingModel;
   LandingModel? get landingModel => _landingModel;
-
   bool _savedCookiesData = false;
   bool get savedCookiesData => _savedCookiesData;
-
   bool _webSuggestedLocation = false;
   bool get webSuggestedLocation => _webSuggestedLocation;
-
   bool _isRefreshing = false;
   bool get isRefreshing => _isRefreshing;
-
   bool _showReferBottomSheet = false;
   bool get showReferBottomSheet => _showReferBottomSheet;
-
   DateTime get currentTime => DateTime.now();
-
   bool _showPaymentIncompleteBottomSheet = true;
   bool get showPaymentIncompleteBottomSheet => _showPaymentIncompleteBottomSheet;
-
   Uri? _deeplinkRoute;
   Uri? get deeplinkRoute => _deeplinkRoute;
-
   AppDownloadSectionModel? _appDownloadSection;
   AppDownloadSectionModel? get appDownloadSection => _appDownloadSection;
-
   void togglePaymentIncompleteBottomSheet(bool status) {
     _showPaymentIncompleteBottomSheet = status;
   }
