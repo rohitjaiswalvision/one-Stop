@@ -141,9 +141,10 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     _isLoggedIn = AuthHelper.isLoggedIn();
+    bool showModuleHeader = (haveTaxiModule || type.length > 1);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: haveTaxiModule && !ResponsiveHelper.isDesktop(context) ? null : CustomAppBar(title: 'my_orders'.tr, backButton: ResponsiveHelper.isDesktop(context)),
+      appBar: (showModuleHeader && !ResponsiveHelper.isDesktop(context)) ? null : CustomAppBar(title: 'my_orders'.tr, backButton: ResponsiveHelper.isDesktop(context)),
       endDrawer: const MenuDrawer(), endDrawerEnableOpenDragGesture: false,
       body: SafeArea(
         child: GetBuilder<OrderController>(
@@ -151,23 +152,27 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
             return Column(
               children: [
 
-                haveTaxiModule && !ResponsiveHelper.isDesktop(context) ? Container(
+                (showModuleHeader && !ResponsiveHelper.isDesktop(context)) ? Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.1), blurRadius: 5, offset: const Offset(0, 10))],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeSmall),
+                  padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                      child: Text('my_orders'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
+                    ),
                     const SizedBox(height: Dimensions.paddingSizeSmall),
-                    Text('my_orders'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
-                    const SizedBox(height: Dimensions.paddingSizeDefault),
 
                     SizedBox(
-                      height: 34,
+                      height: 38,
                       child: ListView.builder(
                           itemCount: type.length,
                           scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                           itemBuilder: (context, index) {
                             bool selected = type[index] == selectType;
                             return Padding(
@@ -200,6 +205,34 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                           padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
                           child: Text('my_orders'.tr, style: robotoMedium),
                         )) : const SizedBox(),
+
+                        if(type.length > 1) Padding(
+                          padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: type.map((t) {
+                                bool selected = t == selectType;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: PremiumChip(
+                                    label: moduleLabels[t] ?? t.tr,
+                                    selected: selected,
+                                    onTap: () {
+                                      setState(() {
+                                        selectType = t;
+                                        _ensureTabController();
+                                      });
+                                      initCall();
+                                    },
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
 
                         Center(
                           child: SizedBox(
@@ -234,9 +267,8 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                         alignment: Alignment.centerLeft,
                         child: TabBar(
                           controller: _tabController,
-                          isScrollable: haveTaxiModule ? true : false,
+                          isScrollable: false,
                           padding: EdgeInsets.zero,
-                          tabAlignment: haveTaxiModule ? TabAlignment.start : null,
                           indicatorColor: Theme.of(context).primaryColor,
                           indicatorWeight: 3,
                           labelColor: Theme.of(context).primaryColor,

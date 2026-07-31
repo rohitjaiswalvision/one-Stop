@@ -30,7 +30,7 @@ class PusherHelper{
     PusherChannelsOptions testOptions = PusherChannelsOptions.fromHost(
       host: host,
       scheme: 'ws',
-      key: '6ammart',
+      key: 'onestop',
       port: 6001,
     );
 

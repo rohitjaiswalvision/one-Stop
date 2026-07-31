@@ -33,7 +33,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import 'package:sixam_mart/common/widgets/custom_image.dart';
-import '../../features/item/widgets/item_image_view_widget.dart';
 import '../../features/item/widgets/item_media_dialog.dart';
 
 class ItemBottomSheet extends StatefulWidget {
@@ -303,9 +302,28 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
 
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(
-                                  item.name!, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
-                                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        item.name!, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
+                                        maxLines: 2, overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                                          border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
+                                        ),
+                                        child: Text(
+                                          'out_of_stock'.tr,
+                                          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeOverSmall, color: Theme.of(context).colorScheme.error),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 InkWell(
                                   onTap: () {

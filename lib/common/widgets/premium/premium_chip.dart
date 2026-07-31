@@ -20,7 +20,7 @@ class PremiumChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: PremiumTokens.fast,
-        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
+        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
           gradient: selected ? PremiumTokens.brandGradient(context) : null,
@@ -32,10 +32,15 @@ class PremiumChip extends StatelessWidget {
             Icon(icon, size: 15, color: selected ? Colors.white : Theme.of(context).textTheme.bodyLarge!.color),
             const SizedBox(width: 6),
           ],
-          Text(label, style: robotoMedium.copyWith(
-            fontSize: Dimensions.fontSizeSmall,
-            color: selected ? Colors.white : Theme.of(context).textTheme.bodyLarge!.color,
-          )),
+          Text(
+            label,
+            style: robotoMedium.copyWith(
+              fontSize: Dimensions.fontSizeSmall,
+              color: selected ? Colors.white : Theme.of(context).textTheme.bodyLarge!.color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ]),
       ),
     );

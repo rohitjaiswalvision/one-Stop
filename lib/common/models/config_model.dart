@@ -679,8 +679,12 @@ class ModuleConfig {
   ModuleConfig({this.moduleType, this.module});
 
   ModuleConfig.fromJson(Map<String, dynamic> json) {
-    moduleType = json['module_type'].cast<String>();
-    module = json[moduleType![0]] != null ? Module.fromJson(json[moduleType![0]]) : null;
+    if (json['module_type'] != null) {
+      moduleType = json['module_type'].cast<String>();
+      if (moduleType != null && moduleType!.isNotEmpty && json[moduleType![0]] != null) {
+        module = Module.fromJson(json[moduleType![0]]);
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

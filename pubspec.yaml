@@ -101,8 +101,8 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "new_logo.png"
-  image_path_ios: "ios_icon.jpg"
+  image_path: "assets/image/one_stop_appicon.png"
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true

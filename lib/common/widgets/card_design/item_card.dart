@@ -96,18 +96,18 @@ class ItemCard extends StatelessWidget {
 
                       OrganicTag(item: item, placeInImage: false),
 
-                      (item.stock != null && item.stock! < 0) ? Positioned(
+                      (item.stock != null && item.stock! <= 0 && (Get.find<SplashController>().configModel?.moduleConfig?.module?.stock ?? true)) ? Positioned(
                         bottom: 10, left : 0,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+                            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.85),
                             borderRadius: const BorderRadius.only(
                               topRight: Radius.circular(Dimensions.radiusLarge),
                               bottomRight: Radius.circular(Dimensions.radiusLarge),
                             ),
                           ),
-                          child: Text('out_of_stock'.tr, style: robotoRegular.copyWith(color: Theme.of(context).cardColor, fontSize: Dimensions.fontSizeSmall)),
+                          child: Text('out_of_stock'.tr, style: robotoRegular.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeExtraSmall)),
                         ),
                       ) : const SizedBox(),
 

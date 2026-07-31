@@ -13,9 +13,9 @@ import 'package:sixam_mart/util/app_constants.dart';
 // class SplashRouteHelper{
 
   void route({NotificationBodyModel? body}) {
-    double? minimumVersion = _getMinimumVersion();
-    bool isMaintenanceMode = Get.find<SplashController>().configModel!.maintenanceMode!;
-    bool needsUpdate = AppConstants.appVersion < minimumVersion!;
+    double minimumVersion = _getMinimumVersion() ?? 0.0;
+    bool isMaintenanceMode = Get.find<SplashController>().configModel?.maintenanceMode ?? false;
+    bool needsUpdate = AppConstants.appVersion < minimumVersion;
 
     if(needsUpdate || isMaintenanceMode) {
       Get.offNamed(RouteHelper.getUpdateRoute(needsUpdate));
@@ -30,9 +30,9 @@ import 'package:sixam_mart/util/app_constants.dart';
 
   double? _getMinimumVersion() {
     if (GetPlatform.isAndroid) {
-      return Get.find<SplashController>().configModel!.appMinimumVersionAndroid;
+      return Get.find<SplashController>().configModel?.appMinimumVersionAndroid;
     } else if (GetPlatform.isIOS) {
-      return Get.find<SplashController>().configModel!.appMinimumVersionIos;
+      return Get.find<SplashController>().configModel?.appMinimumVersionIos;
     }
     return 0;
   }

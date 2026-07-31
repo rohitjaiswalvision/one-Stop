@@ -346,41 +346,41 @@ class AppConstants {
 
 
   /// Shared Key
-  static const String theme = '6ammart_theme';
-  static const String token = '6ammart_token';
-  static const String countryCode = '6ammart_country_code';
-  static const String languageCode = '6ammart_language_code';
+  static const String theme = 'onestop_theme';
+  static const String token = 'onestop_token';
+  static const String countryCode = 'onestop_country_code';
+  static const String languageCode = 'onestop_language_code';
   static const String cacheCountryCode = 'cache_country_code';
   static const String cacheLanguageCode = 'cache_language_code';
-  static const String cartList = '6ammart_cart_list';
-  static const String userPassword = '6ammart_user_password';
-  static const String userAddress = '6ammart_user_address';
-  static const String userNumber = '6ammart_user_number';
-  static const String userCountryCode = '6ammart_user_country_code';
-  static const String otpUserNumber = '6ammart_otp_user_number';
-  static const String otpUserCountryCode = '6ammart_otp_user_country_code';
-  static const String notification = '6ammart_notification';
+  static const String cartList = 'onestop_cart_list';
+  static const String userPassword = 'onestop_user_password';
+  static const String userAddress = 'onestop_user_address';
+  static const String userNumber = 'onestop_user_number';
+  static const String userCountryCode = 'onestop_user_country_code';
+  static const String otpUserNumber = 'onestop_otp_user_number';
+  static const String otpUserCountryCode = 'onestop_otp_user_country_code';
+  static const String notification = 'onestop_notification';
   static const String notificationIdList = 'notification_id_list';
-  static const String searchHistory = '6ammart_search_history';
-  static const String intro = '6ammart_intro';
-  static const String notificationCount = '6ammart_notification_count';
-  static const String dmTipIndex = '6ammart_dm_tip_index';
-  static const String earnPoint = '6ammart_earn_point';
-  static const String acceptCookies = '6ammart_accept_cookies';
-  static const String suggestedLocation = '6ammart_suggested_location';
-  static const String walletAccessToken = '6ammart_wallet_access_token';
-  static const String guestId = '6ammart_guest_id';
-  static const String guestNumber = '6ammart_guest_number';
-  static const String referBottomSheet = '6ammart_reffer_bottomsheet_show';
-  static const String paymentIncompleteBottomSheet = '6ammart_payment_incomplete_bottomsheet';
-  static const String dmRegisterSuccess = '6ammart_dm_registration_success';
-  static const String isRestaurantRegister = '6ammart_store_registration';
-  static const String userRegisterSuccess = '6ammart_user_registration_success';
-  static const String suggestLogin = '6ammart_login_suggestion';
+  static const String searchHistory = 'onestop_search_history';
+  static const String intro = 'onestop_intro';
+  static const String notificationCount = 'onestop_notification_count';
+  static const String dmTipIndex = 'onestop_dm_tip_index';
+  static const String earnPoint = 'onestop_earn_point';
+  static const String acceptCookies = 'onestop_accept_cookies';
+  static const String suggestedLocation = 'onestop_suggested_location';
+  static const String walletAccessToken = 'onestop_wallet_access_token';
+  static const String guestId = 'onestop_guest_id';
+  static const String guestNumber = 'onestop_guest_number';
+  static const String referBottomSheet = 'onestop_reffer_bottomsheet_show';
+  static const String paymentIncompleteBottomSheet = 'onestop_payment_incomplete_bottomsheet';
+  static const String dmRegisterSuccess = 'onestop_dm_registration_success';
+  static const String isRestaurantRegister = 'onestop_store_registration';
+  static const String userRegisterSuccess = 'onestop_user_registration_success';
+  static const String suggestLogin = 'onestop_login_suggestion';
 
   ///taxi
-  static const String taxiSearchHistory = '6ammart_taxi_search_history';
-  static const String taxiSearchAddressHistory = '6ammart_taxi_search_address_history';
+  static const String taxiSearchHistory = 'onestop_taxi_search_history';
+  static const String taxiSearchAddressHistory = 'onestop_taxi_search_address_history';
 
   static const String prescriptionMediaLibrary = 'prescription_media_library';
 
@@ -395,7 +395,7 @@ class AppConstants {
   static const String cookiesManagement = 'cookies_management';
 
   ///Ride Share
-  static const String rideSearchAddressHistory = '6ammart_ride_search_address_history';
+  static const String rideSearchAddressHistory = 'onestop_ride_search_address_history';
   static const String paymentType = 'paymentType';
   static const String paymentMethod = 'payment_method';
 

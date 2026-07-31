@@ -143,6 +143,21 @@ class ItemWidget extends StatelessWidget {
 
                         isAvailable ? const SizedBox() : NotAvailableWidget(isStore: isStore),
 
+                        (!isStore && item!.stock != null && item!.stock! <= 0 && (Get.find<SplashController>().configModel?.moduleConfig?.module?.stock ?? true)) ? Positioned(
+                          bottom: 5, left: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.85),
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(Dimensions.radiusSmall),
+                                bottomRight: Radius.circular(Dimensions.radiusSmall),
+                              ),
+                            ),
+                            child: Text('out_of_stock'.tr, style: robotoRegular.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeExtraSmall)),
+                          ),
+                        ) : const SizedBox(),
+
                         Positioned(
                           top: 5, left: 5,
                           child: GetBuilder<FavouriteController>(builder: (favouriteController) {

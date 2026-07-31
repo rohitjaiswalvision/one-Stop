@@ -319,27 +319,29 @@ class NotificationHelper {
       String? image;
       NotificationBodyModel notificationBody = convertNotification(message.data);
 
-      title = message.data['title'];
-      body = message.data['body'];
+      title = message.data['title'] ?? message.notification?.title;
+      body = message.data['body'] ?? message.notification?.body;
       orderID = message.data['order_id'];
       image = (message.data['image'] != null && message.data['image'].isNotEmpty) ? message.data['image'].startsWith('http') ? message.data['image']
         : '${AppConstants.baseUrl}/storage/app/public/notification/${message.data['image']}' : null;
 
-      if(image != null && image.isNotEmpty) {
-        try{
-          await showBigPictureNotificationHiddenLargeIcon(title, body, orderID, notificationBody, image, fln);
-        }catch(e) {
-          await showBigTextNotification(title, body!, orderID, notificationBody, fln);
+      if (body != null && body.isNotEmpty) {
+        if(image != null && image.isNotEmpty) {
+          try{
+            await showBigPictureNotificationHiddenLargeIcon(title, body, orderID, notificationBody, image, fln);
+          }catch(e) {
+            await showBigTextNotification(title, body, orderID, notificationBody, fln);
+          }
+        }else {
+          await showBigTextNotification(title, body, orderID, notificationBody, fln);
         }
-      }else {
-        await showBigTextNotification(title, body!, orderID, notificationBody, fln);
       }
     }
   }
 
   static Future<void> showTextNotification(String title, String body, String orderID, NotificationBodyModel? notificationBody, FlutterLocalNotificationsPlugin fln) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      '6ammart', AppConstants.appName, playSound: true,
+      'onestop', AppConstants.appName, playSound: true,
       importance: Importance.max, priority: Priority.max, sound: RawResourceAndroidNotificationSound('notification'),
     );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -352,7 +354,7 @@ class NotificationHelper {
       contentTitle: title, htmlFormatContentTitle: true,
     );
     AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      '6ammart', AppConstants.appName, importance: Importance.max,
+      'onestop', AppConstants.appName, importance: Importance.max,
       styleInformation: bigTextStyleInformation, priority: Priority.max, playSound: true,
       sound: const RawResourceAndroidNotificationSound('notification'),
     );
@@ -369,7 +371,7 @@ class NotificationHelper {
       summaryText: body, htmlFormatSummaryText: true,
     );
     final AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      '6ammart', AppConstants.appName,
+      'onestop', AppConstants.appName,
       largeIcon: FilePathAndroidBitmap(largeIconPath), priority: Priority.max, playSound: true,
       styleInformation: bigPictureStyleInformation, importance: Importance.max,
       sound: const RawResourceAndroidNotificationSound('notification'),

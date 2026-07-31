@@ -8,6 +8,8 @@ import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
+import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+
 class CartCountView extends StatelessWidget {
   final Item item;
   final Widget? child;
@@ -17,8 +19,25 @@ class CartCountView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<CartController>(builder: (cartController) {
+      bool isOutOfStock = item.stock != null && item.stock! <= 0 && (Get.find<SplashController>().configModel?.moduleConfig?.module?.stock ?? true);
       int cartQty = cartController.cartQuantity(item.id!);
       int cartIndex = cartController.isExistInCart(item.id, cartController.cartVariant(item.id!), false, null);
+
+      if (isOutOfStock && cartQty == 0) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall, vertical: 2),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+            border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            'out_of_stock'.tr,
+            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).colorScheme.error),
+          ),
+        );
+      }
+
       return cartQty != 0 ? Center(
         child: Container(
           width: 100,

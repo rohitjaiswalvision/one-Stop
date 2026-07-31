@@ -122,7 +122,15 @@ class SplashController extends GetxController implements GetxService {
     if(source == DataSourceEnum.local && !fromDemoReset) {
       response = await splashServiceInterface.getConfigData(source: DataSourceEnum.local);
       _handleConfigResponse(response, loadModuleData, loadLandingData, fromMainFunction, fromDemoReset, notificationBody, canRoute);
-      getConfigData(loadModuleData: loadModuleData, loadLandingData: loadLandingData, source: DataSourceEnum.client);
+      getConfigData(
+        notificationBody: notificationBody,
+        loadModuleData: loadModuleData,
+        loadLandingData: loadLandingData,
+        source: DataSourceEnum.client,
+        fromMainFunction: fromMainFunction,
+        fromDemoReset: fromDemoReset,
+        canRoute: canRoute,
+      );
 
     } else {
       response = await splashServiceInterface.getConfigData(source: DataSourceEnum.client);
@@ -134,11 +142,17 @@ class SplashController extends GetxController implements GetxService {
   Future<void> _handleConfigResponse(Response response, bool loadModuleData, bool loadLandingData, bool fromMainFunction, bool fromDemoReset, NotificationBodyModel? notificationBody, bool canRoute) async {
     if(response.statusCode == 200) {
       _data = response.body;
-      _configModel = ConfigModel.fromJson(response.body);
-      if(_configModel!.module != null) {
-        setModule(_configModel!.module);
-      }else if(GetPlatform.isWeb || (loadModuleData && _module != null)) {
-        setModule(GetPlatform.isWeb ? splashServiceInterface.getModule() : _module);
+      try {
+        _configModel = ConfigModel.fromJson(response.body);
+      } catch (e) {
+        print('Error parsing ConfigModel: $e');
+      }
+      if(_configModel != null) {
+        if(_configModel!.module != null) {
+          setModule(_configModel!.module);
+        }else if(GetPlatform.isWeb || (loadModuleData && _module != null)) {
+          setModule(GetPlatform.isWeb ? splashServiceInterface.getModule() : _module);
+        }
       }
       print('=====deeplink url: $_deeplinkRoute and canRoute: $canRoute');
       if(!canRoute || _deeplinkRoute != null) {
