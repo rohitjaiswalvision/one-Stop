@@ -377,7 +377,6 @@ class AppConstants {
   static const String isRestaurantRegister = 'onestop_store_registration';
   static const String userRegisterSuccess = 'onestop_user_registration_success';
   static const String suggestLogin = 'onestop_login_suggestion';
-
   ///taxi
   static const String taxiSearchHistory = 'onestop_taxi_search_history';
   static const String taxiSearchAddressHistory = 'onestop_taxi_search_address_history';
@@ -393,7 +392,6 @@ class AppConstants {
   static const String latitude = 'latitude';
   static const String longitude = 'longitude';
   static const String cookiesManagement = 'cookies_management';
-
   ///Ride Share
   static const String rideSearchAddressHistory = 'onestop_ride_search_address_history';
   static const String paymentType = 'paymentType';
@@ -470,12 +468,15 @@ class AppConstants {
   ///
   static const int idleDebounceDuration = 800;
 
+  /// The languages the app ships in. English must stay first: `main()` uses
+  /// `languages[0]` as the fallback locale, so any string a translation is
+  /// missing falls back to English rather than showing its raw key.
+  ///
+  /// Arabic, Spanish and Bengali were dropped — their bundles were ~600 strings
+  /// short of English, so picking them showed a half-English app.
   static List<LanguageModel> languages = [
     LanguageModel(imageUrl: Images.english, languageName: 'English', countryCode: 'US', languageCode: 'en'),
-    LanguageModel(imageUrl: Images.french, languageName: 'French', countryCode: 'FR', languageCode: 'fr'),
-    LanguageModel(imageUrl: Images.arabic, languageName: 'عربى', countryCode: 'SA', languageCode: 'ar'),
-    LanguageModel(imageUrl: Images.spanish, languageName: 'Spanish', countryCode: 'ES', languageCode: 'es'),
-    LanguageModel(imageUrl: Images.bengali, languageName: 'Bengali', countryCode: 'BN', languageCode: 'bn'),
+    LanguageModel(imageUrl: Images.french, languageName: 'Français', countryCode: 'FR', languageCode: 'fr'),
   ];
 
   static List<String> joinDropdown = [

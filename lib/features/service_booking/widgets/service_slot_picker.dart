@@ -38,12 +38,19 @@ class _ServiceSlotPickerState extends State<ServiceSlotPicker> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.find<ServiceBookingController>().initItem(
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final ServiceBookingController controller = Get.find<ServiceBookingController>();
+      await controller.initItem(
         itemId: widget.item.id!,
         atStore: widget.item.atStore ?? true,
         homeService: widget.item.homeService ?? false,
       );
+      // Reopened with a time already chosen: show it in the field so the customer
+      // sees what is booked instead of an empty box over a selected chip.
+      final ServiceSlot? existing = controller.selectedSlot(widget.item.id!);
+      if(mounted && existing != null) {
+        _timeController.text = ServiceSlot(start: existing.start).displayLabel;
+      }
     });
   }
 
@@ -64,6 +71,10 @@ class _ServiceSlotPickerState extends State<ServiceSlotPicker> {
       final List<ServiceSlot> slots = controller.slotsFor(itemId);
       final ServiceSlot? chosen = controller.selectedSlot(itemId);
       final List<Schedules> hours = _schedulesFor(selected);
+      // A provider with no weekly schedule at all tells us nothing about its hours —
+      // that is not the same as being closed today, and it must not lock the customer
+      // out of naming a time when the server happens to offer no slots either.
+      final bool hoursKnown = widget.store?.schedules?.isNotEmpty ?? false;
 
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('select_date'.tr, style: robotoMedium),
@@ -125,7 +136,7 @@ class _ServiceSlotPickerState extends State<ServiceSlotPicker> {
         Text('select_time_slot'.tr, style: robotoMedium),
         const SizedBox(height: Dimensions.paddingSizeSmall),
 
-        if(widget.store != null) ...[
+        if(hoursKnown) ...[
           _storeHoursLine(context, hours),
           const SizedBox(height: Dimensions.paddingSizeDefault),
         ],
@@ -172,7 +183,10 @@ class _ServiceSlotPickerState extends State<ServiceSlotPicker> {
             }).toList(),
           ),
 
-        if(widget.store != null && hours.isNotEmpty) ...[
+        // Offered whenever the day is not known to be closed. Without it a provider
+        // with no published slots and no schedule leaves nothing to select at all,
+        // and checkout keeps refusing the booking with no way forward.
+        if(hours.isNotEmpty || !hoursKnown) ...[
           const SizedBox(height: Dimensions.paddingSizeLarge),
           _manualTimeField(context, controller, itemId),
         ],
@@ -284,10 +298,13 @@ class _ServiceSlotPickerState extends State<ServiceSlotPicker> {
 
     final DateTime date = controller.selectedDate(itemId);
     final List<Schedules> hours = _schedulesFor(date);
-    final bool withinHours = hours.any((s) => DateConverter.isTimeWithinOpeningHours(time, s.openingTime, s.closingTime));
-    if(!withinHours) {
-      setState(() => _timeError = 'please_select_a_time_within_store_hours'.tr);
-      return;
+    // Only enforceable when the provider actually published hours for that day.
+    if(hours.isNotEmpty) {
+      final bool withinHours = hours.any((s) => DateConverter.isTimeWithinOpeningHours(time, s.openingTime, s.closingTime));
+      if(!withinHours) {
+        setState(() => _timeError = 'please_select_a_time_within_store_hours'.tr);
+        return;
+      }
     }
 
     if(_sameDay(date, DateTime.now()) && _isPast(time)) {

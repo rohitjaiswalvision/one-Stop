@@ -51,6 +51,17 @@ class LocalizationController extends GetxController implements GetxService {
 
   void loadCurrentLanguage() async {
     _locale = languageServiceInterface.getLocaleFromSharedPref();
+
+    // An account that picked a language the build no longer ships (Arabic,
+    // Spanish, Bengali) has a saved locale with no bundle behind it: every
+    // string would fall back to English while the layout kept that language's
+    // direction, and the picker would claim English was selected. Snap it back
+    // to the default and persist it so the next launch is consistent.
+    if(!AppConstants.languages.any((language) => language.languageCode == _locale.languageCode)) {
+      _locale = Locale(AppConstants.languages[0].languageCode!, AppConstants.languages[0].countryCode);
+      saveLanguage(_locale);
+    }
+
     _isLtr = _locale.languageCode != 'ar';
     _selectedLanguageIndex = languageServiceInterface.setSelectedIndex(AppConstants.languages, _locale);
     _languages = [];

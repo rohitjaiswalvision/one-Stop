@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sixam_mart/features/home/widgets/storefront/storefront_reorder_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/promo_code_banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/promotional_banner_view.dart';
@@ -32,6 +33,10 @@ class ServiceHomeScreen extends StatelessWidget {
           ],
         ),
       ),
+
+      // Buyable rail straight under the banner — the first thing a returning
+      // customer wants is what they booked last time.
+      const StorefrontReorderView(),
 
       // Service groups: Women's Salon, Cleaning, AC & Appliance Repair, ...
       const ServiceCatalogGridView(),

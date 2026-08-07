@@ -12,6 +12,7 @@ import 'package:sixam_mart/features/order/domain/models/order_model.dart';
 import 'package:sixam_mart/features/location/domain/models/zone_response_model.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
@@ -695,6 +696,13 @@ class _ButtonVisibilityHelper {
     if(order == null) {
       return false;
     }
+
+    // A service is booked for a slot, not dispatched to an address: nobody is en
+    // route, so there is no live journey the map could show.
+    if(ModuleHelper.isService(moduleType: order.moduleType)) {
+      return false;
+    }
+
     final trackableStatuses = ['pending', 'accepted', 'confirmed', 'processing', 'handover', 'picked_up'];
     final isPendingWithoutDigitalPayment = order.orderStatus == 'pending' && order.paymentMethod != 'digital_payment';
 

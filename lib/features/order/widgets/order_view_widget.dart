@@ -56,6 +56,10 @@ bool _isServicePaymentPending(OrderModel order) {
       && _isServiceOrderDone(order);
 }
 
+/// A service is booked for a slot, not dispatched to an address — nobody is en route,
+/// so the tracking map has no journey to show and the Track button is not offered.
+bool _isTrackable(OrderModel order) => order.moduleType != AppConstants.service;
+
 /// The orange chip shown beside/under the status chip while a completed service is unpaid.
 Widget _paymentPendingChip(BuildContext context) {
   return Container(
@@ -288,7 +292,7 @@ class OrderViewWidget extends StatelessWidget {
                                   ],
                                   const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                                  isRunning ? InkWell(
+                                  (isRunning && _isTrackable(order)) ? InkWell(
                                     onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(order.id, null)),
                                     child: Container(
                                       padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: ResponsiveHelper.isDesktop(context) ? Dimensions.fontSizeSmall : Dimensions.paddingSizeExtraSmall),
@@ -436,7 +440,7 @@ class OrderViewWidget extends StatelessWidget {
               ),
               const Spacer(),
 
-              if(isRunning)
+              if(isRunning && _isTrackable(order))
                 _actionButton(context, filled: true, icon: Images.tracking, text: isParcel ? 'track_delivery'.tr : 'track_order'.tr,
                     onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(order.id, null)))
               // else if(order.store != null && !isParcel)

@@ -11,6 +11,7 @@ import 'package:sixam_mart/features/profile/controllers/profile_controller.dart'
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
 import 'package:sixam_mart/features/service_booking/controllers/service_booking_controller.dart';
 import 'package:sixam_mart/features/service_booking/domain/models/service_booking_model.dart';
+import 'package:sixam_mart/features/service_booking/widgets/service_schedule_bottom_sheet.dart';
 import 'package:sixam_mart/features/address/domain/models/address_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/common/models/config_model.dart';
@@ -703,7 +704,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
                 // Never submit an incomplete selection — keep the user on the slot screen.
                 if(!serviceBookingController.isSelectionComplete(serviceItemIds)) {
-                  showCustomSnackBar('please_select_date_and_time_slot_for_the_service'.tr);
+                  _promptForMissingServiceSchedule(serviceItemIds, serviceBookingController, checkoutController.store);
                   return;
                 }
                 serviceBookings = serviceBookingController.buildServiceBookings(serviceItemIds);
@@ -898,6 +899,44 @@ print("Request: ${placeOrderBody.toJson()}");
       ));
     }
     return carts;
+  }
+
+  /// The confirm button refused because a service still has no date/time. Name the
+  /// service that is missing one and reopen its picker right there, instead of
+  /// leaving the customer to work out which service checkout is waiting on.
+  void _promptForMissingServiceSchedule(
+    List<int> serviceItemIds, ServiceBookingController serviceBookingController, Store? store,
+  ) {
+    final List<int> missing = serviceBookingController.missingSelectionIds(serviceItemIds);
+    final List<CartModel> serviceItems = _cartList!.whereType<CartModel>().where((c) => c.item?.id != null).toList();
+
+    Item? pending;
+    for(final CartModel cart in serviceItems) {
+      if(missing.contains(cart.item!.id)) {
+        pending = cart.item;
+        break;
+      }
+    }
+
+    if(pending == null) {
+      showCustomSnackBar('please_select_date_and_time_slot_for_the_service'.tr);
+      return;
+    }
+
+    // With a single service in the cart the name adds nothing; with several it is
+    // the only way to tell which one is unscheduled.
+    showCustomSnackBar(serviceItems.length > 1
+        ? '${'please_select_date_and_time_slot_for_the_service'.tr}: ${pending.name ?? ''}'
+        : 'please_select_date_and_time_slot_for_the_service'.tr);
+
+    if(ResponsiveHelper.isDesktop(context)) {
+      Get.dialog(Dialog(child: ServiceScheduleBottomSheet(item: pending, store: store)));
+    } else {
+      showModalBottomSheet(
+        context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
+        builder: (con) => ServiceScheduleBottomSheet(item: pending!, store: store),
+      );
+    }
   }
 
   /// One order body per service provider in the cart.

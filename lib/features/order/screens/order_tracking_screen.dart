@@ -52,6 +52,14 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
   bool showChatPermission = true;
   bool isHovered = false;
 
+  /// Statuses after which the order has reached its end, successfully or not.
+  /// There is no journey left to draw once it is in one of these.
+  static const Set<String> _finishedStatuses = {
+    'delivered', 'completed', 'canceled', 'failed', 'refunded', 'returned',
+  };
+
+  bool _isOrderFinished(OrderModel? track) => _finishedStatuses.contains(track?.orderStatus);
+
   void _loadData() async {
     await Get.find<LocationController>().getCurrentLocation(true, notify: false, defaultLatLng: LatLng(
       double.parse(AddressHelper.getUserAddressFromSharedPref()!.latitude!),
@@ -541,6 +549,17 @@ class OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsBi
   /// Fetches the route from deliveryman (or store/sender) → customer (or receiver) and draws the blue polyline.
   Future<void> _fetchAndDrawRoute(OrderModel track) async {
     if (!mounted) return;
+
+    // A finished order has no route left to show. Clear whatever was drawn while
+    // it was still in progress rather than leaving a stale line on the map — the
+    // last poll before completion can land after this screen is already open.
+    if (_isOrderFinished(track)) {
+      if (_polylines.isNotEmpty) {
+        setState(() => _polylines = HashSet<Polyline>());
+      }
+      return;
+    }
+
     try {
       // Determine origin: deliveryman location if available, else store or parcel sender address
       String? originLat, originLng;

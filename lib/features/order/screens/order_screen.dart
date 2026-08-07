@@ -142,9 +142,14 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
   Widget build(BuildContext context) {
     _isLoggedIn = AuthHelper.isLoggedIn();
     bool showModuleHeader = (haveTaxiModule || type.length > 1);
+    // Reached as a pushed route (the Account screen's order card) this needs a way
+    // back; mounted as a dashboard tab there is nothing to pop to, so the bar stays
+    // as it was and the inline module header keeps the screen title.
+    final bool canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: (showModuleHeader && !ResponsiveHelper.isDesktop(context)) ? null : CustomAppBar(title: 'my_orders'.tr, backButton: ResponsiveHelper.isDesktop(context)),
+      appBar: (showModuleHeader && !ResponsiveHelper.isDesktop(context) && !canPop) ? null
+          : CustomAppBar(title: 'my_orders'.tr, backButton: ResponsiveHelper.isDesktop(context) || canPop),
       endDrawer: const MenuDrawer(), endDrawerEnableOpenDragGesture: false,
       body: SafeArea(
         child: GetBuilder<OrderController>(
@@ -160,11 +165,15 @@ class OrderScreenState extends State<OrderScreen> with TickerProviderStateMixin 
                   padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                      child: Text('my_orders'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
-                    ),
-                    const SizedBox(height: Dimensions.paddingSizeSmall),
+                    // The app bar already carries the title when this screen was
+                    // pushed, so the inline one would only repeat it.
+                    if(!canPop) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                        child: Text('my_orders'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
+                      ),
+                      const SizedBox(height: Dimensions.paddingSizeSmall),
+                    ],
 
                     SizedBox(
                       height: 38,

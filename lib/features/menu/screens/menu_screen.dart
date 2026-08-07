@@ -162,7 +162,13 @@ class _MenuScreenState extends State<MenuScreen> {
                     infoCard(profileController, context, Images.loyaltyIcon, double.tryParse(profileController.userInfoModel!.loyaltyPoint.toString()) ?? 0, 'loyalty_points'.tr),
                     const SizedBox(width: Dimensions.paddingSizeDefault),
 
-                    infoCard(profileController, context, Images.orderProfile, double.tryParse(profileController.userInfoModel!.orderCount.toString()) ?? 0, 'orders'.tr),
+                    // The order count is the natural way into the order list — the
+                    // bottom bar no longer carries an Orders tab.
+                    infoCard(
+                      profileController, context, Images.orderProfile,
+                      double.tryParse(profileController.userInfoModel!.orderCount.toString()) ?? 0, 'orders'.tr,
+                      onTap: () => Get.toNamed(RouteHelper.getOrderRoute()),
+                    ),
                     const SizedBox(width: Dimensions.paddingSizeDefault),
 
                     infoCard(profileController, context, Images.walletProfile, double.tryParse(profileController.userInfoModel!.walletBalance.toString()) ?? 0, 'wallet_balance'.tr, isAmount: true),
@@ -372,9 +378,12 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  Widget infoCard(ProfileController profileController, BuildContext context, String image, double value, String title, {bool isAmount = false}) {
+  Widget infoCard(ProfileController profileController, BuildContext context, String image, double value, String title, {bool isAmount = false, VoidCallback? onTap}) {
     return  Expanded(
-      child: Container(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+        child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
@@ -404,6 +413,7 @@ class _MenuScreenState extends State<MenuScreen> {
             ),
           ),
         ]),
+        ),
       ),
     );
   }

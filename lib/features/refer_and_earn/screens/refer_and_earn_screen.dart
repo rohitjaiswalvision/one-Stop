@@ -104,6 +104,15 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
                       child: SizedBox(
                         width: Dimensions.webMaxWidth,
                         child: GetBuilder<ProfileController>(builder: (profileController) {
+                          // An account created before referrals were switched on comes
+                          // back with a null ref_code. Every use below reads it through
+                          // here rather than force-unwrapping, so a missing code shows
+                          // an empty state instead of throwing on Copy or sharing the
+                          // word "null" to a friend.
+                          final String refCode = profileController.userInfoModel?.refCode ?? '';
+                          final bool hasRefCode = refCode.isNotEmpty;
+                          final String referralLink = '${AppConstants.webHostedUrl}${RouteHelper.referAndEarn}?code=$refCode';
+
                           return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
                             const SizedBox(height: Dimensions.paddingSizeLarge),
 
@@ -179,21 +188,26 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
                                         child: Padding(
                                           padding: const EdgeInsets.only(left: Dimensions.paddingSizeLarge, right: Dimensions.paddingSizeLarge),
                                           child: Text(
-                                            profileController.userInfoModel != null ? profileController.userInfoModel!.refCode ?? '' : '',
-                                            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraLarge),
+                                            hasRefCode ? refCode : 'referral_code_not_available_yet'.tr,
+                                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                                            style: robotoMedium.copyWith(
+                                              fontSize: hasRefCode ? Dimensions.fontSizeExtraLarge : Dimensions.fontSizeSmall,
+                                              color: hasRefCode ? null : Theme.of(context).hintColor,
+                                            ),
                                           ),
                                         ),
                                       ),
                                       InkWell(
-                                        onTap: () {
-                                          if(profileController.userInfoModel!.refCode!.isNotEmpty){
-                                            Clipboard.setData(ClipboardData(text: '${AppConstants.webHostedUrl}${RouteHelper.referAndEarn}?code=${profileController.userInfoModel != null ? profileController.userInfoModel!.refCode : ''}'));
-                                            showCustomSnackBar('referral_code_copied'.tr, isError: false);
-                                          }
-                                        },
+                                        onTap: hasRefCode ? () {
+                                          Clipboard.setData(ClipboardData(text: referralLink));
+                                          showCustomSnackBar('referral_code_copied'.tr, isError: false);
+                                        } : null,
                                         child: Container(
                                           alignment: Alignment.center,
-                                          decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular( ResponsiveHelper.isDesktop(context) ? Dimensions.radiusDefault : 50)),
+                                          decoration: BoxDecoration(
+                                            color: hasRefCode ? Colors.blueAccent : Theme.of(context).disabledColor,
+                                            borderRadius: BorderRadius.circular( ResponsiveHelper.isDesktop(context) ? Dimensions.radiusDefault : 50),
+                                          ),
                                           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraLarge),
                                           margin: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
                                           child: Text('copy'.tr, style: robotoMedium.copyWith(color: Theme.of(context).cardColor, fontSize: Dimensions.fontSizeDefault)),
@@ -210,23 +224,25 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
                                 Wrap(children: [
 
                                   InkWell(
-                                    onTap: () {
-                                      SharePlus.instance.share(
-                                        ShareParams(
-                                          text: Get.find<SplashController>().configModel?.appUrlAndroid != null ? '${AppConstants.appName} ${'referral_code'.tr}: ${profileController.userInfoModel!.refCode} \n${'download_app_from_this_link'.tr}: ${Get.find<SplashController>().configModel?.appUrlAndroid}'
-                                              : '${AppConstants.webHostedUrl}${RouteHelper.referAndEarn}?code=${profileController.userInfoModel != null ? profileController.userInfoModel!.refCode : ''}',
-                                              // : '${AppConstants.appName} ${'referral_code'.tr}: ${profileController.userInfoModel!.refCode}',
+                                    onTap: hasRefCode ? () {
+                                      final String? storeUrl = Get.find<SplashController>().configModel?.appUrlAndroid;
+                                      SharePlus.instance.share(ShareParams(
+                                        text: storeUrl != null
+                                            ? '${AppConstants.appName} ${'referral_code'.tr}: $refCode \n${'download_app_from_this_link'.tr}: $storeUrl'
+                                            : referralLink,
+                                      ));
+                                    } : null,
+                                    child: Opacity(
+                                      opacity: hasRefCode ? 1 : 0.4,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Theme.of(context).cardColor,
+                                          boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.2), blurRadius: 5)],
                                         ),
-                                      );
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Theme.of(context).cardColor,
-                                        boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha: 0.2), blurRadius: 5)],
+                                        padding: const EdgeInsets.all(7),
+                                        child: const Icon(Icons.share),
                                       ),
-                                      padding: const EdgeInsets.all(7),
-                                      child: const Icon(Icons.share),
                                     ),
                                   )
                                 ]),

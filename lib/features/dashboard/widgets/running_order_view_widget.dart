@@ -4,6 +4,7 @@ import 'package:sixam_mart/common/models/ongoing_order_model.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/ride_share_module/ride_order/controllers/ride_controller.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
@@ -13,6 +14,16 @@ class RunningOrderViewWidget extends StatelessWidget {
   final List<OrderData> reversOrder;
   final Function onOrderTap;
   const RunningOrderViewWidget({super.key, required this.reversOrder, required this.onOrderTap});
+
+  /// Where the arrow lands. A service is booked for a slot rather than dispatched
+  /// to an address, so there is no journey to follow — it opens the booking itself
+  /// instead of the tracking map. `OrderData` carries no module, but this sheet
+  /// only ever lists the current module's running orders.
+  void _openRunningOrder(int? orderId) {
+    Get.toNamed(ModuleHelper.isService()
+        ? RouteHelper.getOrderDetailsRoute(orderId)
+        : RouteHelper.getOrderTrackingRoute(orderId, null));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +169,7 @@ class RunningOrderViewWidget extends StatelessWidget {
                                   }
                                   if(orderType == 'order') {
                                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                                      Get.toNamed(RouteHelper.getOrderTrackingRoute(reversOrder[index].id, null));
+                                      _openRunningOrder(reversOrder[index].id);
                                     });
                                   } else if(orderType == 'ride') {
                                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -175,7 +186,7 @@ class RunningOrderViewWidget extends StatelessWidget {
                                   }
                                   if(orderType == 'order') {
                                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                                      Get.toNamed(RouteHelper.getOrderTrackingRoute(reversOrder[index].id, null));
+                                      _openRunningOrder(reversOrder[index].id);
                                     });
                                   } else if(orderType == 'ride') {
                                     WidgetsBinding.instance.addPostFrameCallback((_) {

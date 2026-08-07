@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:sixam_mart/common/models/ongoing_order_model.dart';
 import 'package:sixam_mart/common/widgets/login_suggestion_bottomsheet.dart';
-import 'package:sixam_mart/common/widgets/ride_cart.dart';
 import 'package:sixam_mart/features/dashboard/widgets/payment_incomplete_bottomsheet.dart';
-import 'package:sixam_mart/features/rental_module/common/widgets/taxi_cart_widget.dart';
 import 'package:sixam_mart/features/dashboard/widgets/store_registration_success_bottom_sheet.dart';
 import 'package:sixam_mart/features/home/controllers/home_controller.dart';
 import 'package:sixam_mart/features/location/controllers/location_controller.dart';
@@ -18,7 +15,10 @@ import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/address/screens/address_screen.dart';
 import 'package:sixam_mart/features/auth/controllers/auth_controller.dart';
-import 'package:sixam_mart/features/dashboard/widgets/bottom_nav_item_widget.dart';
+import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
+import 'package:sixam_mart/features/dashboard/widgets/storefront_bottom_nav.dart';
+import 'package:sixam_mart/features/dashboard/widgets/storefront_nav_icons.dart';
+import 'package:sixam_mart/features/notification/controllers/notification_controller.dart';
 import 'package:sixam_mart/features/parcel/controllers/parcel_controller.dart';
 import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/rental_module/rental_cart_screen/taxi_cart_screen.dart';
@@ -29,8 +29,6 @@ import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/helper/taxi_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
-import 'package:sixam_mart/util/images.dart';
-import 'package:sixam_mart/common/widgets/cart_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_dialog.dart';
 import 'package:sixam_mart/common/widgets/custom_snackbar.dart';
 import 'package:sixam_mart/features/checkout/widgets/congratulation_dialogue.dart';
@@ -248,88 +246,95 @@ class DashboardScreenState extends State<DashboardScreen> {
                                 isRide ? OfferScreen(selectedIndex: widget.rideOfferIndex) : OrderScreen(index: isTaxi ? 'trips' : 'orders'),
                                 const MenuScreen()
                               ];
-                              return Container(
-                                width: size.width, height: GetPlatform.isIOS ? 80 : 65,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).cardColor,
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(Dimensions.radiusLarge)),
-                                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 1)],
-                                ),
-                                child: Stack(children: [
+                              // Storefront tab bar: flat strip, cart as a plain
+                              // destination rather than a floating button. Hidden
+                              // while the address suggestion or the running-order
+                              // sheet owns the bottom of the screen.
+                              final bool hideNav = ResponsiveHelper.isDesktop(context)
+                                  || (widget.fromSplash && Get.find<LocationController>().showLocationSuggestion && active)
+                                  || (orderController.showBottomSheet && orderController.runningOrderModel != null
+                                      && orderController.runningOrderModel!.orders!.isNotEmpty && _isLogin);
 
-                                  Center(
-                                    heightFactor: 0.6,
-                                    child: ResponsiveHelper.isDesktop(context) ? null : (widget.fromSplash && Get.find<LocationController>().showLocationSuggestion && active) ? null
-                                      : (orderController.showBottomSheet && orderController.runningOrderModel != null && orderController.runningOrderModel!.orders!.isNotEmpty && _isLogin) ? const SizedBox() : Container(
-                                        width: 60, height: 60,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Theme.of(context).cardColor, width: 5),
-                                          borderRadius: BorderRadius.circular(30),
-                                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 1)],
-                                        ),
-                                        child: FloatingActionButton(
-                                          backgroundColor: Theme.of(context).primaryColor,
-                                          onPressed: () async {
-                                            if(isParcel) {
-                                              showModalBottomSheet(
-                                                context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
-                                                builder: (con) => ParcelBottomSheetWidget(parcelCategoryList: Get.find<ParcelController>().parcelCategoryList),
-                                              );
-                                            } else if(isRide) {
-                                              if(AuthHelper.isLoggedIn()) {
-                                                await Get.find<RideController>().getCurrentRideStatus(fromRefresh: true, showCustomLoader: true);
-                                              } else {
-                                                Get.dialog(const LoginWarningDialog());
-                                              }
-                                            } else if(isTaxiWithCache) {
-                                              Get.to(()=> const TaxiCartScreen());
+                              if(hideNav) {
+                                return SizedBox(width: size.width, height: GetPlatform.isIOS ? 80 : 65);
+                              }
+
+                              // Nested builders so the badges repaint on their own
+                              // controller's update(), not only when a module or an
+                              // order changes.
+                              return GetBuilder<CartController>(builder: (cartController) {
+                                return GetBuilder<NotificationController>(builder: (notificationController) {
+                                  return StorefrontBottomNav(
+                                    currentIndex: _pageIndex,
+                                    height: GetPlatform.isIOS ? 80 : 65,
+                                    items: [
+                                      StorefrontNavItem.material(
+                                        icon: Icons.home_outlined, activeIcon: Icons.home_rounded,
+                                        label: 'shop'.tr, pageIndex: 0, onTap: () => _setPage(0),
+                                      ),
+                                      StorefrontNavItem.material(
+                                        icon: isParcel ? Icons.location_on_outlined : Icons.favorite_border,
+                                        activeIcon: isParcel ? Icons.location_on : Icons.favorite,
+                                        label: isParcel ? 'address'.tr : isTaxi ? 'wishlist'.tr : isRide ? 'my_activity'.tr : 'my_items'.tr,
+                                        pageIndex: 1, onTap: () => _setPage(1),
+                                      ),
+
+                                      /// Assistant seat. Parcel, taxi and ride have no
+                                      /// support desk of their own, so there it stays
+                                      /// the cart it replaced.
+                                      StorefrontNavItem(
+                                        iconBuilder: (color, isSelected) => (isParcel || isTaxiWithCache || isRide)
+                                            ? Icon(Icons.shopping_cart_outlined, size: 25, color: color)
+                                            : StorefrontNavIcons.assistant(size: 25),
+                                        label: (isParcel || isTaxiWithCache || isRide) ? 'cart'.tr : 'ask_sparky'.tr,
+                                        badgeCount: (isParcel || isTaxiWithCache || isRide) ? cartController.cartList.length : 0,
+                                        onTap: () async {
+                                          if(isParcel) {
+                                            showModalBottomSheet(
+                                              context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
+                                              builder: (con) => ParcelBottomSheetWidget(parcelCategoryList: Get.find<ParcelController>().parcelCategoryList),
+                                            );
+                                          } else if(isRide) {
+                                            if(AuthHelper.isLoggedIn()) {
+                                              await Get.find<RideController>().getCurrentRideStatus(fromRefresh: true, showCustomLoader: true);
                                             } else {
-                                              Get.toNamed(RouteHelper.getCartRoute());
+                                              Get.dialog(const LoginWarningDialog());
                                             }
-                                          },
-                                          elevation: 0,
-                                          child: isTaxiWithCache
-                                              ? TaxiCartWidget(color: Theme.of(context).cardColor, size: 22)
-                                              : isParcel ? Icon(CupertinoIcons.add, size: 34, color: Theme.of(context).cardColor)
-                                              : isRide ? const RideCart()
-                                              : CartWidget(color: Theme.of(context).cardColor, size: 22),
-                                        ),
-                                    ),
-                                  ),
+                                          } else if(isTaxiWithCache) {
+                                            Get.to(() => const TaxiCartScreen());
+                                          } else {
+                                            Get.toNamed(RouteHelper.getSupportRoute());
+                                          }
+                                        },
+                                      ),
 
-                                  ResponsiveHelper.isDesktop(context) ? const SizedBox() : (widget.fromSplash && Get.find<LocationController>().showLocationSuggestion && active) ? const SizedBox()
-                                  : (orderController.showBottomSheet && orderController.runningOrderModel != null && orderController.runningOrderModel!.orders!.isNotEmpty && _isLogin) ? const SizedBox() : Center(
-                                    child: SizedBox(
-                                        width: size.width, height: 80,
-                                        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                                          BottomNavItemWidget(
-                                            title: 'home'.tr, selectedIcon: Images.homeSelect,
-                                            unSelectedIcon: Images.homeUnselect, isSelected: _pageIndex == 0,
-                                            onTap: () => _setPage(0),
-                                          ),
-                                          BottomNavItemWidget(
-                                            title: isParcel ? 'address'.tr : isTaxi ? 'wishlist'.tr : isRide ? 'my_activity'.tr  : 'favourite'.tr,
-                                            selectedIcon: isParcel ? Images.addressSelect : isRide ? Images.orderSelect : Images.favouriteSelect,
-                                            unSelectedIcon: isParcel ? Images.addressUnselect : isRide ? Images.orderUnselect : Images.favouriteUnselect,
-                                            isSelected: _pageIndex == 1, onTap: () => _setPage(1),
-                                          ),
-                                          Container(width: size.width * 0.2),
-                                          BottomNavItemWidget(
-                                            title: isTaxi ? 'trips'.tr : isRide ? 'my_offers'.tr  : 'orders'.tr,
-                                            selectedIcon: isRide ? Images.offerSelect : Images.orderSelect,
-                                            unSelectedIcon: isRide ? Images.offerUnSelect : Images.orderUnselect,
-                                            isSelected: _pageIndex == 3, onTap: () => _setPage(3),
-                                          ),
-                                          BottomNavItemWidget(
-                                            title: 'menu'.tr, selectedIcon: Images.menu, unSelectedIcon: Images.menu,
-                                            isSelected: _pageIndex == 4, onTap: () => _setPage(4),
-                                          ),
-                                        ]),
-                                    ),
-                                  ),
-                                ],
-                                ),
-                              );
+                                      /// Four dots = everything the zone offers. With
+                                      /// more than one module that is the module grid;
+                                      /// with one it is that module's departments.
+                                      StorefrontNavItem(
+                                        iconBuilder: (color, isSelected) => StorefrontNavIcons.grid(size: 25, color: color),
+                                        label: 'services'.tr,
+                                        onTap: () {
+                                          if(splashController.selectableModuleIndexes.length >= 2 && splashController.configModel!.module == null) {
+                                            splashController.removeModule();
+                                            Get.find<StoreController>().resetStoreData();
+                                            _setPage(0);
+                                          } else {
+                                            Get.toNamed(RouteHelper.getCategoryRoute());
+                                          }
+                                        },
+                                      ),
+
+                                      StorefrontNavItem.material(
+                                        icon: Icons.person_outline, activeIcon: Icons.person,
+                                        label: 'account'.tr, pageIndex: 4,
+                                        showDot: notificationController.hasNotification,
+                                        onTap: () => _setPage(4),
+                                      ),
+                                    ],
+                                  );
+                                });
+                              });
                             }
                           ),
                         ),

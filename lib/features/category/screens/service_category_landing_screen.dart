@@ -10,7 +10,6 @@ import 'package:sixam_mart/features/category/widgets/service_sub_category_card.d
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
-import 'package:sixam_mart/theme/premium_tokens.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
@@ -64,7 +63,6 @@ class _ServiceCategoryLandingScreenState extends State<ServiceCategoryLandingScr
   @override
   Widget build(BuildContext context) {
     final bool isDesktop = ResponsiveHelper.isDesktop(context);
-
     return GetBuilder<ServiceCategoryController>(builder: (ServiceCategoryController controller) {
       final List<Item>? items = controller.itemsOf(_sectionId);
 

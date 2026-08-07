@@ -2375,5 +2375,17 @@
   "camera": "Camera",
   "gallery": "Gallery",
   "similar_products": "Similar Products",
-  "cart_cleared": "Cart cleared"
+  "cart_cleared": "Cart cleared",
+  "shop": "Shop",
+  "my_items": "My Items",
+  "account": "Account",
+  "departments": "Departments",
+  "sponsored": "Sponsored",
+  "pickup_or_delivery": "Pickup or delivery?",
+  "reorder_your_essentials": "Reorder your essentials",
+  "shop_my_items": "Shop My Items",
+  "get_it_fast": "Get as soon as 1 hour",
+  "set_your_location": "Set your location",
+  "ask_sparky": "Ask Sparky",
+  "referral_code_not_available_yet": "Referral code not available yet"
 }

@@ -34,10 +34,14 @@ class ServiceBookingController extends GetxController implements GetxService {
   /// the slots have loaded, or if the server omits it.
   int? slotDurationFor(int itemId) => _slots[itemId]?.duration;
 
-  /// Seed defaults for an item and load its slots for today.
+  /// Seed defaults for an item and load its slots.
   /// `atStore`/`homeService` come from the Item; default location honours them.
+  ///
+  /// A date the customer already picked is kept: this runs every time the picker
+  /// is mounted, and resetting to today would silently move an existing booking
+  /// (and then drop its slot, since today rarely offers the same one).
   Future<void> initItem({required int itemId, required bool atStore, required bool homeService, DateTime? date}) async {
-    _selectedDate[itemId] = date ?? _stripTime(DateTime.now());
+    _selectedDate[itemId] = date ?? _selectedDate[itemId] ?? _stripTime(DateTime.now());
     _locationType.putIfAbsent(itemId, () => atStore ? 'store' : (homeService ? 'home' : 'store'));
     await getAvailableSlots(itemId);
   }
@@ -129,13 +133,18 @@ class ServiceBookingController extends GetxController implements GetxService {
   }
 
   /// True only when every service item has a complete {date, slot, location}.
-  bool isSelectionComplete(List<int> itemIds) {
-    if (itemIds.isEmpty) return false;
+  bool isSelectionComplete(List<int> itemIds) => missingSelectionIds(itemIds).isEmpty && itemIds.isNotEmpty;
+
+  /// The item ids still without a complete {date, slot, location}, in the order
+  /// given. Checkout uses this to name the service it is waiting on and reopen
+  /// that item's picker instead of only saying something is missing.
+  List<int> missingSelectionIds(List<int> itemIds) {
+    final List<int> missing = [];
     for (final int id in itemIds) {
       final ServiceBooking? b = bookingFor(id);
-      if (b == null || !b.isComplete) return false;
+      if (b == null || !b.isComplete) missing.add(id);
     }
-    return true;
+    return missing;
   }
 
   /// Whether `home` location currently requires a saved address id.
