@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/common/models/choose_us_model.dart';
 import 'package:sixam_mart/features/language/domain/models/language_model.dart';
 import 'package:sixam_mart/util/images.dart';
-
+//123
 class AppConstants {
   static const String appName = 'One Stop VV';
   static const double appVersion = 3.9; ///Flutter sdk 3.41.8
